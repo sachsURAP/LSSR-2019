@@ -93,7 +93,12 @@ L.m <- nls(HG ~ .0275 + bet * Dose^2 * exp(-lam * Dose),
 summary(L.m)
 
 L.c <- coef(L.m)  # calibrated central values of the 2 parameters
-L.C <- function(Dose, L) L.c[1] * Dose ^2 * exp(-L.c[2] * Dose)
+L.C <- function(Dose, L) L.c[1] * Dose ^2 * exp(-L.c[2] * Dose) 
+# EDWARD: Not sure what the function on line 96 is supposed to output.
+#         Preferred function syntax is: foo <- function(*args) {
+#                                                  - function body -
+#                                                  - return -
+#                                       }
 
 # HHs=function(Dose,L,index){                 #Calculate slopes fpr later use in calculating I(d)
 #   0.01*((1-index)*cc[1]*L*exp(-cc[2]*L)+index*cc[3]*(2*Dose-cc[4]*Dose^2)*exp(-cc[4]*Dose)+
@@ -136,14 +141,15 @@ L.C <- function(Dose, L) L.c[1] * Dose ^2 * exp(-L.c[2] * Dose)
 #   out = ode(yini,times = d, dE, pars, method = "radau")
 #   return(out)
 #}##### End from Dae 
+
 #######Next: visual checks to see if our calibration is consistent with 16Chang, .93Alp, .94Alp and 17Cuc
 ## Put various values in our calibrated model to check with numbers and graphs in these references
-L=1.6; Dose=dfrL[1:8,"Dose"];HGe=dfrL[1:8,"HG"]#He in .93Alp. HGe=experimental HG.
-L=.4; Dose=dfrL[9:12,"Dose"];HGe=dfrL[9:12,"HG"]#same for protons. 
-#L=193;Dose=dfrHZE[1:7,"Dose"]; HGe=dfr[1:7,"HG"] #same for Fe
-plot(c(0,7),c(0,1),col='red', ann='F')# 
-lines(Dose,L.C(Dose,L)+.0275)
-points(Dose,HGe)#looks great for Helium, OK for protons; very good for iron. Mark: run some checks like these
+L <- 1.6; Dose <- dfrL[1:8, "Dose"]; HGe <- dfrL[1:8, "HG"]  # He in .93Alp. HGe = experimental HG.
+L <- .4; Dose <- dfrL[9:12, "Dose"]; HGe <- dfrL[9:12, "HG"]  # same for protons. 
+#  L=193; Dose = dfrHZE[1:7, "Dose"]; HGe = dfr[1:7,"HG"] # same for Fe
+plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
+lines(Dose, L.C(Dose, L) + .0275)
+points(Dose, HGe) # looks great for Helium, OK for protons; very good for iron. Mark: run some checks like these
 
 #Call:
 # lm(formula = HG ~ LL + QQ)
