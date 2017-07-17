@@ -19,7 +19,7 @@
 #  set of conventions, e.g. a style guide. One common convention is to keep
 #  lines under 80 characters, with a few exceptions, like our dfr() call. 
 #  Google has written a set of style guides for many coding languages that
-#  accurately reflect the style conventions of most of their users.
+#  accurately reflect the style conventions of most programmers.
 #  I recommend reading and mostly adhering to Google's guide on R, 
 #  located here: https://google.github.io/styleguide/Rguide.xml
 #
