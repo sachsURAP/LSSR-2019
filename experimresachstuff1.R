@@ -6,6 +6,16 @@
 #"16Chang"=Chang et al. "Harderian Gland Tumorigenesis: Low-Dose and LET Response." Radiat Res 185(5): 449-460. (2016).  
 #"16Srn"=1.	Siranart et al."Mixed Beam Murine Harderian Gland Tumorigenesis: Predicted Dose-Effect Relationships if neither Synergism nor Antagonism Occurs." Radiat Res 186(6): 577-591. (2016).  
 #"17Cuc"=Cucinotta & Cacao. "Non-Targeted Effects Models Predict Significantly Higher Mars Mission Cancer Risk than Targeted Effects Models." Sci Rep 7(1): 1832. (2017).  PMC5431989
+
+## NOTE FROM EDWARD ##
+# To handle the error message: Error in nlsModel(formula, mf, start, wts) : 
+#                              singular gradient matrix at initial parameter estimates
+#                              Called from: nlsModel(formula, mf, start, wts)  
+# 1. change algorithm argument in the nls() call
+# 2. if changing algorithms fail, write out least-square function and call optim() on it
+#    optim() brute forces a numerical approximation on it
+
+
 rm(list=ls())
 dfr=data.frame( #data used in 16Chang  
   Dose=c(0.2,0.4,0.6,1.2,2.4,3.2,5.1,7,0.05,0.1,0.15,0.2,0.4,0.8,1.6,0.05,0.1,0.2,0.4,0,0.1,0.2,0.4,0.8,1.6,0.4,0.8,1.6,3.2,0.05,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.04,0.08,0.16,0.32,0.033,0.066,0.13,0.26,0.52,.2, .4, .6),
