@@ -15,6 +15,10 @@
 # 2. if changing algorithms fail, write out least-square function and call optim() on it
 #    optim() brute forces a numerical approximation on it
 
+##Note from Mark
+#plotted the ratio of the terms in eq. 8 vs. L 
+#look at line 95-99 and 152-160
+
 
 rm(list=ls())
 dfr=data.frame( #data used in 16Chang  
@@ -64,12 +68,17 @@ summary(HZEm,correlation=T)#; vcov(HZEm)# parameter values & accuracy; variance-
 HZEc=coef(HZEm)#calibrated central values of the 3 parameters.  Next is the IDER, =0 at dose 0
 HZEC=function(Dose,L) 1-exp(-0.01*(HZEc[1]*L*Dose*exp(-HZEc[2]*L)+(1-exp(-150*phi*Dose/L))*HZEc[3]))#Calibrated IDER
 
-
+###me trying to replicate cuc model
 ##sig0 guess tweaked a little
 #if sig0 set to 66.69 (probable value based on cucinotta), I get error message
 # :step factor 0.000488281 reduced below 'minFactor' of 0.000976562
 # this may have some mistakes
-#also removed factor of (1-exp(-N_Bys)) from the NTE term to simplify it 
+#also removed factor of (1-exp(-N_Bys)) from the NTE term to simplify it
+
+P=function(Katz) (1-exp(-Katz/750))^3
+Ps=function(Katz) (1-exp(-Katz/598))^3
+
+
 cucIDERm=nls(HG~1-exp(-((.0268+
                         (6.24*Dose*sig0*((1-exp(-Katz/Kappa))^3)/L)
                       +(.0929*Dose-.0045*Dose*Dose)*(1-(1-exp(-Katz/Kappa))^3)
@@ -79,15 +88,36 @@ cucIDERm=nls(HG~1-exp(-((.0268+
              start=c(sig0=100, n0=0.00048, n1=0.00281, sig0s=16.44, KappaS=598, Kappa=750))
 summary(cucIDERm, correlation = T);
 keek=coef(cucIDERm)
+
+
 ayy=function(Dose, Katz, L) 1-exp(-((.0268+(6.24*Dose*keek[1]*((1-exp(-Katz/keek[6]))^3)/L)
    +(.0929*Dose-.0045*Dose*Dose)*(1-(1-exp(-Katz/keek[6]))^3)
    +keek[2]*L*exp(-1*keek[3]*L))
   *(1-(1-exp(-1/(1-(1-exp(-Katz/keek[5]))^3)))^3)*exp(-keek[4]*((1-exp(-Katz/keek[5]))^3)*6.24*Dose/L)))
 
+
 ayy1=function(Dose, Katz, L) 1-exp(-((.0268+(6.24*Dose*66.69*((1-exp(-Katz/750))^3)/L)
                                      +(.0929*Dose-.0045*Dose*Dose)*(1-(1-exp(-Katz/750))^3)
-                                     +.00048*L*exp(-1*.00281*L)*(1-exp(6.24*Dose*24/L)))
-                                    *(1-(1-exp(-1/(1-(1-exp(-Katz/598))^3)))^3)*exp(-16.44*((1-exp(-Katz/598))^3)*6.24*Dose/L)))
+                                     +.00048*L*exp(-1*.00281*L))
+                                    *(1-(1-exp(-Dose/2.6)^3))))
+
+
+ayy2=function(Dose, Katz, L) 1-exp(-((.0268+(6.24*Dose*66.69*((1-exp(-Katz/750))^3)/L)
+                                      +(.0929*Dose-.0045*Dose^2)*(1-(1-exp(-Katz/750))^3)
+                                      +.00048*L*exp(-1*.00281*L))
+                                     *(1-(1-exp(-1/(1-(1-exp(-Katz/598))^3)))^3)*exp(-16.44*((1-exp(-Katz/598))^3)*6.24*Dose/L)))
+
+ayy3=function(Dose, Katz, L) 1-exp(-((.0268+(.0929*Dose-(.0045*Dose^2)
+                                            +.00048*L*exp(-1*.00281*L))
+                                     *(1-(1-exp(-1/(1-(1-exp(-Katz/598))^3)))^3)*exp(-16.44*((1-exp(-Katz/598))^3)*6.24*Dose/L))))
+##end trying to model cuc
+
+###sensitivity of alpha_gamma stuff
+hurdur=function(Dose, L, Katz)  (.0929*(1-((1-exp(-Katz/750))^3))*L)/(6.24*66.69*((1-exp(-Katz/750))^3))
+
+###
+
+
 ###########Looks good up to here; next need Z<3 model. Have good one; still looking if there is a better one
 dfrL=subset(dfra,Z<=3)#for Light ions
 L.m=nls(HG~.0275+bet*Dose^2*exp(-lam*Dose),data=dfrL,weights=NWeight,start=list(bet=5,lam=.2))
@@ -136,16 +166,34 @@ L.C=function(Dose,L) L.c[1]*Dose^2*exp(-L.c[2]*Dose)
 #   out = ode(yini,times = d, dE, pars, method = "radau")
 #   return(out)
 #}##### End from Dae 
+
+
+###plotting the ratio of the addding terms in eq. 8 as y and L as x
+plot(c(0,1000), c(0,1), col='orange', ann='F')
+#L1=dfrHZE[,"L"]; Dose1=dfrHZE[,"Dose"]; Katz1=dfrHZE[,"Katz"]; HGe1=dfrHZE[,"HG"] 
+L3=c(dfrHZE[12:16, "L"], dfrHZE[24:32, "L"],dfrHZE[1:7, "L"], dfrHZE[21:23, "L"],dfrHZE[8:11, "L"],dfrHZE[17:20, "L"],dfrHZE[33:35, "L"])
+D1=c(dfrHZE[12:16, "Dose"], dfrHZE[24:32, "Dose"],dfrHZE[1:7, "Dose"], dfrHZE[21:23, "Dose"],dfrHZE[8:11, "Dose"],dfrHZE[17:20, "Dose"],dfrHZE[33:35, "Dose"])
+K1=c(dfrHZE[12:16, "Katz"], dfrHZE[24:32, "Katz"],dfrHZE[1:7, "Katz"], dfrHZE[21:23, "Katz"],dfrHZE[8:11, "Katz"],dfrHZE[17:20, "Katz"],dfrHZE[33:35, "Katz"])
+lines(L3, hurdur(D1, L3, K1), col='pink')
+points(L3, hurdur(D1, L3, K1))
+###
+
+
 #######Next: visual checks to see if our calibration is consistent with 16Chang, .93Alp, .94Alp and 17Cuc
 ## Put various values in our calibrated model to check with numbers and graphs in these references
-L=1.6; Dose=dfrL[1:8,"Dose"];HGe=dfrL[1:8,"HG"]#He in .93Alp. HGe=experimental HG.
-#L=.4; Dose=dfrL[9:12,"Dose"];HGe=dfrL[9:12,"HG"]#same for protons. 
+#L=1.6; Dose=dfrL[1:8,"Dose"];HGe=dfrL[1:8,"HG"]#He in .93Alp. HGe=experimental HG.
+L=.4; Dose=dfrL[9:12,"Dose"];HGe=dfrL[9:12,"HG"]#same for protons. 
 #L=193;Dose=dfrHZE[1:7,"Dose"]; HGe=dfr[1:7,"HG"] #same for Fe
-Katz=dfrL[1:8,"Katz"]
+#Katz=dfrL[1:8,"Katz"]
+Katz=dfrL[9:12,"Katz"]
+#Katz=dfrHZE[1:7,"Katz"]
 plot(c(0,7),c(0,1),col='red', ann='F')
-lines(Dose,L.C(Dose,L)+.0275)
-lines(Dose, ayy1(Dose,L, Katz), col='green')
-lines(Dose, ayy(Dose, L, Katz), col='blue')#I may have made an error, as this estimation by cucinotta seems like a major underestimation.
+lines(Dose, HZEC(Dose, L)) #Z>3
+lines(Dose,L.C(Dose,L)+.0275, col='green') #Z<3
+lines(Dose, ayy3(Dose, Katz, L), col='red')
+lines(Dose, ayy2(Dose, Katz, L), col='pink')
+lines(Dose, ayy1(Dose, Katz, L), col='yellow')
+lines(Dose, ayy(Dose, Katz, L), col='blue')#I may have made an error, as this estimation by cucinotta seems like a major underestimation.
 points(Dose,HGe)#looks great for Helium, OK for protons; very good for iron. Mark: run some checks like these
 
 #Call:
