@@ -70,7 +70,7 @@ HZEC=function(Dose,L) 1-exp(-0.01*(HZEc[1]*L*Dose*exp(-HZEc[2]*L)+(1-exp(-150*ph
 # :step factor 0.000488281 reduced below 'minFactor' of 0.000976562
 # this may have some mistakes
 #also removed factor of (1-exp(-N_Bys)) from the NTE term to simplify it 
-cucIDERm=nls(HG~1-exp(-((.0268+
+cucIDERm <- nls(HG~1-exp(-((.0268+
                         (6.24*Dose*sig0*((1-exp(-Katz/Kappa))^3)/L)
                       +(.0929*Dose-.0045*Dose*Dose)*(1-(1-exp(-Katz/Kappa))^3)
                        +n0*L*exp(-1*n1*L))
