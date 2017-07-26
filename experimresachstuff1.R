@@ -73,10 +73,7 @@ HZEC=function(Dose,L) 1-exp(-0.01*(HZEc[1]*L*Dose*exp(-HZEc[2]*L)+(1-exp(-150*ph
 #if sig0 set to 66.69 (probable value based on cucinotta), I get error message
 # :step factor 0.000488281 reduced below 'minFactor' of 0.000976562
 # this may have some mistakes
-<<<<<<< HEAD
-#also removed factor of (1-exp(-N_Bys)) from the NTE term to simplify it 
-cucIDERm <- nls(HG~1-exp(-((.0268+
-=======
+
 #also removed factor of (1-exp(-N_Bys)) from the NTE term to simplify it
 
 P=function(Katz) (1-exp(-Katz/750))^3
@@ -84,7 +81,6 @@ Ps=function(Katz) (1-exp(-Katz/598))^3
 
 
 cucIDERm=nls(HG~1-exp(-((.0268+
->>>>>>> 2e47d5289a71226239a5c2ed93ebec476199c65d
                         (6.24*Dose*sig0*((1-exp(-Katz/Kappa))^3)/L)
                       +(.0929*Dose-.0045*Dose*Dose)*(1-(1-exp(-Katz/Kappa))^3)
                        +n0*L*exp(-1*n1*L))
@@ -187,11 +183,11 @@ points(L3, hurdur(D1, L3, K1))
 #######Next: visual checks to see if our calibration is consistent with 16Chang, .93Alp, .94Alp and 17Cuc
 ## Put various values in our calibrated model to check with numbers and graphs in these references
 #L=1.6; Dose=dfrL[1:8,"Dose"];HGe=dfrL[1:8,"HG"]#He in .93Alp. HGe=experimental HG.
-L=.4; Dose=dfrL[9:12,"Dose"];HGe=dfrL[9:12,"HG"]#same for protons. 
-#L=193;Dose=dfrHZE[1:7,"Dose"]; HGe=dfr[1:7,"HG"] #same for Fe
+# L=.4; Dose=dfrL[9:12,"Dose"];HGe=dfrL[9:12,"HG"]#same for protons. 
+L=193;Dose=dfrHZE[1:7,"Dose"]; HGe=dfr[1:7,"HG"] #same for Fe
 #Katz=dfrL[1:8,"Katz"]
-Katz=dfrL[9:12,"Katz"]
-#Katz=dfrHZE[1:7,"Katz"]
+# Katz=dfrL[9:12,"Katz"]
+Katz=dfrHZE[1:7,"Katz"]
 plot(c(0,7),c(0,1),col='red', ann='F')
 lines(Dose, HZEC(Dose, L)) #Z>3
 lines(Dose,L.C(Dose,L)+.0275, col='green') #Z<3
@@ -200,7 +196,9 @@ lines(Dose, ayy2(Dose, Katz, L), col='pink')
 lines(Dose, ayy1(Dose, Katz, L), col='yellow')
 lines(Dose, ayy(Dose, Katz, L), col='blue')#I may have made an error, as this estimation by cucinotta seems like a major underestimation.
 points(Dose,HGe)#looks great for Helium, OK for protons; very good for iron. Mark: run some checks like these
-
+points(dfra$Dose, predict(cucIDERm), col = 'blue')
+points(dfrHZE$Dose, predict(HZEm), col = 'red')
+points(dfrL$Dose, predict(L.m), col = 'green')
 #Call:
 # lm(formula = HG ~ LL + QQ)
 # 
