@@ -196,10 +196,12 @@ Katz=dfrHZE[1:7,"Katz"]
 plot(c(0,7),c(0,1),col='red', ann='F')
 lines(Dose, HZEC(Dose, L)) #Z>3
 lines(Dose,L.C(Dose,L)+.0275, col='green') #Z<3
-lines(Dose, ayy3(Dose, Katz, L), col='red')
-lines(Dose, ayy2(Dose, Katz, L), col='pink')
-lines(Dose, ayy1(Dose, Katz, L), col='yellow')
-lines(Dose, ayy(Dose, Katz, L), col='blue')#I may have made an error, as this estimation by cucinotta seems like a major underestimation.
+###ignore for now
+#lines(Dose, ayy3(Dose, Katz, L), col='red')
+#lines(Dose, ayy2(Dose, Katz, L), col='pink')
+#lines(Dose, ayy1(Dose, Katz, L), col='yellow')
+#lines(Dose, ayy(Dose, Katz, L), col='blue')#I may have made an error, as this estimation by cucinotta seems like a major underestimation.
+###
 points(Dose,HGe)#looks great for Helium, OK for protons; very good for iron. Mark: run some checks like these
 points(dfra$Dose, predict(cucIDERm), col = 'blue')#values predicted by cuc
 points(dfrHZE$Dose, predict(HZEm), col = 'red')#our values for Z>3
