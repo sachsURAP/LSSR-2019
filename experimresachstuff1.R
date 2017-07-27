@@ -68,6 +68,8 @@ summary(HZEm,correlation=T)#; vcov(HZEm)# parameter values & accuracy; variance-
 HZEc=coef(HZEm)#calibrated central values of the 3 parameters.  Next is the IDER, =0 at dose 0
 HZEC=function(Dose,L) 1-exp(-0.01*(HZEc[1]*L*Dose*exp(-HZEc[2]*L)+(1-exp(-150*phi*Dose/L))*HZEc[3]))#Calibrated IDER
 
+
+
 ###me trying to replicate cuc model
 ##sig0 guess tweaked a little
 #if sig0 set to 66.69 (probable value based on cucinotta), I get error message
@@ -179,12 +181,15 @@ lines(L3, hurdur(D1, L3, K1), col='pink')
 points(L3, hurdur(D1, L3, K1))
 ###
 
+HG1=c(dfrHZE[12:16, "HG"], dfrHZE[24:32, "HG"],dfrHZE[1:7, "HG"], dfrHZE[21:23, "HG"],dfrHZE[8:11, "HG"],dfrHZE[17:20, "HG"],dfrHZE[33:35, "HG"])
 
 #######Next: visual checks to see if our calibration is consistent with 16Chang, .93Alp, .94Alp and 17Cuc
 ## Put various values in our calibrated model to check with numbers and graphs in these references
 #L=1.6; Dose=dfrL[1:8,"Dose"];HGe=dfrL[1:8,"HG"]#He in .93Alp. HGe=experimental HG.
 # L=.4; Dose=dfrL[9:12,"Dose"];HGe=dfrL[9:12,"HG"]#same for protons. 
 L=193;Dose=dfrHZE[1:7,"Dose"]; HGe=dfr[1:7,"HG"] #same for Fe
+
+
 #Katz=dfrL[1:8,"Katz"]
 # Katz=dfrL[9:12,"Katz"]
 Katz=dfrHZE[1:7,"Katz"]
@@ -196,9 +201,15 @@ lines(Dose, ayy2(Dose, Katz, L), col='pink')
 lines(Dose, ayy1(Dose, Katz, L), col='yellow')
 lines(Dose, ayy(Dose, Katz, L), col='blue')#I may have made an error, as this estimation by cucinotta seems like a major underestimation.
 points(Dose,HGe)#looks great for Helium, OK for protons; very good for iron. Mark: run some checks like these
-points(dfra$Dose, predict(cucIDERm), col = 'blue')
-points(dfrHZE$Dose, predict(HZEm), col = 'red')
-points(dfrL$Dose, predict(L.m), col = 'green')
+points(dfra$Dose, predict(cucIDERm), col = 'blue')#values predicted by cuc
+points(dfrHZE$Dose, predict(HZEm), col = 'red')#our values for Z>3
+points(dfrL$Dose, predict(L.m), col = 'green')#our model for Z<3
+points(D1, HG1)#data points for Z>3
+#I think we got it
+
+
+lines(Dose, predict(cucIDERm))
+
 #Call:
 # lm(formula = HG ~ LL + QQ)
 # 
