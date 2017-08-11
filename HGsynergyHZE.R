@@ -45,7 +45,7 @@ HZES=function(Dose,L){                 #Calculate slopes for later use in calcul
 #Looks OK up to here
 dose=c(seq(0, .00001, by = 0.000001),seq(.00002,.0001,by=.00001),seq(.0002,.001,by=.0001),seq(.002,.01,by=.001),seq(.02,.5,by=.01))##look carefully near zero, but go out to 0.5 Gy
 #We will adapt Dae's use of ode() and uniroot() to our model and our data but all the rest of from Dae is irrelevant to us.
-MIXDER_function = function(r, L,d =dose,aa1=.7538,aa2=.00306,kk1=7.459) {
+MIXDER_function = function(r, L,d =dose,aa1=.7957,aa2=.003378,kk1=5.805) {
    dE=function(yini,State,Pars){
      aa1=aa1;aa2=aa2;kk1=kk1
      with(as.list(c(State, Pars)), {
