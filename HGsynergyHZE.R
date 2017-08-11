@@ -57,7 +57,7 @@ MIXDER_function = function(r, L,d =dose,aa1=.7957,aa2=.003378,kk1=5.805) {
        }
        dI = vector(length = length(L))
        for (i in 1:length(L)) {
-         dI[i] = r[i]*(0.01*aa[i]+exp(-150*phi*u[i]/L[i])*kk1*150*phi/L[i])*exp(-0.01*(aa[i]*u[i]+(1-exp(-150*phi*u[i]/L[i]))*kk1))
+         dI[i] = r[i]*0.01*(aa[i]+exp(-150*phi*u[i]/L[i])*kk1*150*phi/L[i])*exp(-0.01*(aa[i]*u[i]+(1-exp(-150*phi*u[i]/L[i]))*kk1))
 
        }
        dI = sum(dI)
