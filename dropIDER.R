@@ -20,7 +20,7 @@
 # low_LET_IDER <- function(d, lambda, beta) {
 #     return(beta*(1-exp(-lambda*d)))
 # }
-# lower_IDER, lower_dose <- dropIDER(HZEC, low_LET_IDER(lambda = 0.0012 beta = 0.0038), L1 = 173, L2 = NULL)
+# lower_IDER, lower_dose <- dropIDER(HZEC, low_LET_IDER(lambda = 0.0012, beta = 0.0038), L1 = 173, L2 = NULL)
 #'
 #' @return The lower IDER function, and numeric dose at the specified bound
 #'
@@ -40,5 +40,13 @@ dropIDER <- function(ider1, ider2, L1 = NULL, L2 = NULL, bound = 0.0001, max_dos
   return(lesser, dosage)
 }
 
+HZEC <- function(Dose, L = 173) {
+    return(1-exp(-0.01*(HZEc[1]*L*Dose*exp(-HZEc[2]*L)+(1-exp(-150*phi*Dose/L))*HZEc[3])))
+}
 
+low_LET_IDER <- function(Dose, lambda, beta) {
+    return(beta*(1-exp(-lambda*Dose)))
+}
+
+HZEC=function(Dose,L) 1-exp(-0.01*(HZEc[1]*L*Dose*exp(-HZEc[2]*L)+(1-exp(-150*phi*Dose/L))*HZEc[3]))#calibrated IDER. The above equations imply: HZEC(dose=0)=0; HZEC increases monotonically and apporaches 1 at large doses.  
 
