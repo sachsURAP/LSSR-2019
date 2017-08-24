@@ -228,7 +228,7 @@ points(dfrL[9:12, "Dose"], dfrL[9:12, "HG"] )  # same for protons.
 #egh section from HG_HZE+toyLowLET_GH.R  >>>  BEGIN
 #####################################################
 
-low_LET_IDER <- function(lambda, beta, d) {
+low_LET_IDER <- function(beta, lambda, d) {
   beta*(1-exp(-lambda*d))
 }
 
