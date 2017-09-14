@@ -169,22 +169,22 @@ calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], 
   ## FUNCTION DESCRIPTION
   # Calulates the function I(d) from N > 1 HZE IDERs and one low-LET IDER using 
   # incremental effect additivity
-  dE <- function(yini, State, Pars) {
+  #
+  # new argument: lowLET (FALSE by default, TRUE when one IDER is low-LET)
+  dE <- function(yini, State, Pars) { #  Constructing an ode from the IDERS
     aa1 <- aa1; aa2 <- aa2; kk1 <- kk1; beta <- beta; phi <- phi; L <- L
     with(as.list(c(State, Pars)), {
-      aa <- vector(length = length(L))
-      u <- vector(length = length(L))
+      aa <- vector(length = length(L))  
+      u <- vector(length = length(L))  
       for (i in 1:length(L)) {
         aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
-        # u[i] <- uniroot(function(d) 1-exp(-0.01*(aa1*L[i]*d*exp(-aa2*L[i])+(1-exp(-150*phi*d/L[i]))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is ised in the single HZE and lowLET example
-        u[i] <- uniroot(function(d) 1-exp(-0.01*(aa[i]*d+(1-exp(-150*phi*d/L[i]))*kk1)) - I, lower = 0, upper = 200, tol = 10^-10)$root
+        u[i] <- uniroot(function(d) 1-exp(-0.01*(aa1*L[i]*d*exp(-aa2*L[i])+(1-exp(-150*phi*d/L[i]))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
       }
       dI <- vector(length = length(L))
       for (i in 1:length(L)) {
-        # dI[i] <- r[i] * dE_1(d = u[i], aa1 = aa1, aa2 = aa2, kk1 = kk1, phi = phi, L = L) #egh this is used in the single HZE and lowLET example
         dI[i] <- r[i] * 0.01*(aa[i]+exp(-150*phi*u[i]/L[i])*kk1*150*phi/L[i])*exp(-0.01*(aa[i]*u[i]+(1-exp(-150*phi*u[i]/L[i]))*kk1))
       }
-      if (lowLET == TRUE) {
+      if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
         u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta*d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
         dI[length(L) + 1] <- r[length(r)] * dE_2(d = u[length(L) + 1], L = 0)
       }
