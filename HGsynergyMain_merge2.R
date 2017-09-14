@@ -44,6 +44,7 @@ dfra <- dfr[c(1:19,26:53),] ##removes the zero dose case and the no isograft dat
 #####  photon and HZE/NTE Models #####
 LQ <- lm(HG ~ dose.1 + I(dose.1 ^ 2), data = ddd) # linear model fit on ddd dataset
 summary(LQ, correlation = T) 
+
 #HERE OUR NEW HZE/NTE MODEL; works well. Uses 3 adjustable parameters. There is also an HZE/TE model and NTE or TE models for Z<=3, but for a while we now use the HZE/NTE model for Z>3 with data for Z>=8  
 dfrHZE <- subset(dfra, Z > 3) # look only at HZE not at much lower LET ions. # In next line phi controls how fast NTE build up from zero; not really needed during calibration since 150*phi*Dose/L>>1 at every observed Dose !=0. phi needed for later synergy calculations.
 phi <- 1000 # Even larger phi should give the same final results, but might cause extra problems with R. 
@@ -54,9 +55,11 @@ HZEm <- nls(HG ~ .0275 + (1 - exp ( -0.01 * (aa1 * L * dose.1 * exp( -aa2 * L) +
 summary(HZEm, correlation = T);vcov(HZEm)# parameter values & accuracy; variance-covariance matrix
 NTE.HZE.c <- coef(HZEm) #  calibrated central values of the 3 parameters. Next is the IDER, =0 at dose 0
 HHC <- function(dose.1,L) 0.01*(NTE.HZE.c[1]*L*dose.1*exp(-NTE.HZE.c[2]*L)+(1-exp(-150*phi*dose.1/L))*NTE.HZE.c[3]) # calibrated hazard function
-CalculateHZEC <- function(dose.1,L){
+
+CalculateHZEC <- function(dose.1, L) {
   1-exp(-HHC(dose.1,L)) #  Calibrated IDER
 }
+
 dose <- c(seq(0, .00001, by = 0.000001),seq(.00002,.0001,by=.00001),seq(.0002,.001,by=.0001),seq(.002,.01,by=.001),seq(.02,.5,by=.01))##look carefully near zero, but go out to 0.5 Gy
 #dose=dose[1:30] #this can be used to zoom in on the very low dose behavior in the graphs
 ####### calculate baseline MIXDER I(d) for mixtures of HZE components modeled by NTE IDER #######
@@ -80,18 +83,19 @@ IntegrateNTE_HZE_IMIXDER <- function(r, L, d = dose, aa1 = NTE.HZE.c[1], aa2 = N
     })
   }
   pars = NULL; yini = c(I= 0); d = d
-  out = ode(yini,times = d, dE, pars, method = "radau")
+  out = ode(yini, times = d, dE, pars, method = "radau")
   return(out)
 } 
+
 ####### Plotting I(d) example
 r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
-INCRL=IntegrateNTE_HZE_IMIXDER(r,L)#incremental effect additivity
-plot(INCRL, type='l',col='red',bty='l',ann='F') #,ylim=c(0,.4)
-lines(dose,CalculateHZEC(dose,250),col='green')#component 3
-lines(dose,CalculateHZEC(dose,70),col='green')#component 2
-lines(dose,CalculateHZEC(dose,25),col='green') #component 1
+INCRL <- IntegrateNTE_HZE_IMIXDER(r, L) # incremental effect additivity 
+plot(INCRL, type='l', col='red', bty='l', ann='F') # ,ylim=c(0,.4) ; I(d) plot
+lines(dose, CalculateHZEC(dose, 250), col='green') # component 3
+lines(dose, CalculateHZEC(dose, 70), col='green') # component 2
+lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
 SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
-lines(dose,SEA(dose),lty=2)
+lines(dose, SEA(dose), lty=2)
 # another example
 # r <- .25*1:4; L <- c(25,70,190,250);plot(INCRL, type='l',ylim=c(0,.5),col='red',bty='l',ann='F')
 # lines(dose,CalculateHZEC(dose,190), col='green')#component 3
@@ -109,14 +113,14 @@ LOW.m <- nls(HG ~ .0275 + 1-exp(-bet * dose.1),
              start = list(bet = .5))
 summary(LOW.m)
 LOW.c <- coef(LOW.m)  # calibrated central values of the parameter
-CalculateLOW.C <- function(dose.1, L) { #Calibrated Low LET model. Use L=0, but maybe later will use L >0 but small 
+CalculateLOW.C <- function(dose.1, L) { # Calibrated Low LET model. Use L=0, but maybe later will use L >0 but small 
   return(1-exp(-LOW.c[1] * dose.1))
 }  
 #######Next: visual checks to see if our calibration is consistent with 16Chang, .93Alp, .94Alp and 17Cuc
 ## Put various values in our calibrated model to check with numbers and graphs in these references
 #  L=193; dose.1 = dfrHZE[1:7, "dose.1"]; HGe = dfr[1:7,"HG"] # same for Fe
 plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
-ddose=0.01*0:700; lines(ddose, CalculateLOW.C(ddose,0 )+.0275)  #calibrated lowLET IDER
+ddose <- 0.01 * 0:700; lines(ddose, CalculateLOW.C(ddose, 0) + .0275)  #calibrated lowLET IDER
 points(dfrL[1:8, "dose.1"], dfrL[1:8,"HG"],pch=19) #RKS: Helium data points
 points(dfrL[9:12, "dose.1"], dfrL[9:12, "HG"] )  # proton data points 
 
@@ -125,32 +129,82 @@ dE_1 <- function(d, aa1, aa2, kk1, phi, L) {
    ((150 * kk1 * phi * exp(-150 * phi * d / L) / L + aa1 * L * exp( -aa2 * L)) * 
   exp(-0.01 * (kk1 * (1 - exp( - 150 * phi * d / L)) + aa1 * L * exp(-aa2 * L) * d))) / 100
  }
-# 
-dE_2 <- function(dose,L) {
+
+dE_2 <- function(dose,L) { 
  LOW.c*exp(-LOW.c*dose)  
- }
-IntegrateNTE_HZE_LOW_IMIXDER = function(r, L = 193, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, d) { 
-  dE=function(yini,State,Pars){
-    aa1 = aa1; aa2 = aa2; kk1 = kk1;  beta = beta; phi = phi; L = L
+}
+
+IntegrateNTE_HZE_LOW_IMIXDER <- function(r, L = 193, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, d) { 
+  dE <- function(yini, State, Pars) {
+    aa1 <- aa1; aa2 <- aa2; kk1 <- kk1;  beta <- beta; phi <- phi; L <- L
     with(as.list(c(State, Pars)), {
-      u=c(0,0)
-      u[1] = uniroot(function(d) 1-exp(-0.01*(aa1*L*d*exp(-aa2*L)+(1-exp(-150*phi*d/L))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root 
-      u[2] = uniroot(function(d) 1-exp(-beta*d) - I, lower = 0, upper =200, extendInt = "yes", tol = 10^-10)$root #RKS changed upper to 200 instead of 5; cured lots of bugs; changed in u[1] also without helping or hurting. Maybe changing to upX or downX would be better still                   
-            dI = vector(length = 2)
-      dI[1] = r[1]*dE_1(d = u[1], aa1 = aa1, aa2 = aa2, kk1 = kk1, phi = phi, L = L)
-      dI[2] = r[2]*dE_2(d=u[2],L=0)
-      dI = sum(dI)
+      u <- c(0, 0)
+      u[1] <- uniroot(function(d) 1-exp(-0.01*(aa1*L*d*exp(-aa2*L)+(1-exp(-150*phi*d/L))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+      u[2] <- uniroot(function(d) 1-exp(-beta * d) - I, lower = 0, upper =200, extendInt = "yes", tol = 10^-10)$root#RKS changed upper to 200 instead of 5; cured lots of bugs; changed in u[1] also without helping or hurting. Maybe changing to upX or downX would be better still
+
+      dI <- c(0, 0)
+      dI[1] <- r[1] * dE_1(d = u[1], aa1 = aa1, aa2 = aa2, kk1 = kk1, phi = phi, L = L)
+      dI[2] <- r[2] * dE_2(d = u[2], L = 0)
+      dI <- sum(dI)
       return(list(c(dI)))
     })
   }
-  pars = NULL; yini = c(I= 0); d = d
-  out = ode(yini, times = d, dE, pars, method = "radau")
-  return(out)
+  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau"))
 }
-r1 <- .2; r <- c(r1,1-r1) #Proportions. Next plot IDERs and MIXDER
-d=.01*0:300.
+r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
+d <- .01 * 0:300.
 plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
 lines(x = d, y = CalculateLOW.C( d,0), col='green',lwd=2)
-lines(x = d, y = IntegrateNTE_HZE_LOW_IMIXDER(r = r, d = d)[, 2], col = "red", lwd=2)
-# To be done next. HZE NTE MIXDER 95% CI (Edward)!!! Information criteria and compare with 17Cuc (Mark)! clean up style
-# Overall: add TE HZE models; decide on low LET models after seeing Mark's IC results. Decide how to handle the various branches -- probably one ODE for NTE HZE MIXDERs that may have on low LET component and one ODE for TE HZE MIXDERs ditto
+lines(x = d, y = IntegrateNTE_HZE_LOW_IMIXDER(r = r, d = d)[, 2], col = "red", lwd=2) # I(d)
+
+# To be done next. HZE NTE MIXDER 95% CI (Edward)!!! Information criteria and 
+# compare with 17Cuc (Mark)! clean up style
+# Overall: add TE HZE models; decide on low LET models after seeing Mark's IC 
+# results. Decide how to handle the various branches -- probably one ODE for NTE 
+# HZE MIXDERs that may have on low LET component and one ODE for TE HZE MIXDERs ditto
+
+
+#egh :: ASSIGNMENT: Calculate I(d) for N > 1 HZE IDERs and one low-LET IDER
+calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, lowLET = FALSE) {
+  ## FUNCTION DESCRIPTION
+  # Calulates the function I(d) from N > 1 HZE IDERs and one low-LET IDER using 
+  # incremental effect additivity
+  dE <- function(yini, State, Pars) {
+    aa1 <- aa1; aa2 <- aa2; kk1 <- kk1; beta <- beta; phi <- phi; L <- L
+    with(as.list(c(State, Pars)), {
+      aa <- vector(length = length(L))
+      u <- vector(length = length(L))
+      for (i in 1:length(L)) {
+        aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
+        # u[i] <- uniroot(function(d) 1-exp(-0.01*(aa1*L[i]*d*exp(-aa2*L[i])+(1-exp(-150*phi*d/L[i]))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is ised in the single HZE and lowLET example
+        u[i] <- uniroot(function(d) 1-exp(-0.01*(aa[i]*d+(1-exp(-150*phi*d/L[i]))*kk1)) - I, lower = 0, upper = 200, tol = 10^-10)$root
+      }
+      dI <- vector(length = length(L))
+      for (i in 1:length(L)) {
+        # dI[i] <- r[i] * dE_1(d = u[i], aa1 = aa1, aa2 = aa2, kk1 = kk1, phi = phi, L = L) #egh this is used in the single HZE and lowLET example
+        dI[i] <- r[i] * 0.01*(aa[i]+exp(-150*phi*u[i]/L[i])*kk1*150*phi/L[i])*exp(-0.01*(aa[i]*u[i]+(1-exp(-150*phi*u[i]/L[i]))*kk1))
+      }
+      if (lowLET == TRUE) {
+        u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta*d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+        # dI[length(L) + 1] <- r[lengtCh(r)] * dE_2(d = u[length(L) + 1], L = 0)
+        dI[length(L) + 1] <- 10000000
+      }
+      dI <- sum(dI)
+      return(list(c(dI)))
+      })
+  }
+  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau")) #  Finds the solution I(d) of the differential equation dE
+}
+
+r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
+d <- .01 * 0:300.
+plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
+lines(x = d, y = CalculateLOW.C( d,0), col='green',lwd=2)
+lines(x = d, y = calculateComplexId(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
+
+r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
+INCRL <- calculateComplexId(r, L, d = dose) # incremental effect additivity 
+plot(INCRL, type='l', col='red', bty='l', ann='F') # ,ylim=c(0,.4) ; I(d) plot
+lines(dose, CalculateHZEC(dose, 250), col='green') # component 3
+lines(dose, CalculateHZEC(dose, 70), col='green') # component 2
+lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
