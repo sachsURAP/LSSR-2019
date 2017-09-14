@@ -186,8 +186,7 @@ calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], 
       }
       if (lowLET == TRUE) {
         u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta*d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
-        # dI[length(L) + 1] <- r[lengtCh(r)] * dE_2(d = u[length(L) + 1], L = 0)
-        dI[length(L) + 1] <- 10000000
+        dI[length(L) + 1] <- r[length(r)] * dE_2(d = u[length(L) + 1], L = 0)
       }
       dI <- sum(dI)
       return(list(c(dI)))
@@ -199,7 +198,7 @@ calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], 
 r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
 d <- .01 * 0:300.
 plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
-lines(x = d, y = CalculateLOW.C( d,0), col='green',lwd=2)
+lines(x = d, y = CalculateLOW.C( d,0), col='green', lwd=2)
 lines(x = d, y = calculateComplexId(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
 
 r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
@@ -208,3 +207,11 @@ plot(INCRL, type='l', col='red', bty='l', ann='F') # ,ylim=c(0,.4) ; I(d) plot
 lines(dose, CalculateHZEC(dose, 250), col='green') # component 3
 lines(dose, CalculateHZEC(dose, 70), col='green') # component 2
 lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
+SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
+lines(dose, SEA(dose), lty=2)
+
+r <- c(2/5, 2/5, 1/5); L <- c(70, 173)
+plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
+lines(x = d, y = CalculateHZEC(d, 70), col='green', lwd=2) # component 3
+lines(x = d, y = CalculateLOW.C(d, 0), col='green', lwd=2)
+lines(x = d, y = calculateComplexId(r, L, d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
