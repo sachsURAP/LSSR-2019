@@ -163,6 +163,57 @@ lines(x = d, y = IntegrateNTE_HZE_LOW_IMIXDER(r = r, d = d)[, 2], col = "red", l
 # results. Decide how to handle the various branches -- probably one ODE for NTE 
 # HZE MIXDERs that may have on low LET component and one ODE for TE HZE MIXDERs ditto
 
+#==============================================#
+#==========Confidence Interval Part============#
+#==============================================#
+
+# Set the pseudorandom seed
+set.seed(1)
+
+Generate_CI = function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = HZEm) {
+  # Function to generate CI for the input dose.
+  # @params:   N              - numbers of sample
+  #            intervalLength - size of confidence interval
+  #            d              - input dose
+  #            r              - proportion of ion
+  #            L              - LTE
+  #            HZEmodel       - the input HZE model
+  
+  valueArr = vector(length = 0)
+  # Generate N randomly generated samples of parameters of HZE model.
+  monteCarloSamples = rmvnorm(n = N, mean = coef(HZEmodel), sigma = vcov(HZEmodel))
+  
+  # For each sample curve, evalute them at input dose, and sort.
+  for (i in 1:500) {
+    valueArr = c(valueArr, IntegrateNTE_HZE_IMIXDER(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
+  }
+  valueArr = sort(valueArr)
+  
+  # Returning resulting CI
+  return (c(valueArr[(1-intervalLength)/2*500], valueArr[(intervalLength + (1-intervalLength)/2)*500]))
+}
+
+# Parameter initialization
+r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
+mixderCurve = IntegrateNTE_HZE_IMIXDER(r, L)
+threeIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
+numDosePoints = length(threeIonMIXDER$d)
+CI = matrix(nrow = 2, ncol = numDosePoints)
+
+# Calculate CI for each dose point
+for (i in 1 : numDosePoints) {
+  CI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L)
+  print(paste("Currently at step:", toString(i)))
+}
+
+# Plot
+mixderGraphWithCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = CI[1, ], ymax = CI[2, ]), alpha = .3)
+print(mixderGraphWithCI)
+
+#========================================#
+#===================End==================#
+#========================================#
+
 
 #egh :: ASSIGNMENT: Calculate I(d) for N > 1 HZE IDERs and one low-LET IDER
 calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, lowLET = FALSE) {
