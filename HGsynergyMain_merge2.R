@@ -210,7 +210,8 @@ lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
 SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
 lines(dose, SEA(dose), lty=2)
 
-r <- c(2/5, 2/5, 1/5); L <- c(70, 173)
+d <- seq(0, .01, .0005)
+r <- c(1/20, 1/20, 9/10); L <- c(70, 173)
 plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
 lines(x = d, y = CalculateHZEC(d, 70), col='green', lwd=2) # component 3
 lines(x = d, y = CalculateLOW.C(d, 0), col='green', lwd=2)
