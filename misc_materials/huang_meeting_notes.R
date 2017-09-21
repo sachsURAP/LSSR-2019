@@ -20,9 +20,9 @@
 ## debug yimin's code 
 ## a. runtime of yimins code
 ## b. original merge2 buggy?
-## make new file with merge2 called lowhighEdoseExploration
-## a. only give ray permission if possible
-## look into physics for politicans if ebeling doesn't deliver
+## make new file with merge2 called lowhighEdoseExploration - DONE
+## a. only give ray permission if possible 
+## look into physics for politicans if ebeling doesn't add - DONE
 ## provide instructions for making rStudio project with gitHub on the issues page
 ## Sys.time() on issues page
-## apply vs for loop in Sys.time()
+## apply vs for loop on issues page
