@@ -88,14 +88,14 @@ IntegrateNTE_HZE_IMIXDER <- function(r, L, d = dose, aa1 = NTE.HZE.c[1], aa2 = N
 } 
 
 ####### Plotting I(d) example
-r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
-INCRL <- IntegrateNTE_HZE_IMIXDER(r, L) # incremental effect additivity 
-plot(INCRL, type='l', col='red', bty='l', ann='F') # ,ylim=c(0,.4) ; I(d) plot
-lines(dose, CalculateHZEC(dose, 250), col='green') # component 3
-lines(dose, CalculateHZEC(dose, 70), col='green') # component 2
-lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
-SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
-lines(dose, SEA(dose), lty=2)
+# r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
+# INCRL <- IntegrateNTE_HZE_IMIXDER(r, L) # incremental effect additivity 
+# plot(INCRL, type='l', col='red', bty='l', ann='F') # ,ylim=c(0,.4) ; I(d) plot
+# lines(dose, CalculateHZEC(dose, 250), col='green') # component 3
+# lines(dose, CalculateHZEC(dose, 70), col='green') # component 2
+# lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
+# SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
+# lines(dose, SEA(dose), lty=2)
 # another example
 # r <- .25*1:4; L <- c(25,70,190,250);plot(INCRL, type='l',ylim=c(0,.5),col='red',bty='l',ann='F')
 # lines(dose,CalculateHZEC(dose,190), col='green')#component 3
@@ -133,29 +133,29 @@ dE_1 <- function(d, aa1, aa2, kk1, phi, L) {
 dE_2 <- function(dose,L) { 
  LOW.c*exp(-LOW.c*dose)  
 }
-
-IntegrateNTE_HZE_LOW_IMIXDER <- function(r, L = 193, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, d) { 
-  dE <- function(yini, State, Pars) {
-    aa1 <- aa1; aa2 <- aa2; kk1 <- kk1;  beta <- beta; phi <- phi; L <- L
-    with(as.list(c(State, Pars)), {
-      u <- c(0, 0)
-      u[1] <- uniroot(function(d) 1-exp(-0.01*(aa1*L*d*exp(-aa2*L)+(1-exp(-150*phi*d/L))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
-      u[2] <- uniroot(function(d) 1-exp(-beta * d) - I, lower = 0, upper =200, extendInt = "yes", tol = 10^-10)$root#RKS changed upper to 200 instead of 5; cured lots of bugs; changed in u[1] also without helping or hurting. Maybe changing to upX or downX would be better still
-
-      dI <- c(0, 0)
-      dI[1] <- r[1] * dE_1(d = u[1], aa1 = aa1, aa2 = aa2, kk1 = kk1, phi = phi, L = L)
-      dI[2] <- r[2] * dE_2(d = u[2], L = 0)
-      dI <- sum(dI)
-      return(list(c(dI)))
-    })
-  }
-  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau"))
-}
-r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
-d <- .01 * 0:300.
-plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
-lines(x = d, y = CalculateLOW.C( d,0), col='green',lwd=2)
-lines(x = d, y = IntegrateNTE_HZE_LOW_IMIXDER(r = r, d = d)[, 2], col = "red", lwd=2) # I(d)
+# 
+# IntegrateNTE_HZE_LOW_IMIXDER <- function(r, L = 193, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, d) { 
+#   dE <- function(yini, State, Pars) {
+#     aa1 <- aa1; aa2 <- aa2; kk1 <- kk1;  beta <- beta; phi <- phi; L <- L
+#     with(as.list(c(State, Pars)), {
+#       u <- c(0, 0)
+#       u[1] <- uniroot(function(d) 1-exp(-0.01*(aa1*L*d*exp(-aa2*L)+(1-exp(-150*phi*d/L))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+#       u[2] <- uniroot(function(d) 1-exp(-beta * d) - I, lower = 0, upper =200, extendInt = "yes", tol = 10^-10)$root#RKS changed upper to 200 instead of 5; cured lots of bugs; changed in u[1] also without helping or hurting. Maybe changing to upX or downX would be better still
+# 
+#       dI <- c(0, 0)
+#       dI[1] <- r[1] * dE_1(d = u[1], aa1 = aa1, aa2 = aa2, kk1 = kk1, phi = phi, L = L)
+#       dI[2] <- r[2] * dE_2(d = u[2], L = 0)
+#       dI <- sum(dI)
+#       return(list(c(dI)))
+#     })
+#   }
+#   return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau"))
+# }
+# r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
+# d <- .01 * 0:300.
+# plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
+# lines(x = d, y = CalculateLOW.C( d,0), col='green',lwd=2)
+# lines(x = d, y = IntegrateNTE_HZE_LOW_IMIXDER(r = r, d = d)[, 2], col = "red", lwd=2) # I(d)
 
 # To be done next. HZE NTE MIXDER 95% CI (Edward)!!! Information criteria and 
 # compare with 17Cuc (Mark)! clean up style
