@@ -88,6 +88,8 @@ IntegrateNTE_HZE_IMIXDER <- function(r, L, d = dose, aa1 = NTE.HZE.c[1], aa2 = N
 } 
 
 ####### Plotting I(d) example
+
+################################ TO DELETE #####################################
 # r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
 # INCRL <- IntegrateNTE_HZE_IMIXDER(r, L) # incremental effect additivity 
 # plot(INCRL, type='l', col='red', bty='l', ann='F') # ,ylim=c(0,.4) ; I(d) plot
@@ -96,6 +98,8 @@ IntegrateNTE_HZE_IMIXDER <- function(r, L, d = dose, aa1 = NTE.HZE.c[1], aa2 = N
 # lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
 # SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
 # lines(dose, SEA(dose), lty=2)
+################################ TO DELETE #####################################
+
 # another example
 # r <- .25*1:4; L <- c(25,70,190,250);plot(INCRL, type='l',ylim=c(0,.5),col='red',bty='l',ann='F')
 # lines(dose,CalculateHZEC(dose,190), col='green')#component 3
@@ -133,7 +137,8 @@ dE_1 <- function(d, aa1, aa2, kk1, phi, L) {
 dE_2 <- function(dose,L) { 
  LOW.c*exp(-LOW.c*dose)  
 }
-# 
+
+################################ TO DELETE #####################################
 # IntegrateNTE_HZE_LOW_IMIXDER <- function(r, L = 193, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, d) { 
 #   dE <- function(yini, State, Pars) {
 #     aa1 <- aa1; aa2 <- aa2; kk1 <- kk1;  beta <- beta; phi <- phi; L <- L
@@ -151,6 +156,8 @@ dE_2 <- function(dose,L) {
 #   }
 #   return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau"))
 # }
+################################ TO DELETE #####################################
+
 # r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
 # d <- .01 * 0:300.
 # plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
