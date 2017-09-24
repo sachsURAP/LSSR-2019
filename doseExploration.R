@@ -184,4 +184,4 @@ plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab
 lines(x = d, y = CalculateHZEC(d, 70), col='green', lwd=2) # component 3
 lines(x = d, y = CalculateLOW.C(d, 0), col='green', lwd=2)
 lines(x = d, y = calculateComplexId(r, L, d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
-#test for project/GitHub workings
+#test for project/GitHub workings#test again
