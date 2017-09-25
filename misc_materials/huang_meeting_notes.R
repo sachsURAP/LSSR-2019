@@ -24,5 +24,5 @@
 ## a. only give ray permission if possible 
 ## look into physics for politicans if ebeling doesn't add - DONE
 ## provide instructions for making rStudio project with gitHub on the issues page
-## Sys.time() on issues page
-## apply vs for loop on issues page
+## Sys.time() on issues page - DONE
+## apply vs for loop on issues page - DONE
