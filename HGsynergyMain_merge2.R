@@ -30,7 +30,7 @@ library(ggplot2) #  plotting
 library(mvtnorm) #  Monte Carlo simulation
 library(minpack.lm) #  non-linear regression 
 
-####### DATA #######
+#=========================== DATA START ===========================#
 dfr <- data.frame( # data used in 16Chang; includes data analyzed in .93Alp and .94Alp  
   dose.1 = c(0.2,0.4,0.6,1.2,2.4,3.2,5.1,7,0.05,0.1,0.15,0.2,0.4,0.8,1.6,0.05,0.1,0.2,0.4,0,0.1,0.2,0.4,0.8,1.6,0.4,0.8,1.6,3.2,0.05,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.04,0.08,0.16,0.32,0.033,0.066,0.13,0.26,0.52,.2, .4, .6),
   HG = c(0.091,0.045,0.101,0.169,0.347,0.431,0.667,0.623,0.156,0.215,0.232,0.307,0.325,0.554,0.649,0.123,0.145,0.207,0.31,0.026,0.083,0.25,0.39,0.438,0.424,0.093,0.195,0.302,0.292,0.109,0.054,0.066,0.128,0.286,0.183,0.167,0.396,0.536,0.192,0.234,0.317,0.092,0.131,0.124,0.297,0.082,0.088,0.146,0.236,0.371,.154,.132,.333), #  HG prevalence as defined in 16Chang
@@ -59,6 +59,7 @@ dfr[, "beta"] <- round(dfr[, "Z"] * sqrt(1 / dfr[, "Katz"]), 3) #  i.e. Z*sqrt(b
 dfr[, "Zeff"] <- round(dfr[, "Z"] * (1 - exp( -125 * dfr[, "Z"] ^ (-2.0 / 3))), 2) #  Barkas formula for Zeff; for us Zeff is almost Z
 
 dfra <- dfr[c(1:19,26:53),] #  removes the zero dose case and the no isograft data
+#=========================== DATA END ===========================#
 
 #####  photon and HZE/NTE Models #####
 LQ <- lm(HG ~ dose.1 + I(dose.1 ^ 2), data = ddd) # linear model fit on ddd dataset
@@ -159,6 +160,66 @@ dE_2 <- function(dose,L) {
 # results. Decide how to handle the various branches -- probably one ODE for NTE 
 # HZE MIXDERs that may have on low LET component and one ODE for TE HZE MIXDERs ditto
 
+################## I(d) calculator START ##################
+
+#egh :: ASSIGNMENT: Calculate I(d) for N > 1 HZE IDERs and one low-LET IDER
+calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, lowLET = FALSE) {
+  ## FUNCTION DESCRIPTION
+  # Calulates the function I(d) from N > 1 HZE IDERs and one low-LET IDER using 
+  # incremental effect additivity
+  #
+  # new argument: lowLET (FALSE by default, TRUE when one IDER is low-LET)
+  dE <- function(yini, State, Pars) { #  Constructing an ode from the IDERS
+    aa1 <- aa1; aa2 <- aa2; kk1 <- kk1; beta <- beta; phi <- phi; L <- L
+    with(as.list(c(State, Pars)), {
+      aa <- vector(length = length(L))  
+      u <- vector(length = length(L))  
+      for (i in 1:length(L)) {
+        aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
+        u[i] <- uniroot(function(d) 1-exp(-0.01*(aa1*L[i]*d*exp(-aa2*L[i])+(1-exp(-150*phi*d/L[i]))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
+      }
+      dI <- vector(length = length(L))
+      for (i in 1:length(L)) {
+        dI[i] <- r[i] * 0.01*(aa[i]+exp(-150*phi*u[i]/L[i])*kk1*150*phi/L[i])*exp(-0.01*(aa[i]*u[i]+(1-exp(-150*phi*u[i]/L[i]))*kk1))
+      }
+      if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
+        u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta*d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+        dI[length(L) + 1] <- r[length(r)] * dE_2(d = u[length(L) + 1], L = 0)
+      }
+      dI <- sum(dI)
+      return(list(c(dI)))
+    })
+  }
+  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau")) #  Finds the solution I(d) of the differential equation dE
+}
+
+# Ploting example : one HZE one low-LET
+r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
+d <- .01 * 0:300.
+plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
+lines(x = d, y = CalculateLOW.C( d,0), col='green', lwd=2)
+lines(x = d, y = calculateComplexId(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
+
+# Plotting example 2: three HZE
+r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
+INCRL <- calculateComplexId(r, L, d = dose) # incremental effect additivity 
+plot(INCRL, type='l', col='red', bty='l', ann='F') # ,ylim=c(0,.4) ; I(d) plot
+lines(dose, CalculateHZEC(dose, 250), col='green') # component 3
+lines(dose, CalculateHZEC(dose, 70), col='green') # component 2
+lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
+SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
+lines(dose, SEA(dose), lty=2)
+
+# Plotting example 3: two HZE one low-LET
+d <- seq(0, .01, .0005)
+r <- c(1/20, 1/20, 9/10); L <- c(70, 173)
+plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
+lines(x = d, y = CalculateHZEC(d, 70), col='green', lwd=2) # component 3
+lines(x = d, y = CalculateLOW.C(d, 0), col='green', lwd=2)
+lines(x = d, y = calculateComplexId(r, L, d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
+
+################## I(d) calculator END ##################
+ 
 #==============================================#
 #==========Confidence Interval Part============#
 #==============================================#
@@ -166,7 +227,7 @@ dE_2 <- function(dose,L) {
 # Set the pseudorandom seed
 set.seed(1)
 
-Generate_CI = function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = HZEm, method = 0) {
+Generate_CI <- function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = HZEm, method = 0) {
   # Function to generate CI for the input dose.
   # @params:   N              - numbers of sample
   #            intervalLength - size of confidence interval
@@ -228,57 +289,3 @@ print(mixderGraphWithNaiveAndMonteCarloCI)
 #========================================#
 #===================End==================#
 #========================================#
-
-
-#egh :: ASSIGNMENT: Calculate I(d) for N > 1 HZE IDERs and one low-LET IDER
-calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, lowLET = FALSE) {
-  ## FUNCTION DESCRIPTION
-  # Calulates the function I(d) from N > 1 HZE IDERs and one low-LET IDER using 
-  # incremental effect additivity
-  #
-  # new argument: lowLET (FALSE by default, TRUE when one IDER is low-LET)
-  dE <- function(yini, State, Pars) { #  Constructing an ode from the IDERS
-    aa1 <- aa1; aa2 <- aa2; kk1 <- kk1; beta <- beta; phi <- phi; L <- L
-    with(as.list(c(State, Pars)), {
-      aa <- vector(length = length(L))  
-      u <- vector(length = length(L))  
-      for (i in 1:length(L)) {
-        aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
-        u[i] <- uniroot(function(d) 1-exp(-0.01*(aa1*L[i]*d*exp(-aa2*L[i])+(1-exp(-150*phi*d/L[i]))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
-      }
-      dI <- vector(length = length(L))
-      for (i in 1:length(L)) {
-        dI[i] <- r[i] * 0.01*(aa[i]+exp(-150*phi*u[i]/L[i])*kk1*150*phi/L[i])*exp(-0.01*(aa[i]*u[i]+(1-exp(-150*phi*u[i]/L[i]))*kk1))
-      }
-      if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta*d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
-        dI[length(L) + 1] <- r[length(r)] * dE_2(d = u[length(L) + 1], L = 0)
-      }
-      dI <- sum(dI)
-      return(list(c(dI)))
-      })
-  }
-  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau")) #  Finds the solution I(d) of the differential equation dE
-}
-
-r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
-d <- .01 * 0:300.
-plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
-lines(x = d, y = CalculateLOW.C( d,0), col='green', lwd=2)
-lines(x = d, y = calculateComplexId(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
-
-r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
-INCRL <- calculateComplexId(r, L, d = dose) # incremental effect additivity 
-plot(INCRL, type='l', col='red', bty='l', ann='F') # ,ylim=c(0,.4) ; I(d) plot
-lines(dose, CalculateHZEC(dose, 250), col='green') # component 3
-lines(dose, CalculateHZEC(dose, 70), col='green') # component 2
-lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
-SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
-lines(dose, SEA(dose), lty=2)
-
-d <- seq(0, .01, .0005)
-r <- c(1/20, 1/20, 9/10); L <- c(70, 173)
-plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
-lines(x = d, y = CalculateHZEC(d, 70), col='green', lwd=2) # component 3
-lines(x = d, y = CalculateLOW.C(d, 0), col='green', lwd=2)
-lines(x = d, y = calculateComplexId(r, L, d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
