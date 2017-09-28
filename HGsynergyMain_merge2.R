@@ -53,8 +53,8 @@ ddd <- data.frame(dose.1 = c(0, 0.4, 0.8, 1.6, 3.2, 7, 0, .4, .8, .12, 1.6),
                   Nucleus = c(rep("Cobalt-60", 6), rep("Cesium-137", 5)),
                   Comments = c(rep("TBD", 11))
 )
-Y <- 0.001 * dfr[, "MeVperu"] #  convert to GeV/u for convenience in a calculation
-dfr[, "Katz"] <- round(dfr[, "Z"] ^2 * (2.57 * Y ^2 + 4.781 * Y + 2.233) / (2.57 * Y ^2 + 4.781 * Y), 2) #  special relativistic calculation of Z^2/beta^2. The numerics include conversion from GeV to joules and from u to kg.
+GeVu <- 0.001 * dfr[, "MeVperu"] #  convert to GeV/u for convenience in a calculation
+dfr[, "Katz"] <- round(dfr[, "Z"] ^2 * (2.57 * GeVu ^2 + 4.781 * GeVu + 2.233) / (2.57 * GeVu ^2 + 4.781 * GeVu), 2) #  special relativistic calculation of Z^2/beta^2. The numerics include conversion from GeV to joules and from u to kg.
 dfr[, "beta"] <- round(dfr[, "Z"] * sqrt(1 / dfr[, "Katz"]), 3) #  i.e. Z*sqrt(beta^2/Z^2) 
 dfr[, "Zeff"] <- round(dfr[, "Z"] * (1 - exp( -125 * dfr[, "Z"] ^ (-2.0 / 3))), 2) #  Barkas formula for Zeff; for us Zeff is almost Z
 
