@@ -29,7 +29,7 @@ library(deSolve) #  solving differential equations
 library(ggplot2) #  plotting
 library(mvtnorm) #  Monte Carlo simulation
 library(minpack.lm) #  non-linear regression 
-
+rm(list=ls())
 #=========================== DATA START ===========================#
 dfr <- data.frame( #  data used in 16Chang; includes data analyzed in .93Alp and .94Alp  
   dose.1 = c(0.2,0.4,0.6,1.2,2.4,3.2,5.1,7,0.05,0.1,0.15,0.2,0.4,0.8,1.6,0.05,0.1,0.2,0.4,0,0.1,0.2,0.4,0.8,1.6,0.4,0.8,1.6,3.2,0.05,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.04,0.08,0.16,0.32,0.033,0.066,0.13,0.26,0.52,.2, .4, .6),
