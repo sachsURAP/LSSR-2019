@@ -1,0 +1,20 @@
+---
+title: R Markdown
+output: rmarkdown::github_document
+---
+
+This is an R Markdown document. You can embed an R code chunk like this:
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. 
+
+To view the output of plots in your Rmarkdown file in GitHub, make sure `output` is set to ` rmarkdown::github_document` above. This will generate a Markdown (.md) version of your file with the plots embedded. 
