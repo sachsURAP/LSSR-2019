@@ -21,4 +21,4 @@ You can also embed plots:
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
-To view the output of plots in your Rmarkdown file in GitHub, make sure `output` is set to `rmarkdown::github_document` above. This will generate a Markdown (.md) version of your file with the plots embedded.
+To view the output of plots in your Rmarkdown file in GitHub, make sure `output` is set to `rmarkdown::github_document` above. This will create a Markdown (.md) version of your file with the plots embedded when you "Knit" the file in RStudio with `knitR`.
