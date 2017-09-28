@@ -83,33 +83,44 @@ IntegrateNTE_HZE_IMIXDER <- function(r, L, d = dose, aa1 = NTE.HZE.c[1], aa2 = N
   out = ode(yini,times = d, dE, pars, method = "radau")
   return(out)
 } 
-####### Plotting I(d) example
-r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
-INCRL=IntegrateNTE_HZE_IMIXDER(r,L)#incremental effect additivity
-plot(INCRL, type='l',col='red',bty='l',ann='F') #,ylim=c(0,.4)
-lines(dose,CalculateHZEC(dose,250),col='green')#component 3
-lines(dose,CalculateHZEC(dose,70),col='green')#component 2
-lines(dose,CalculateHZEC(dose,25),col='green') #component 1
-SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
-lines(dose,SEA(dose),lty=2)
-#another example
-r <- .25*1:4; L <- c(25,70,190,250);plot(INCRL, type='l',ylim=c(0,.5),col='red',bty='l',ann='F')
-lines(dose,CalculateHZEC(dose,190), col='green')#component 3
-lines(dose,CalculateHZEC(dose,250),col='green')#component 4
-lines(dose,CalculateHZEC(dose,70),col='green')#component 2
-lines(dose,CalculateHZEC(dose,25),col='green') #component 1
-SEA <- function(dose.1) CalculateHZEC(dose.1/4, 25) + CalculateHZEC(dose.1/4, 70) + CalculateHZEC(dose/4, 190) + CalculateHZEC(dose.1/3, 250)
-lines(dose, SEA(dose), lty=2)
-##Next need Monte Carlo for 95%CI. Edward's Next Job
+# ####### Plotting I(d) example
+# r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
+# INCRL=IntegrateNTE_HZE_IMIXDER(r,L)#incremental effect additivity
+# plot(INCRL, type='l',col='red',bty='l',ann='F') #,ylim=c(0,.4)
+# lines(dose,CalculateHZEC(dose,250),col='green')#component 3
+# lines(dose,CalculateHZEC(dose,70),col='green')#component 2
+# lines(dose,CalculateHZEC(dose,25),col='green') #component 1
+# SEA <- function(dose.1) CalculateHZEC(dose.1/3, 25) + CalculateHZEC(dose.1/3, 70) + CalculateHZEC(dose.1/3, 250)
+# lines(dose,SEA(dose),lty=2)
+# #another example
+# r <- .25*1:4; L <- c(25,70,190,250);plot(INCRL, type='l',ylim=c(0,.5),col='red',bty='l',ann='F')
+# lines(dose,CalculateHZEC(dose,190), col='green')#component 3
+# lines(dose,CalculateHZEC(dose,250),col='green')#component 4
+# lines(dose,CalculateHZEC(dose,70),col='green')#component 2
+# lines(dose,CalculateHZEC(dose,25),col='green') #component 1
+# SEA <- function(dose.1) CalculateHZEC(dose.1/4, 25) + CalculateHZEC(dose.1/4, 70) + CalculateHZEC(dose/4, 190) + CalculateHZEC(dose.1/3, 250)
+# lines(dose, SEA(dose), lty=2)
 
 #==============================================#
 #==========Confidence Interval Part============#
 #==============================================#
 
-# Set the pseudorandom seed
-set.seed(1)
+# Parameter initialization
+r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
+N = 500
 
-Generate_CI = function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = HZEm, method = 0) {
+# Set the pseudorandom seed
+set.seed(100)
+
+# Generate N randomly generated samples of parameters of HZE model.
+monteCarloSamples = rmvnorm(n = N, mean = coef(HZEm), sigma = vcov(HZEm))
+curveList = list(0)
+for (i in 1:500) {
+  curveList[[i]] = IntegrateNTE_HZE_IMIXDER(r = r, L = L, aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])
+  print(paste("Currently at Monte Carlo step:", toString(i), "Total of 500 steps"))
+}
+
+Generate_CI = function(N = 500, intervalLength = 0.95, d, doseIndex, r, L, HZEmodel = HZEm, method = 0, sampleCurves = curveList) {
   # Function to generate CI for the input dose.
   # @params:   N              - numbers of sample
   #            intervalLength - size of confidence interval
@@ -121,14 +132,10 @@ Generate_CI = function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = HZEm,
   #                             0 - Naive
   #                             1 - Monte Carlo
   if (method) {
-    #========= Monte Carlo =========#
-    valueArr = vector(length = 0)
-    # Generate N randomly generated samples of parameters of HZE model.
-    monteCarloSamples = rmvnorm(n = N, mean = coef(HZEmodel), sigma = vcov(HZEmodel))
-    
     # For each sample curve, evalute them at input dose, and sort.
+    valueArr = vector(length = 0)
     for (i in 1:500) {
-      valueArr = c(valueArr, IntegrateNTE_HZE_IMIXDER(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
+      valueArr = c(valueArr, sampleCurves[[i]][, 2][doseIndex])
     }
     valueArr = sort(valueArr)
     
@@ -155,6 +162,15 @@ monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
 # Calculate CI for each dose point
 for (i in 1 : numDosePoints) {
   naiveCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L)
-  monteCarloCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L, method = 1)
-  print(paste("Currently at step:", toString(i)))
+  monteCarloCI[, i] = Generate_CI(doseIndex = i, r = r,  L = L, method = 1)
+  print(paste("Iterating on dose points. Currently at step:", toString(i), "Total of 87 steps."))
 }
+
+# Plot
+mixderGraphWithNaiveCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
+mixderGraphWithMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4)
+print(mixderGraphWithNaiveCI)
+print(mixderGraphWithMonteCarloCI)
+
+mixderGraphWithNaiveAndMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
+print(mixderGraphWithNaiveAndMonteCarloCI)
