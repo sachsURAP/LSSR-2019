@@ -1,0 +1,15 @@
+---
+title: "drafts"
+author: "Edward Greg Huang"
+date: "10/3/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Computational Implementation  
+
+The data are sourced from Chang et al. (2016) and Alpen et al. (1993, 1994) and implemented as R dataframes throughout the calculations. A number of R packages from the CRAN repository were used, notably `minpack.lm` for non-linear regression, `deSolve` for solving differential equations, `mvtnorm` for Monte Carlo simulations, and `ggplot2` for plotting. Standardized IDERs are initialized as R functions with arguments for dose and LET. These IDERs encompass various particle variants (HZE, low-LET) and effect models (TE, NTE + TE). Computing $I(d)$ involves calling a user-written R function that applies incremental effect additivity to mixtures of $N \geq 2$ IDERs, with at most one low-LET IDER. This requires use of a one-dimensional root finder within a numerical ODE integrator from `deSolve`. Confidence intervals for the calculated baseline MIXDER are found through Monte Carlo simulations (more to be added). The raw code is available on Github.
+

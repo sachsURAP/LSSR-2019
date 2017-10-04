@@ -2,11 +2,11 @@
 #   Purpose: Concerns radiogenic mouse HG tumorigenesis.
 
 #   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs
- 
+
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License version 3 as published 
 #   by the Free Software Foundation.
- 
+
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -29,7 +29,7 @@ library(deSolve) #  solving differential equations
 library(ggplot2) #  plotting
 library(mvtnorm) #  Monte Carlo simulation
 library(minpack.lm) #  non-linear regression 
-
+rm(list=ls())
 #=========================== DATA START ===========================#
 dfr <- data.frame( #  data used in 16Chang; includes data analyzed in .93Alp and .94Alp  
   dose.1 = c(0.2,0.4,0.6,1.2,2.4,3.2,5.1,7,0.05,0.1,0.15,0.2,0.4,0.8,1.6,0.05,0.1,0.2,0.4,0,0.1,0.2,0.4,0.8,1.6,0.4,0.8,1.6,3.2,0.05,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.04,0.08,0.16,0.32,0.033,0.066,0.13,0.26,0.52,.2, .4, .6),
@@ -61,31 +61,44 @@ dfr[, "Zeff"] <- round(dfr[, "Z"] * (1 - exp( -125 * dfr[, "Z"] ^ (-2.0 / 3))), 
 dfra <- dfr[c(1:19, 26:53), ] #  removes the zero dose case and the no isograft data
 #=========================== DATA END ===========================#
 
-#####  photon and HZE/NTE Models #####
+#####  photon model #####
 LQ <- lm(HG ~ dose.1 + I(dose.1 ^ 2), data = ddd) # linear model fit on ddd dataset
 summary(LQ, correlation = T) 
 
-#===================== NEW HZE/NTE MODEL (works well) =====================# 
-# Uses 3 adjustable parameters. There is also an HZE/TE model and NTE or TE
-# models for Z <= 3, but for a while we now use the HZE/NTE model for Z > 3 
-# with data for Z >= 8.  
+#===================== HZE/NTE MODEL, abbreviated  "hin" for "high non-targeted" =====================# 
+# Uses 3 adjustable parameters. There is also an HZE/TE model, abbreviated "hit" for "high targeted" and a "LOW"
+# model for Z <= 3. Both hin and hit are for Z>3 in principle and here have data for Z >= 8.  
 
-dfrHZE <- subset(dfra, Z > 3) # look only at HZE not at much lower LET ions. # In next line phi controls how fast NTE build up from zero; not really needed during calibration since 150*phi*Dose/L>>1 at every observed Dose !=0. phi needed for later synergy calculations.
-phi <- 1000 #  even larger phi should give the same final results, but might cause extra problems with R. 
-HZEm <- nls(HG ~ .0275 + (1 - exp ( -0.01 * (aa1 * L * dose.1 * exp( -aa2 * L) + (1 - exp( -150 * phi * dose.1 / L)) * kk1))), #  calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc.
+dfrHZE <- subset(dfra, Z > 3) # look only at HZE not at much lower Z and LET ions. # In next line phi controls how fast NTE build up from zero; not really needed during calibration since phi*Dose>>1 at every observed Dose !=0. phi needed for later synergy calculations.
+
+phi <- 2000#  even larger phi should give the same final results, but might cause extra problems with R. 
+hinm <- nls(HG ~ .0275 + (1 - exp ( -0.01 * (aa1 * L * dose.1 * exp( -aa2 * L) + (1 - exp( - phi * dose.1)) * kk1))), #  calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc. "hinm" is for hin model
             data = dfrHZE, 
             weights = NWeight,
             start = list(aa1 = .9, aa2 = .01, kk1 = 6)) 
-summary(HZEm, correlation = T); vcov(HZEm) #  parameter values & accuracy; variance-covariance matrix
-NTE.HZE.c <- coef(HZEm) #  calibrated central values of the 3 parameters. Next is the IDER, = 0 at dose 0
-HHC <- function(dose.1,L) { #  calibrated hazard function
-  0.01 * (NTE.HZE.c[1] * L * dose.1 * exp(-NTE.HZE.c[2] * L) + (1 - exp(-150 * phi * dose.1 / L)) * NTE.HZE.c[3])
-  } 
-
-CalculateHZEC <- function(dose.1, L) {
-  1 - exp(-HHC(dose.1, L)) #  Calibrated IDER
+summary(hinm, correlation = T); vcov(hinm) #  parameter values & accuracy; variance-covariance matrix RKSB
+hin.c <- coef(hinm) #  calibrated central values of the 3 parameters. Next is the IDER, = 0 at dose 0
+hanC <- function(dose.1,L) { #  calibrated hazard function "hanC" is for hazard non-targeted calibrated
+  0.01 * (hin.c[1] * L * dose.1 * exp(-hin.c[2] * L) + (1 - exp(- phi * dose.1)) * hin.c[3])
+} 
+Calculate.hinC <- function(dose.1, L) {
+  1 - exp(-hanC(dose.1, L)) #  Calibrated HZE NTE IDER
 }
-
+######### TE model #########
+hitm <- nls(HG ~ .0275 + (1 - exp ( -0.01 * (aate1 * L * dose.1 * exp( -aate2 * L) ))), #  calibrating parameters in a TE only model.
+            data = dfrHZE,  
+            weights = NWeight,
+            start = list(aate1 = .9, aate2 = .01)) 
+summary(hitm, correlation = T); vcov(hitm) #  parameter values & accuracy; variance-covariance matrix RKSB
+hit.c <- coef(hitm) #  calibrated central values of the 2 parameters. Next is the IDER, = 0 at dose 0
+hatC <- function(dose.1,L) { #  calibrated hazard function
+  0.01 * (hit.c[1] * L * dose.1 * exp(-hit.c[2] * L))
+} 
+Calculate.hitC <- function(dose.1, L) {
+  1 - exp(-hatC(dose.1, L)) #  Calibrated HZE TE IDER
+}
+IC<-cbind(AIC(hitm,hinm),BIC(hitm,hinm))
+print(IC)
 dose <- c(seq(0, .00001, by = 0.000001), #  look carefully near zero, but go out to 0.5 Gy
           seq(.00002, .0001, by=.00001),
           seq(.0002, .001, by=.0001),
@@ -93,8 +106,8 @@ dose <- c(seq(0, .00001, by = 0.000001), #  look carefully near zero, but go out
           seq(.02, .5, by=.01))
 # dose <- dose[1:30] #  this can be used to zoom in on the very low dose behavior in the graphs
 
-####### calculate baseline MIXDER I(d) for mixtures of HZE components modeled by NTE IDER #######
-IntegrateNTE_HZE_IMIXDER <- function(r, L, d = dose, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3]) {
+####### calculate baseline MIXDER I(d) for mixtures of HZE components modeled by NTE IDER and then those by TE IDER #######
+IntegratehinMIXDER <- function(r, L, d = dose, aa1 = hin.c[1], aa2 = hin.c[2], kk1 = hin.c[3]) {
   dE <- function(yini, State, Pars) {
     aa1 <- aa1; aa2 <- aa2; kk1 <- kk1
     with(as.list(c(State, Pars)), {
@@ -102,11 +115,11 @@ IntegrateNTE_HZE_IMIXDER <- function(r, L, d = dose, aa1 = NTE.HZE.c[1], aa2 = N
       u = vector(length = length(L))
       for (i in 1:length(L)) {
         aa[i] = aa1*L[i]*exp(-aa2*L[i])
-        u[i] = uniroot(function(d) 1-exp(-0.01*(aa[i]*d+(1-exp(-150*phi*d/L[i]))*kk1)) - I, lower = 0, upper = 20, tol = 10^-10)$root
+        u[i] = uniroot(function(d) 1-exp(-0.01*(aa[i]*d+(1-exp(-phi*d))*kk1)) - I, lower = 0, upper = 20, tol = 10^-10)$root
       }
       dI = vector(length = length(L))
       for (i in 1:length(L)) {
-        dI[i] = r[i]*0.01*(aa[i]+exp(-150*phi*u[i]/L[i])*kk1*150*phi/L[i])*exp(-0.01*(aa[i]*u[i]+(1-exp(-150*phi*u[i]/L[i]))*kk1))
+        dI[i] = r[i]*0.01*(aa[i]+exp(-phi*u[i])*kk1*phi)*exp(-0.01*(aa[i]*u[i]+(1-exp(-phi*u[i]))*kk1))
         
       }
       dI = sum(dI)
@@ -117,8 +130,31 @@ IntegrateNTE_HZE_IMIXDER <- function(r, L, d = dose, aa1 = NTE.HZE.c[1], aa2 = N
   out = ode(yini, times = d, dE, pars, method = "radau")
   return(out)
 } 
-
-########### Light ion Z <= 3 model 1 ######### 
+#Now hit instead of hin
+Integrate_hiteMIXDER <- function(r, L, d = dose, aate1 = hit.c[1], aate2 = hit.c[2]) {
+  dE <- function(yini, State, Pars) {
+    aate1 <- aate1; aate2 <- aate2; kk1 <- kk1
+    with(as.list(c(State, Pars)), {
+      aate = vector(length = length(L))
+      u = vector(length = length(L))
+      for (i in 1:length(L)) {
+        aate[i] = aate1*L[i]*exp(-aate2*L[i])
+        u[i] = uniroot(function(d) 1-exp(-0.01*(aate[i]*d)) - I, lower = 0, upper = 20, tol = 10^-10)$root
+      }
+      dI = vector(length = length(L))
+      for (i in 1:length(L)) {
+        dI[i] = r[i]*0.01*aate[i]*exp(-0.01*(aate[i]*u[i]))
+        
+      }
+      dI = sum(dI)
+      return(list(c(dI)))
+    })
+  }
+  pars = NULL; yini = c(I= 0); d = d
+  out = ode(yini, times = d, dE, pars, method = "radau")
+  return(out)
+} 
+########### Light ion, low Z (<= 3), low LET model ######### 
 dfrL <- subset(dfra, Z <= 3) #  for Light ions
 LOW.m <- nls(HG ~ .0275 + 1-exp(-bet * dose.1),
              data = dfrL,
@@ -130,37 +166,28 @@ CalculateLOW.C <- function(dose.1, L) { # Calibrated Low LET model. Use L=0, but
   return(1 - exp(-LOW.c[1] * dose.1))
 }  
 
-# Next: visual checks to see if our calibration is consistent with 16Chang, .93Alp, .94Alp and 17Cuc
-## Put various values in our calibrated model to check with numbers and graphs in these references
-#  L=193; dose.1 = dfrHZE[1:7, "dose.1"]; HGe = dfr[1:7,"HG"] # same for Fe
+dE_2 <- function(dose,L) { # Slope dE/dd of the low LET, low Z model; looking at the next plot() it seems fine
+  LOW.c*exp(-LOW.c*dose)  
+}
+
+# plot () chunks such as the following are visual check to see if our calibration is consistent with 16Chang, .93Alp, .94Alp
+# and 17Cuc; (ggplot commands are Yinmin's and concern CI)
+# Put various values in our calibrated model to check with numbers and graphs in these references
 plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
 ddose <- 0.01 * 0:700; lines(ddose, CalculateLOW.C(ddose, 0) + .0275)  #  calibrated lowLET IDER
 points(dfrL[1:8, "dose.1"], dfrL[1:8,"HG"],pch=19) #  RKS: Helium data points
 points(dfrL[9:12, "dose.1"], dfrL[9:12, "HG"] )  #  proton data points 
 
-# MIXDER RKS next is just a fossil I think
-dE_1 <- function(d, aa1, aa2, kk1, phi, L) {
-   ((150 * kk1 * phi * exp(-150 * phi * d / L) / L + aa1 * L * exp( -aa2 * L)) * 
-  exp(-0.01 * (kk1 * (1 - exp( - 150 * phi * d / L)) + aa1 * L * exp(-aa2 * L) * d))) / 100
- }
+####### remove following lines I think RKS ####### 
+#dE_1 <- function(d, aa1, aa2, kk1, phi, L) { # For hin
+#    ((kk1 * phi * exp(-phi * d )  + aa1 * L * exp( -aa2 * L)) * 
+#   exp(-0.01 * (kk1 * (1 - exp( -phi * d)) + aa1 * L * exp(-aa2 * L) * d))) / 100
+#  }
+########## END remove these lines RKS #########
 
-dE_2 <- function(dose,L) { 
- LOW.c*exp(-LOW.c*dose)  
-}
-
-#======================= TO DELETE ==========================#
-# To be done next. HZE NTE MIXDER 95% CI (Edward)!!! Information criteria and 
-# compare with 17Cuc (Mark)! clean up style
-# Overall: add TE HZE models; decide on low LET models after seeing Mark's IC 
-# results. Decide how to handle the various branches -- probably one ODE for NTE 
-# HZE MIXDERs that may have on low LET component and one ODE for TE HZE MIXDERs ditto
-#======================= TO DELETE ==========================#
-
-################## I(d) calculator START ##################
-calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], kk1 = NTE.HZE.c[3], phi = 3e3, beta = LOW.c, lowLET = FALSE) {
-  # Calulates the function I(d) from N > 1 HZE IDERs and one low-LET IDER using 
-  # incremental effect additivity
-  #
+################## I(d) calculator for high Z, high E, NTE model hinm plus optionally LOW. START ##################
+calculateComplexId <- function(r, L, d, aa1 = hin.c[1], aa2 = hin.c[2], kk1 = hin.c[3], phi = 2000, beta = LOW.c, lowLET = FALSE) {
+  # Calculates incremental effect additivity function I(d) for mixture of N >= 1 HZE NTE IDERs and optionally one low-LET IDER 
   # new argument: lowLET (FALSE by default, TRUE when one IDER is low-LET)
   dE <- function(yini, State, Pars) { #  Constructing an ode from the IDERS
     aa1 <- aa1; aa2 <- aa2; kk1 <- kk1; beta <- beta; phi <- phi; L <- L
@@ -169,11 +196,11 @@ calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], 
       u <- vector(length = length(L))  
       for (i in 1:length(L)) {
         aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
-        u[i] <- uniroot(function(d) 1-exp(-0.01*(aa1*L[i]*d*exp(-aa2*L[i])+(1-exp(-150*phi*d/L[i]))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
+        u[i] <- uniroot(function(d) 1-exp(-0.01*(aa1*L[i]*d*exp(-aa2*L[i])+(1-exp(-phi*d))*kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
       }
       dI <- vector(length = length(L))
       for (i in 1:length(L)) {
-        dI[i] <- r[i] * 0.01*(aa[i]+exp(-150*phi*u[i]/L[i])*kk1*150*phi/L[i])*exp(-0.01*(aa[i]*u[i]+(1-exp(-150*phi*u[i]/L[i]))*kk1))
+        dI[i] <- r[i] * 0.01*(aa[i]+exp(-phi*u[i])*kk1*phi)*exp(-0.01*(aa[i]*u[i]+(1-exp(-phi*u[i]))*kk1))
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
         u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta*d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
@@ -183,99 +210,136 @@ calculateComplexId <- function(r, L, d, aa1 = NTE.HZE.c[1], aa2 = NTE.HZE.c[2], 
       return(list(c(dI)))
     })
   }
-  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau")) #  Finds the solution I(d) of the differential equation dE
+  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau")) #  Finds solution I(d) of the differential equation
+  # RKS to Yimin and Edward: I'm not convinced we need to or should add that the method is radau
 }
+################## I(d) calculator for high Z, high E, NTE model hinm plus optionally LOW. END ##################
 
-# Example Plot 1 : one HZE one low-LET
+###### RKS to Yimin and Edward: Next is the same for hitm; then some plots #####
+calculateComplexId.te <- function(r, L, d, aate1 = hit.c[1], aate2 = hit.c[2], beta = LOW.c, lowLET = FALSE) {
+  dE <- function(yini, State, Pars) { #  Constructing an ode from the IDERS
+    aate1 <- aate1; aate2 <- aate2; beta <- beta; L <- L
+    with(as.list(c(State, Pars)), {
+      aate <- vector(length = length(L))
+      u <- vector(length = length(L))
+      for (i in 1:length(L)) {
+        aate[i] <- aate1 * L[i] * exp(-aate2 * L[i])
+        u[i] <- uniroot(function(d) 1-exp(-0.01*(aate1*L[i]*d*exp(-aate2*L[i]))) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+      }
+      dI <- vector(length = length(L))
+      for (i in 1:length(L)) {
+        dI[i] <- r[i] * 0.01*aate[i]*exp(-0.01*aate[i]*u[i])
+      }
+      if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
+        u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta*d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+        dI[length(L) + 1] <- r[length(r)] * dE_2(d = u[length(L) + 1], L = 0)
+      }
+      dI <- sum(dI)
+      return(list(c(dI)))
+    })
+  }
+  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau")) #  Finds solution I(d) of the differential equation
+}
+# RKS to Yimin and Edward: I'm not convinced we need to or should add that the method is radau
+
+
+# Example Plot 1 : one HZE one low-LET for hin
 d <- .01 * 0:300.; r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
-plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
+plot(x = d, y = Calculate.hinC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
 lines(x = d, y = CalculateLOW.C( d,0), col='green', lwd=2)
 lines(x = d, y = calculateComplexId(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
 
+# Example Plot 1hit : one HZE one low-LET for hit
+d <- .01 * 0:300.; r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
+plot(x = d, y = Calculate.hitC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
+lines(x = d, y = CalculateLOW.C( d,0), col='green', lwd=2)
+lines(x = d, y = calculateComplexId.te(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
+
 # Example Plot 2: four HZE
-r <- .25*1:4; L <- c(25, 70, 190, 250)
-lines(dose, CalculateHZEC(dose,190), col='green') # component 4
-lines(dose, CalculateHZEC(dose, 250), col='green') # component 3
-lines(dose, CalculateHZEC(dose, 70), col='green') # component 2
-lines(dose, CalculateHZEC(dose, 25), col='green') # component 1
+r <- rep(0.25,4); L <- c(25, 70, 190, 250)
 plot(calculateComplexId(r, L, d = dose), type='l', col='red', bty='l', ann='F') #  I(d) plot
-SEA <- function(dose.1) CalculateHZEC(dose.1/4, 25) + CalculateHZEC(dose.1/4, 70) + CalculateHZEC(dose.1/4, 190) + CalculateHZEC(dose.1/3, 250)
+SEA <- function(dose.1) Calculate.hinC(dose.1/4, 25) + Calculate.hinC(dose.1/4, 70) + Calculate.hinC(dose.1/4, 190) + Calculate.hinC(dose.1/3, 250)
 lines(dose, SEA(dose), lty=2)
+lines(dose, Calculate.hinC(dose,190), col='green') # component 4
+lines(dose, Calculate.hinC(dose, 250), col='green') # component 3
+lines(dose, Calculate.hinC(dose, 70), col='green') # component 2
+lines(dose, Calculate.hinC(dose, 25), col='green') # component 1
 
 # Example Plot 3: two HZE one low-LET
 d <- seq(0, .01, .0005); r <- c(1/20, 1/20, 9/10); L <- c(70, 173)
-plot(x = d, y = CalculateHZEC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
-lines(x = d, y = CalculateHZEC(d, 70), col='green', lwd=2) # component 3
+plot(x = d, y = Calculate.hinC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
+lines(x = d, y = Calculate.hinC(d, 70), col='green', lwd=2) # component 3
 lines(x = d, y = CalculateLOW.C(d, 0), col='green', lwd=2)
 lines(x = d, y = calculateComplexId(r, L, d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
 
 ################## I(d) calculator END ##################
- 
+
 #==============================================#
 #==========Confidence Interval Part============#
 #==============================================#
 
 # Set the pseudorandom seed
-set.seed(1)
 
-Generate_CI <- function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = HZEm, method = 0) {
-  # Function to generate CI for the input dose.
-  # @params:   N              - numbers of sample
-  #            intervalLength - size of confidence interval
-  #            d              - input dose
-  #            r              - proportion of ion
-  #            L              - LTE
-  #            HZEmodel       - the input HZE model
-  #            method         - select Naive or Monte Carlo Approach
-  #                             0 - Naive
-  #                             1 - Monte Carlo
-  if (method) {
-    #========= Monte Carlo =========#
-    valueArr = vector(length = 0)
-    # Generate N randomly generated samples of parameters of HZE model.
-    monteCarloSamples = rmvnorm(n = N, mean = coef(HZEmodel), sigma = vcov(HZEmodel))
-    
-    # For each sample curve, evalute them at input dose, and sort.
-    for (i in 1:500) {
-      valueArr = c(valueArr, IntegrateNTE_HZE_IMIXDER(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
-    }
-    valueArr = sort(valueArr)
-    
-    # Returning resulting CI
-    return (c(valueArr[(1-intervalLength)/2*500], valueArr[(intervalLength + (1-intervalLength)/2)*500]))
-  } else {
-    #========= Naive =========#
-    stdErrArr = summary(HZEmodel)$coefficients[, "Std. Error"] 
-    meanArr = summary(HZEmodel)$coefficients[, "Estimate"] 
-    upper = IntegrateNTE_HZE_IMIXDER(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])[, 2][2]
-    lower = IntegrateNTE_HZE_IMIXDER(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])[, 2][2]
-    return (c(lower, upper))
-  }
-}
-
-# Parameter initialization
-r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
-mixderCurve = IntegrateNTE_HZE_IMIXDER(r, L)
-threeIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
-numDosePoints = length(threeIonMIXDER$d)
-naiveCI = matrix(nrow = 2, ncol = numDosePoints)
-monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
-
-# Calculate CI for each dose point
-for (i in 1 : numDosePoints) {
-  naiveCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L)
-  monteCarloCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L, method = 1)
-  print(paste("Currently at step:", toString(i)))
-}
+# set.seed(1)
+# 
+# Generate_CI <- function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = hinm, method = 0) {
+#    # Function to generate CI for the input dose.
+#    # @params:   N              - numbers of sample
+#    #            intervalLength - size of confidence interval
+#    #            d              - input dose
+#    #            r              - proportion of ion
+#    #            L              - LTE
+#    #            HZEmodel       - the input HZE model
+#    #            method         - select Naive or Monte Carlo Approach
+#    #                             0 - Naive
+#    #                             1 - Monte Carlo
+#    if (method) {
+#      #========= Monte Carlo =========#
+#      valueArr = vector(length = 0)
+#      # Generate N randomly generated samples of parameters of HZE model.
+#      monteCarloSamples = rmvnorm(n = N, mean = coef(HZEmodel), sigma = vcov(HZEmodel))
+#  
+#      # For each sample curve, evalute them at input dose, and sort.
+#      for (i in 1:500) {
+#        valueArr = c(valueArr, IntegratehinMIXDER(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
+#      }
+#      valueArr = sort(valueArr)
+#  
+#      # Returning resulting CI
+#      return (c(valueArr[(1-intervalLength)/2*500], valueArr[(intervalLength + (1-intervalLength)/2)*500]))
+#    } else {
+#      #========= Naive =========#
+#      stdErrArr = summary(HZEmodel)$coefficients[, "Std. Error"]
+#      meanArr = summary(HZEmodel)$coefficients[, "Estimate"]
+#      upper = IntegratehinMIXDER(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])[, 2][2]
+#      lower = IntegratehinMIXDER(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])[, 2][2]
+#      return (c(lower, upper))
+#    }
+#  }
+#  
+#  # Parameter initialization
+#  r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
+#  mixderCurve = IntegratehinMIXDER(r, L)
+#  threeIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
+#  numDosePoints = length(threeIonMIXDER$d)
+#  naiveCI = matrix(nrow = 2, ncol = numDosePoints)
+#  monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
+#  
+#  # Calculate CI for each dose point
+#  for (i in 1 : numDosePoints) {
+#    naiveCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L)
+#    monteCarloCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L, method = 1)
+#    print(paste("Currently at step:", toString(i)))
+#  }
 
 # Plot
-mixderGraphWithNaiveCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
-mixderGraphWithMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4)
-print(mixderGraphWithNaiveCI)
-print(mixderGraphWithMonteCarloCI)
-
-mixderGraphWithNaiveAndMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
-print(mixderGraphWithNaiveAndMonteCarloCI)
+# mixderGraphWithNaiveCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
+# mixderGraphWithMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4)
+# print(mixderGraphWithNaiveCI)
+# print(mixderGraphWithMonteCarloCI)
+# 
+# mixderGraphWithNaiveAndMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
+# print(mixderGraphWithNaiveAndMonteCarloCI)
 
 #========================================#
 #===================End==================#
