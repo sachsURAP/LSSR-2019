@@ -43,7 +43,7 @@ dfr <- data.frame( #  data used in 16Chang; includes data analyzed in .93Alp and
   MeVperu = c(rep(228, 8), rep(600, 7), rep(300, 4), rep(600, 6), rep(250, 4), rep(670, 5), rep(600, 4), rep(600, 3), rep(260, 4), rep(1000, 5), rep(593, 3)), #  Kinetic energy in MeV, divided by atomic mass, e.g. divided by 4u=4x931.5 MeV/c^2 for 2He4
   Katz = c(rep("TBD", 53)), #  for fully ionized nuclei, Katz's Z^2/beta^2, Calculated below. It is part of the Bethe Barkas Bloch equation for stopping power. Our calculations don't use Katz, but various similar calculations do.
   ion = c(rep("He4", 8), rep("Fe56", 17), rep("p", 4), rep("Ne20", 5), rep("Nb93", 4), rep("Fe56", 3), rep("Si28", 4), rep("Ti48", 5), rep("La139", 3)),
-  comments = c(".93AlpLooksOK", rep("", 7), ".93AlplooksOK", rep('', 11), ".93Alp.no.iso", "not in 17Cuc (or 16Chang?)", rep("", 3), "16Chang all OK?", rep('', 24), ".94Alp","From graphs",'e.g. in 17Cuc')
+  comments = c(".93AlpLooksOK", rep("", 7), ".93AlplooksOK", rep'', 11), ".93Alp.no.iso", "not in 17Cuc (or 16Chang?)", rep("", 3), "16Chang all OK?", rep('', 24), ".94Alp","From graphs",'e.g. in 17Cuc')
 ) 
 
 # Data for HG induced by photons from Cs-137 or Co-60 beta decay; from 16Chang (and calibration of LQ model)
@@ -280,66 +280,66 @@ lines(x = d, y = calculateComplexId(r, L, d = d, lowLET = TRUE)[, 2], col = 'red
 
 # Set the pseudorandom seed
 
-# set.seed(1)
-# 
-# Generate_CI <- function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = hinm, method = 0) {
-#    # Function to generate CI for the input dose.
-#    # @params:   N              - numbers of sample
-#    #            intervalLength - size of confidence interval
-#    #            d              - input dose
-#    #            r              - proportion of ion
-#    #            L              - LTE
-#    #            HZEmodel       - the input HZE model
-#    #            method         - select Naive or Monte Carlo Approach
-#    #                             0 - Naive
-#    #                             1 - Monte Carlo
-#    if (method) {
-#      #========= Monte Carlo =========#
-#      valueArr = vector(length = 0)
-#      # Generate N randomly generated samples of parameters of HZE model.
-#      monteCarloSamples = rmvnorm(n = N, mean = coef(HZEmodel), sigma = vcov(HZEmodel))
-#  
-#      # For each sample curve, evalute them at input dose, and sort.
-#      for (i in 1:500) {
-#        valueArr = c(valueArr, IntegratehinMIXDER(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
-#      }
-#      valueArr = sort(valueArr)
-#  
-#      # Returning resulting CI
-#      return (c(valueArr[(1-intervalLength)/2*500], valueArr[(intervalLength + (1-intervalLength)/2)*500]))
-#    } else {
-#      #========= Naive =========#
-#      stdErrArr = summary(HZEmodel)$coefficients[, "Std. Error"]
-#      meanArr = summary(HZEmodel)$coefficients[, "Estimate"]
-#      upper = IntegratehinMIXDER(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])[, 2][2]
-#      lower = IntegratehinMIXDER(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])[, 2][2]
-#      return (c(lower, upper))
-#    }
-#  }
-#  
-#  # Parameter initialization
-#  r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
-#  mixderCurve = IntegratehinMIXDER(r, L)
-#  threeIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
-#  numDosePoints = length(threeIonMIXDER$d)
-#  naiveCI = matrix(nrow = 2, ncol = numDosePoints)
-#  monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
-#  
-#  # Calculate CI for each dose point
-#  for (i in 1 : numDosePoints) {
-#    naiveCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L)
-#    monteCarloCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L, method = 1)
-#    print(paste("Currently at step:", toString(i)))
-#  }
+set.seed(1)
+#
+Generate_CI <- function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = hinm, method = 0) {
+  # Function to generate CI for the input dose.
+  # @params:   N              - numbers of sample
+  #            intervalLength - size of confidence interval
+  #            d              - input dose
+  #            r              - proportion of ion
+  #            L              - LTE
+  #            HZEmodel       - the input HZE model
+  #            method         - select Naive or Monte Carlo Approach
+  #                             0 - Naive
+  #                             1 - Monte Carlo
+  if (method) {
+    #========= Monte Carlo =========#
+    valueArr = vector(length = 0)
+    # Generate N randomly generated samples of parameters of HZE model.
+    monteCarloSamples = rmvnorm(n = N, mean = coef(HZEmodel), sigma = vcov(HZEmodel))
+    
+    # For each sample curve, evalute them at input dose, and sort.
+    for (i in 1:500) {
+      valueArr = c(valueArr, IntegratehinMIXDER(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
+    }
+    valueArr = sort(valueArr)
+    
+    # Returning resulting CI
+    return (c(valueArr[(1-intervalLength)/2*500], valueArr[(intervalLength + (1-intervalLength)/2)*500]))
+  } else {
+    #========= Naive =========#
+    stdErrArr = summary(HZEmodel)$coefficients[, "Std. Error"]
+    meanArr = summary(HZEmodel)$coefficients[, "Estimate"]
+    upper = IntegratehinMIXDER(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])[, 2][2]
+    lower = IntegratehinMIXDER(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])[, 2][2]
+    return (c(lower, upper))
+  }
+}
+
+# Parameter initialization
+r <- c(1/3, 1/3, 1/3); L <- c(25, 70, 250)
+mixderCurve = IntegratehinMIXDER(r, L)
+threeIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
+numDosePoints = length(threeIonMIXDER$d)
+naiveCI = matrix(nrow = 2, ncol = numDosePoints)
+monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
+
+# Calculate CI for each dose point
+for (i in 1 : numDosePoints) {
+  naiveCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L)
+  monteCarloCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L, method = 1)
+  print(paste("Currently at step:", toString(i)))
+}
 
 # Plot
-# mixderGraphWithNaiveCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
-# mixderGraphWithMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4)
-# print(mixderGraphWithNaiveCI)
-# print(mixderGraphWithMonteCarloCI)
-# 
-# mixderGraphWithNaiveAndMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
-# print(mixderGraphWithNaiveAndMonteCarloCI)
+mixderGraphWithNaiveCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
+mixderGraphWithMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4)
+print(mixderGraphWithNaiveCI)
+print(mixderGraphWithMonteCarloCI)
+
+mixderGraphWithNaiveAndMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
+print(mixderGraphWithNaiveAndMonteCarloCI)
 
 #========================================#
 #===================End==================#
