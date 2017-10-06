@@ -1,6 +1,6 @@
 ---
-title: "NASAmouseHG"
-author: "Edward Greg Huang"
+title: "Synergy analysis for mouse Harderian gland radiation tumorigenesis induced by mixed beams whose individual components are simulated galactic cosmic rays"
+author: "Edward Greg Huang, Yimin Lin, Mark Ebert, Dae Woong Ham, and Rainer K. Sachs"
 date: "3 October 2017"
 output: pdf_document
 ---
@@ -9,7 +9,68 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Computational Implementation  
+## 1. Introduction
+
+### 1.1. Terminology
+
+There will be a number of acronyms in this paper. The main ones are the following, with less familiar but here often used ones, such as IDER and MIXDER, in bold-face and underlined.
+AIVP		Autonomous ODE Initial Value Problem (Section sss below)
+GCR		Galactic Cosmic Rays (or Galactic Cosmic Radiation).  Occurs above low earth orbit.
+HG			Harderian Gland. An organ found in many rodents
+HZE ion		High Z and E (charge and energy) atomic nuclei, almost fully ionized
+IDER		Individual Dose-Effect Relation, for a single agent or single mixture component
+MIXDER		Mixture Dose-Effect Relation
+L=LET		Linear Energy Transfer, stopping power, LET $\infty$
+LNT		Linear-No-Threshold.  A straight line through the origin (dose=0, effect=0)
+NTE		Non-Targeted Effect(s) due to inter-cellular interactions. ‘Bystander’ effect(s)
+ODE		Ordinary Differential Equation
+TE			Targeted Effect(s). Standard radiobiology action due to a direct hit or near miss
+In the paper: “concave” and “ convex” are used, as illustrated in Fig. fff below, to refer to second derivatives when analyzing IDER graphs; “low dose” usually refers to doses between 0 and 2 cGy;  “very low dose” refers to doses between 0 and 5 mGy; and “ultra low dose” refers to doses <1 mGy. More details on terminology and a summary of the mathematical symbols used are in sub-section A1 of the supplementary materials.
+
+### 1.2. Scope of Paper 
+NASA has been concerned about possible synergy when mixed radiation fields produce biological damage (reviewed, e.g., in [Norbury et al. 2016],[Siranart et al. 2016], [Ham et al. 2017rrr]). There is evidence that synergy sometimes occurs (e.g. [Bennett et al. 2007]). We will here use mathematical synergy analyses of earlier and proposed experiments on mouse Harderian Gland (HG) radiogenic tumorigenesis after exposure to mixtures whose components simulate GCR.
+    There is evidence that HZE ions probably induce NTE due to inter-cellular interactions [Cucinotta and Chappell 2010; Chang et al. 2016], so we will use I(d)
+
+### 1.3. Synergy Analysis
+
+#### 1.3.1. A Brief History of Synergy Theory
+Lots more stuff here
+
+## 2. Mathematical and Computational Methods
+
+### 2.1. Open-Source, Freely Available Programs
+### 2.2. IDERs: General Approach [almost always use toy examples for 1st year 1-variable calculus audience]
+#### 2.2.1. General Requirements on IDERS
+Notation. dose. labeled by index or by biophysical parameters. contain adjustable parameters
+IDERs defined and C2 on half open interval [0,infinity) of dose axis. 0 at dose 0. E <1 for all doses.
+
+#### 2.2.2. Concave/Convex Terminology as Regards Second Derivatives
+Use a 3-panel Figure with concave, convex, and inflection point IDERs to illustrate the following items. Suppose d2E/dd2 < 0 for all doses in an open interval, then E is (strictly) “concave” for all such doses; > 0 (strictly) convex. Inflection point. Aside: convex graphs have a much more general definition in mathematics [give reference] but here we will only need the above.
+
+#### 2.2.3. The Hazard Function Equation
+E=1-exp(-H). Motivate
+E is IDER (section 2.2.1) iff H is IDER.
+
+#### 2.2.4. Standard IDERs and IDERs Defined by an Autonomous Initial Value Problem (AIVP IDERs)
+Standard: given as functions of dose, explicit using “elementary” functions or high-quality numerical. 
+AIVP: dE/dd=F(E); E(0)=0; insist, as a mild condition on F, that there be a unique solution C2 at and near dose 0. Motivate at length. Important Innovation.
+
+### 2.3. IDERs Used in This Paper (will be Long sub-section with various subdivisions)
+
+### 2.4. Synergy Analysis (will be long sub-section with various subdivisions)
+
+### 2.5. Computational Implementation  
 
 The data are sourced from Chang et al. (2016) and Alpen et al. (1993, 1994) and implemented as R dataframes throughout the calculations. A number of R packages from the CRAN repository were used, notably `minpack.lm` for non-linear regression, `deSolve` for solving differential equations, `mvtnorm` for Monte Carlo simulations, and `ggplot2` for plotting. Standardized IDERs are initialized as R functions with arguments for dose and LET. These IDERs encompass various particle variants (HZE, low-LET) and effect models (TE, NTE + TE). Computing $I(d)$ involves calling a user-written R function that applies incremental effect additivity to mixtures of $N \geq 2$ IDERs, with at most one low-LET IDER. This requires use of a one-dimensional root finder within a numerical ODE integrator from `deSolve`. Confidence intervals for the calculated baseline MIXDER are found through Monte Carlo simulations (more to be added). The raw code is available on Github.
 
+
+## Works Cited
+1.	Bennett PV, NC Cutter and BM Sutherland. "Split-dose exposures versus dual ion exposure in human cell neoplastic transformation." Radiat Environ Biophys 46(2): 119-123. (2007).  
+
+2.	Chang PY, FA Cucinotta, KA Bjornstad, J Bakke, CJ Rosen, N Du, . . . EA Blakely. "Harderian Gland Tumorigenesis: Low-Dose and LET Response." Radiat Res 185(5): 449-460. (2016).  
+
+3.	Cucinotta FA and LJ Chappell. "Non-targeted effects and the dose response for heavy ion tumor induction." Mutat Res 687(1-2): 49-53. (2010).  
+
+4.	Norbury JW, W Schimmerling, TC Slaba, EI Azzam, FF Badavi, G Baiocco, . . . CJ Zeitlin. "Galactic cosmic ray simulation at the NASA Space Radiation Laboratory." Life Sci Space Res (Amst) 8: 38-51. (2016).  
+
+5.	Siranart N, EA Blakely, A Cheng, N Handa and RK Sachs. "Mixed Beam Murine Harderian Gland Tumorigenesis: Predicted Dose-Effect Relationships if neither Synergism nor Antagonism Occurs." Radiat Res 186(6): 577-591. (2016).  
