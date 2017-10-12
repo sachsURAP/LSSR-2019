@@ -39,7 +39,7 @@ Lots more stuff here
 ## 2. Mathematical and Computational Methods
 
 ### 2.1. Open-Source, Freely Available Programs
-
+Unless otherwise stated, all software employed for this study are open source and freely available. We utilize the programming language R [(R Core Team 2017)](https://www.r-project.org/), which is primarily designed for statistical computing and graphics. We supplement the base R software environment with "R packages" - curated R code collections loaded from the Comprehensive R Archive Network [(CRAN)](https://cran.r-project.org/). The specific packages used are detailed under Computation Implementation (Section 2.5.). All development of the source code was performed with [RStudio](https://www.rstudio.com/), a free open source integrated development environment for R. The current script and its past iterations are both stored on the Git-based online version control repository [GitHub](https://github.com/eghuang/NASAmouseHG). The script is freely offered for use or modification under the [GNU General Public License v3.0](https://github.com/eghuang/NASAmouseHG/blob/master/LICENSE). There is no warranty on the script, implied or otherwise.
 
 ### 2.2. IDERs: General Approach [almost always use toy examples for 1st year 1-variable calculus audience]
 
@@ -64,7 +64,14 @@ AIVP: $dE/dd=F(E)$; $E(0) = 0$; insist, as a mild condition on F, that there be 
 ### 2.4. Synergy Analysis (will be long sub-section with various subdivisions)
 
 ### 2.5. Computational Implementation  
-The data are sourced from Chang et al. (2016) and Alpen et al. (1993, 1994) and implemented as R dataframes throughout the calculations. A number of R packages from the CRAN repository were used, notably `minpack.lm` for non-linear regression, `deSolve` for solving differential equations, `mvtnorm` for Monte Carlo simulations, and `ggplot2` for plotting. Standardized IDERs are initialized as R functions with arguments for dose and LET. These IDERs encompass various particle variants (HZE, low-LET) and effect models (TE, NTE + TE). Computing $I(d)$ involves calling a user-written R function that applies incremental effect additivity to mixtures of $N \geq 2$ IDERs, with at most one low-LET IDER. This requires use of a one-dimensional root finder within a numerical ODE integrator from `deSolve`. Confidence intervals for the calculated baseline MIXDER are found through Monte Carlo simulations (more to be added). The raw code is available on Github.
+The data are sourced from Chang et al. (2016) and Alpen et al. (1993, 1994) and implemented as R dataframes throughout the calculations. A number of R packages from the CRAN repository were used, notably `stats` for non-linear regression, `deSolve` for solving differential equations, `mvtnorm` for Monte Carlo simulations, and `ggplot2` for plotting.  
+
+Our computational workflow with respect to R computational methods and functions is as follows. 
+Various datasets on Harderian gland tumorgenesis are first implemented as R dataframe structures. Non-linear least square models are fitted over these dataframes using the Gauss-Newton algorithm. Coefficients extracted from the models are used to contruct hazard functions in the form of a user-written R function. Standardized IDERs are initialized from these hazard functions as user-written functions following the hazard function equation in Section 2.2.3. These resulting IDERs encompass various particle variants (HZE, low-LET) and effect models (TE, NTE + TE).  
+
+Computing $I(d)$ involves calling a user-written R function `calculate_complex_id` that applies incremental effect additivity to mixtures of $N \geq 2$ IDERs, with at most one low-LET IDER. `calculate_complex_id` takes an argument to  specify use of either the NTE or TE model. Calculation of $I(d)$ requires construction of an R vector `dE` with elements corresponding to the derivative of each IDER curve as a function of dose. A one-dimensional root finder is used to find the incremental effect of each IDER. We construct `dI`, a vector corresponding to the numerical derivative of $d(I)$ by applying equation (x) to each element of `dE`. A numerical ODE integrator from `deSolve` is used to integrate `dI` to return a R list of dose-effect coordinates.
+
+Confidence intervals for the calculated baseline MIXDER are found through Monte Carlo simulations (more to be added).
 
 
 ## Works Cited
