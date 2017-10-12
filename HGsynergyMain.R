@@ -28,7 +28,7 @@
 library(deSolve) #  solving differential equations
 library(ggplot2) #  plotting
 library(mvtnorm) #  Monte Carlo simulation
-library(minpack.lm) #  non-linear regression 
+# library(minpack.lm) #  non-linear regression #egh actually I don't think we use any functions from this package
 rm(list=ls())
 #=========================== DATA START ===========================#
 hg_data <- data.frame( #  data used in 16Chang; includes data analyzed in .93Alp and .94Alp  
@@ -125,13 +125,12 @@ calculate_id_hze_nte_mixder <- function(r, L, d = dose_vector, aa1 = hi_nte_mode
       dI = vector(length = length(L))
       for (i in 1:length(L)) {
         dI[i] = r[i]*0.01*(aa[i]+exp(-phi*u[i])*kk1*phi)*exp(-0.01*(aa[i]*u[i]+(1-exp(-phi*u[i]))*kk1))
-        
       }
       dI = sum(dI)
       return(list(c(dI)))
     })
   }
-  pars = NULL; yini = c(I= 0); d = d
+  pars = NULL; yini = c(I = 0); d = d
   out = ode(yini, times = d, dE, pars, method = "radau")
   return(out)
 } 
