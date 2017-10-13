@@ -173,10 +173,10 @@ dE_2 <- function(dose,L) { # Slope dE/dd of the low LET, low Z model; looking at
 # plot () chunks such as the following are visual check to see if our calibration is consistent with 16Chang, .93Alp, .94Alp
 # and 17Cuc; (ggplot commands are Yinmin's and concern CI)
 # Put various values in our calibrated model to check with numbers and graphs in these references
-plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
-ddose <- 0.01 * 0:700; lines(ddose, CalculateLOW.C(ddose, 0) + .0275)  #  calibrated lowLET IDER
-points(dfrL[1:8, "dose.1"], dfrL[1:8,"HG"],pch=19) #  RKS: Helium data points
-points(dfrL[9:12, "dose.1"], dfrL[9:12, "HG"] )  #  proton data points 
+# plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
+# ddose <- 0.01 * 0:700; lines(ddose, CalculateLOW.C(ddose, 0) + .0275)  #  calibrated lowLET IDER
+# points(dfrL[1:8, "dose.1"], dfrL[1:8,"HG"],pch=19) #  RKS: Helium data points
+# points(dfrL[9:12, "dose.1"], dfrL[9:12, "HG"] )  #  proton data points 
 
 ####### remove following lines I think RKS ####### 
 #dE_1 <- function(d, aa1, aa2, kk1, phi, L) { # For hin
@@ -255,15 +255,17 @@ calculateComplexId.te <- function(r, L, d, aate1 = hit.c[1], aate2 = hit.c[2], b
 # lines(x = d, y = CalculateLOW.C( d,0), col='green', lwd=2)
 # lines(x = d, y = calculateComplexId.te(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
 # 
-# # Example Plot 2: four HZE
+# Example Plot 2: four HZE
 # r <- rep(0.25,4); L <- c(25, 70, 190, 250)
 # plot(calculateComplexId(r, L, d = dose), type='l', col='red', bty='l', ann='F') #  I(d) plot
-# SEA <- function(dose.1) Calculate.hinC(dose.1/4, 25) + Calculate.hinC(dose.1/4, 70) + Calculate.hinC(dose.1/4, 190) + Calculate.hinC(dose.1/3, 250)
-# lines(dose, SEA(dose), lty=2)
+# #SEA <- function(dose.1) Calculate.hinC(dose.1/4, 25) + Calculate.hinC(dose.1/4, 70) + Calculate.hinC(dose.1/4, 190) + Calculate.hinC(dose.1/3, 250)
+# #lines(dose, SEA(dose), lty=2)
 # lines(dose, Calculate.hinC(dose,190), col='green') # component 4
 # lines(dose, Calculate.hinC(dose, 250), col='green') # component 3
 # lines(dose, Calculate.hinC(dose, 70), col='green') # component 2
 # lines(dose, Calculate.hinC(dose, 25), col='green') # component 1
+
+
 # 
 # # Example Plot 3: two HZE one low-LET
 # d <- seq(0, .01, .0005); r <- c(1/20, 1/20, 9/10); L <- c(70, 173)
@@ -274,114 +276,67 @@ calculateComplexId.te <- function(r, L, d, aate1 = hit.c[1], aate2 = hit.c[2], b
 
 ################## I(d) calculator END ##################
 
-#==============================================#
-#==========Confidence Interval Part============#
-#==============================================#
-
-# Parameter initialization
-d <- seq(0, .01, .0005); r <- c(1/20, 1/20, 9/10); L <- c(70, 173)
-sampleNum = 1000
-mod = 1              # 1 if HIN, 0 if HIT
-
-# Set the pseudorandom seed
-set.seed(100)
-
-# helper function to generate samples
-Generate_samples = function(N = sampleNum, model = mod, HINmodel = hinm, HITmodel = hitm, LOWmodel = LOW.m) {
-  # Function to generate Monte Carlo samples for calculating CI
-  # @params:   N              - numbers of sample
-  #            model          - select HIN or HIT model
-  #                             0 - HIT model
-  #                             1 - HIN model
-  #            HINmodel       - the input HIN model
-  #            HITmodel       - the input HIN model
-  #            LOWmodel       - the input LOW model
-  monteCarloSamplesLow = rmvnorm(n = N, mean = coef(LOWmodel), sigma = vcov(LOWmodel))
-  curveList = list(0)
-  if (model) {
-    monteCarloSamplesHin = rmvnorm(n = N, mean = coef(HINmodel), sigma = vcov(HINmodel))
+plottingHelper <- function(Lval, blackwhite) {
+  d = c()
+  nWeight = c()
+  hgArr = c()
+  for (row in 1:nrow(dfr)) {
+    if (dfr[row, "L"] == Lval) {
+      d = c(d, dfr[row, "dose.1"])
+      nWeight = c(nWeight, dfr[row, "NWeight"])
+      hgArr = c(hgArr, dfr[row, "HG"])
+    }
+  }
+  dose <- c(seq(0, .00001, by = 0.000001),
+            seq(.00002, .0001, by=.00001),
+            seq(.0002, .001, by=.0001),
+            seq(.002, .01, by=.001),
+            seq(.02, d[length(d)], by=.01))
+  
+  hinVal = Calculate.hinC(dose, Lval)
+  hitVal = Calculate.hitC(dose, Lval)
+  # plot(x = dose, y = hinVal, type='l', col='red', bty='l', ann='F', xaxt = "n", yaxt = "n", lwd = 2)
+  # axis(side = 1, at = seq(0, d[length(d)], length.out = 10), c(0, rep("", 8), trunc(10*d[length(d)])/10), las = 1)
+  # axis(side = 2, at = seq(0, hinVal[length(hinVal)] + 1/sqrt(nWeight[1]), length.out = 5), c(0, rep("", 3), trunc(10*(hinVal[length(hinVal)] + 1/sqrt(nWeight[1])))/10), las = 1)
+  # lines(x = dose, y = hitVal, type='l', col='green', bty='l', ann='F', lwd = 2)
+  # points(d, hgArr, pch = 19)
+  # for (i in 1:length(nWeight)) {
+  #   arrows(d[i], hgArr[i] - 1/sqrt(nWeight[i]), d[i], hgArr[i] + 1/sqrt(nWeight[i]), code = 3, length = 0.04, angle = 90, lwd = 2)
+  # }
+  df1 = data.frame(d = dose, hgNTE = hinVal, hgTE = hitVal)
+  df2 = data.frame(x = d, hg = hgArr, nw = nWeight)
+  if (blackwhite) {
+    color1 = "black"
+    color2 = "black"
   } else {
-    monteCarloSamplesHit = rmvnorm(n = N, mean = coef(HITmodel), sigma = vcov(HITmodel))
+    color1 = "red"
+    color2 = "blue"
   }
-  for (i in 1:N) {
-    if (model) {
-      curveList[[i]] = calculateComplexId(r = r, L = L, d = d, aa1 = monteCarloSamplesHin[, 1][i], aa2 = monteCarloSamplesHin[, 2][i], kk1 = monteCarloSamplesHin[, 3][i], beta = monteCarloSamplesLow[, 1][i], lowLET = TRUE)
-    } else {
-      curveList[[i]] = calculateComplexId.te(r = r, L = L, d = d, aate1 = monteCarloSamplesHit[, 1][i], aate2 = monteCarloSamplesHit[, 2][i], beta = monteCarloSamplesLow[, 1][i], lowLET = TRUE)
-    }
-    print(paste("Currently at Monte Carlo step:", toString(i), "Total of", toString(N), "steps"))
-  }
-  return (curveList)
+  p = ggplot() + theme_bw() + 
+         geom_line(data = df1, aes(x = dose, y = hgNTE), colour = color1, size = 1) + 
+         geom_line(data = df1, aes(x = dose, y = hgTE), colour = color2, size = 1) + 
+         geom_point(data = df2, aes(x = d, y = hg), size = 2) +
+         geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg - 1/sqrt(nWeight), yend = hg + 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) + 
+         geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg, yend = hg - 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) +
+         theme(axis.title.x=element_blank(), axis.title.y=element_blank())
+         # scale_x_discrete(limits = seq(0, d[length(d)], length.out = 5), labels = c(0, rep("", 3), trunc(100*d[length(d)])/100)) + 
+         # scale_y_discrete(limits = seq(0, hgArr[length(hgArr)], length.out = 5), labels = c(0, rep("", 3), trunc(100*hgArr[length(hgArr)])/100))
+  # if (blackwhite) {
+  #   ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Blackwhite", ".eps"), plot = p, device = "eps")
+  # } else {
+  #   ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Color", ".eps"), plot = p, device = "eps")
+  # }
+  print(p)
 }
 
-# Generate N randomly generated samples of parameters of HZE model.
-curveList = Generate_samples()
+possibleLVal = c(25, 70, 100, 195, 250, 464, 953)
 
-Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L, HINmodel = hinm, HITmodel = hitm, LOWmodel = LOW.m, method = 0, sampleCurves = curveList, model = mod) {
-  # Function to generate CI for the input dose.
-  # @params:   N              - numbers of sample
-  #            intervalLength - size of confidence interval
-  #            d              - input dose
-  #            r              - proportion of ion
-  #            L              - LTE
-  #            HINmodel       - the input HIN model
-  #            HITmodel       - the input HIN model
-  #            LOWmodel       - the input LOW model
-  #            method         - select Naive or Monte Carlo Approach
-  #                             0 - Naive
-  #                             1 - Monte Carlo
-  if (method) {
-    # For each sample curve, evalute them at input dose, and sort.
-    valueArr = vector(length = 0)
-    for (i in 1:N) {
-      valueArr = c(valueArr, sampleCurves[[i]][, 2][doseIndex])
-    }
-    valueArr = sort(valueArr)
-
-    # Returning resulting CI
-    return (c(valueArr[(1-intervalLength)/2*N], valueArr[(intervalLength + (1-intervalLength)/2)*N]))
-  } else {
-    #========= Naive =========#
-    stdErrArrLow = summary(LOWmodel)$coefficients[, "Std. Error"]
-    meanArrLow = summary(LOWmodel)$coefficients[, "Estimate"]
-    if (model) {
-      stdErrArrHin = summary(HINmodel)$coefficients[, "Std. Error"]
-      meanArrHin = summary(HINmodel)$coefficients[, "Estimate"]
-      upper = calculateComplexId(r = r, L = L, d = c(0, d), aa1 = meanArrHin["aa1"] + 2*stdErrArrHin["aa1"], aa2 = meanArrHin["aa2"] + 2*stdErrArrHin["aa2"], kk1 = meanArrHin["kk1"] + 2*stdErrArrHin["kk1"], beta = meanArrLow + 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
-      lower = calculateComplexId(r = r, L = L, d = c(0, d), aa1 = meanArrHin["aa1"] - 2*stdErrArrHin["aa1"], aa2 = meanArrHin["aa2"] - 2*stdErrArrHin["aa2"], kk1 = meanArrHin["kk1"] - 2*stdErrArrHin["kk1"], beta = meanArrLow - 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
-    } else {
-      stdErrArrHit = summary(HITmodel)$coefficients[, "Std. Error"]
-      meanArrHit = summary(HITmodel)$coefficients[, "Estimate"]
-      upper = calculateComplexId.te(r = r, L = L, d = c(0, d), aate1 = meanArrHit["aate1"] + 2*stdErrArrHit["aate1"], aate2 = meanArrHit["aate2"] + 2*stdErrArrHit["aate2"], beta = meanArrLow + 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
-      lower = calculateComplexId.te(r = r, L = L, d = c(0, d), aate1 = meanArrHit["aate1"] - 2*stdErrArrHit["aate1"], aate2 = meanArrHit["aate2"] - 2*stdErrArrHit["aate2"], beta = meanArrLow - 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
-    }
-    return (c(lower, upper))
-  }
+for (val in possibleLVal) {
+  plottingHelper(val, TRUE)
+  plottingHelper(val, FALSE)
 }
 
-# Parameter initialization
-if (mod) {
-  mixderCurve = calculateComplexId(r, L, d = d, lowLET = TRUE)
-} else {
-  mixderCurve = calculateComplexId.te(r, L, d = d, lowLET = TRUE)
-}
-fourIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
-numDosePoints = length(fourIonMIXDER$d)
-naiveCI = matrix(nrow = 2, ncol = numDosePoints)
-monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
-
-# Calculate CI for each dose point
-for (i in 1 : numDosePoints) {
-  naiveCI[, i] = Generate_CI(d = fourIonMIXDER$d[i], r = r,  L = L)
-  monteCarloCI[, i] = Generate_CI(doseIndex = i, r = r,  L = L, method = 1)
-  print(paste("Iterating on dose points. Currently at step:", toString(i), "Total of", toString(numDosePoints), "steps."))
-}
-
-# Plot
-mixderGraphWithNaiveCI = ggplot(data = fourIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
-mixderGraphWithMonteCarloCI = ggplot(data = fourIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4)
-print(mixderGraphWithNaiveCI)
-print(mixderGraphWithMonteCarloCI)
-
-mixderGraphWithNaiveAndMonteCarloCI = ggplot(data = fourIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .6) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
-print(mixderGraphWithNaiveAndMonteCarloCI)
+#plot(x = dose, y = Calculate.hinC(dose, 190), type='l', col='red', bty='l', ann='F')
+# plot(x = dose, y = Calculate.hinC(dose, 100), col = 'red')
+#lines(x = dose, y = Calculate.hinC(dose, 100), type='l', col='red', bty='l', ann='F') 
+# lines(x = dose, y = Calculate.hitC(dose.1 = dose, L = 100), col='green')
