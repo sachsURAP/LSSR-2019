@@ -20,36 +20,36 @@ knitr::opts_chunk$set(echo = TRUE)
 ## 2. Mathematical and Computational Methods
 
 ### 2.1. Open-Source, Freely Available Programs
-Unless otherwise stated, all software employed for this study are open source and freely available. We utilize the programming language R [(R Core Team 2017)](https://www.r-project.org/), which is primarily designed for statistical computing and graphics. We supplement the base R software environment with "R packages" - curated R code collections loaded from the Comprehensive R Archive Network [(CRAN)](https://cran.r-project.org/). The specific packages used are detailed under Computation Implementation (Section 2.5.). All development of the source code was performed in [RStudio](https://www.rstudio.com/), a integrated development environment for R. The current script and its past iterations are both stored on the Git-based online version control repository [GitHub](https://github.com/eghuang/NASAmouseHG). The script is freely offered for use or modification under the [GNU General Public License v3.0](https://github.com/eghuang/NASAmouseHG/blob/master/LICENSE). There is no warranty on the script, implied or otherwise.
+All customized software we developed for this study are open source and freely available. We utilize the programming language R [(R Core Team 2017)](https://www.r-project.org/), which is primarily designed for statistical computing and graphics. We supplement the base R software environment with "R packages" - curated R code collections loaded from the Comprehensive R Archive Network [(CRAN)](https://cran.r-project.org/). The specific packages used are detailed under Computation Implementation (Section 2.5.). All development of the source code was performed in [RStudio](https://www.rstudio.com/), a integrated development environment for R. The current script and its past iterations are both stored on the repository [GitHub](https://github.com/eghuang/NASAmouseHG). The script is freely offered for use or modification under the [GNU General Public License v3.0](https://github.com/eghuang/NASAmouseHG/blob/master/LICENSE). There is no warranty on the script, implied or otherwise.
 
-### 2.2. IDERs and Hazard Functions: General Approach [almost always use toy examples for 1st year 1-variable calculus audience]
-
+### 2.2. IDERs and Hazard Functions: General Approach 
+>>>>>>> 4b54d512a65156f8b94fe1db133f2e39c07060c4
 #### 2.2.1. Basic Properties
 
 Notation. dose $d$, effect $E$. Related notations are: $E(d: \textbf{p})$ where $d$ is dose and $\textbf{p}$ is a vector of adjustable parameters that are calibrated by regression from the data; $E_j(d_j; \mathbf{p_j})$ when discussiong a mixture whose $j^{th}$ component contributed dose $d_j$ to the total mixture dose, with $j = 1, 2, \dots, N$; and $E(d; \textbf{p}; L)$ when LET $L$ is used instead of an integer label $j$. 
 
 #### 2.2.2. Hazard Functions
 
-### 2.3. IDERs Used in This Paper (will be Long sub-section with various subdivisions)
+### 2.3. IDERs Used in This Paper
 
 #### 2.3.1. Motivations
 
 #### 2.3.2. IDERs: Functional Forms
 
-### 2.4. Synergy Analysis (will be long sub-section with various subdivisions)
+### 2.4. Synergy Analysis 
 
-#### 2.4.1. Distribution of Mixture Dose Between Mixture Components
+### 2.4.1. Distribution of Mixture Dose Between Mixture Component
 
 #### 2.4.2. Simple versus Incremental Additivity
 
 ### 2.5. Computational Implementation  
 The data are sourced from Chang et al. (2016) and Alpen et al. (1993, 1994) and implemented as R dataframes throughout the calculations. A number of R packages from the CRAN repository were used, notably `stats` for non-linear regression, `deSolve` for solving differential equations, `mvtnorm` for Monte Carlo simulations, and `ggplot2` for plotting.  
 
-Our computational workflow with respect to R computational methods and functions is as follows. Various datasets on Harderian gland tumorgenesis are first implemented as R dataframe structures. Non-linear least square models are fitted over these dataframes using the Gauss-Newton algorithm. Coefficients extracted from the models are used to construct hazard functions in the form of a user-written R function. Standardized IDERs are initialized from these hazard functions as user-written functions following the hazard function equation in Section 2.2.3. These resulting IDERs encompass various particle variants (HZE, low-LET) and effect models (TE, NTE + TE).  
+Our computational workflow with respect to R computational methods and functions is as follows. Various datasets on Harderian gland tumorgenesis are first implemented as R dataframe structures. Inverse variance weighted non-linear least square models are fitted over these dataframes using the Gauss-Newton algorithm. Coefficients extracted from the models are used to construct hazard functions in the form of a user-written R function. Standardized IDERs are initialized from these hazard functions as user-written functions following the hazard function equation in Section 2.2.2. These resulting IDERs encompass various 1-ion beam variants (HZE, low-LET) and effect models (TE, NTE + TE).  
 
-Computing $I(d)$ involves calling a user-written R function `calculate_complex_id` that applies incremental effect additivity to mixtures of $N \geq 2$ IDERs, with at most one low-LET IDER. `calculate_complex_id` takes an argument to specify use of either the NTE or TE model. Calculation of $I(d)$ requires construction of an R vector `dE` with elements corresponding to the derivative of each IDER curve as a function of dose. A one-dimensional root finder `uniroot` is used to find the incremental effect of each IDER. We construct `dI`, a vector corresponding to the numerical derivative of $d(I)$ by applying Equation (2.2.2.1) to each element of `dE`. A numerical ODE integrator from `deSolve` is used to integrate `dI` with a Radau method to return a R list of dose-effect coordinates.
+Computing $I(d)$ involves calling a user-written R function `calculate_complex_id` that applies incremental effect additivity to mixtures of $N \geq 2.5.1$ IDERs, with at most one low-LET IDER. `calculate_complex_id` takes an argument to specify use of either the NTE+TE or the TE model. Calculation of $I(d)$ requires construction of an R vector `dE` with elements corresponding to the derivative of each IDER curve as a function of dose. A one-dimensional root finder `uniroot` is used to find the incremental effect of each IDER. We construct `dI`, a vector corresponding to the numerical derivative of $I(d)$ with respect to mixture dose d by applying Eq. (2.2.2.1) to each element of `dE`. A numerical ODE integrator from `deSolve` is used to integrate `dI` with a Radau method to return a R list of dose-effect coordinates.
 
-Confidence intervals for the calculated baseline MIXDER are found through Monte Carlo simulations. For each value of a vector of dose points, a user-written function `generate_ci` initializes a vector of $N$ random parameter value samples from a Gaussian distribution normalized to a NTE or TE model. These samples are drawn with the `rmvnorm` function from the `mvtnorm` package. Another vector of effect values is calculated at that dosage for each set of sample parameters with `calculate_complex_id`. A 95% confidence interval is constructed from the sorted effect values. The naive confidence intervals are also computed within `generate_ci` by implementing a set of parameters two standard deviations above and below the mean values and evaluating `calculate_complex_id` for each dose point according to those parameters.
+Confidence intervals for the calculated baseline MIXDER $I(d)$ are found through Monte Carlo (MC) simulations. A vector of total-mixture dose points is chosen. For each MC iteration, a user-written function `generate_ci` initializes a vector of $N$ random parameter value samples from multivariate distributions determined during IDER fitting. These samples are drawn with the `rmvnorm` function from the `mvtnorm` package. An $I(d)) dose effect relation is calculated at that dosage, using the sample parameters, with `calculate_complex_id`. When the MC step is completed a 95% confidence interval at meach dose point sorted by effect size. The naive confidence intervals are also computed within `generate_ci` by choosing parameters using each parameter marginal distribution instead of using variance-covariance matrices.
 
 ## Works Cited
 1.	Bennett PV, NC Cutter and BM Sutherland. "Split-dose exposures versus dual ion exposure in human cell neoplastic transformation." Radiat Environ Biophys 46(2): 119-123. (2007).  
