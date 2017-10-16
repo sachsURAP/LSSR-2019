@@ -24,8 +24,9 @@ Unless otherwise stated, all software employed for this study are open source an
 
 ### 2.2. IDERs and Hazard Functions: General Approach [almost always use toy examples for 1st year 1-variable calculus audience]
 
-
 #### 2.2.1. Basic Properties
+
+Notation. dose $d$, effect $E$. Related notations are: $E(d: \textbf{p})$ where $d$ is dose and $\textbf{p}$ is a vector of adjustable parameters that are calibrated by regression from the data; $E_j(d_j; \mathbf{p_j})$ when discussiong a mixture whose $j^{th}$ component contributed dose $d_j$ to the total mixture dose, with $j = 1, 2, \dots, N$; and $E(d; \textbf{p}; L)$ when LET $L$ is used instead of an integer label $j$. 
 
 #### 2.2.2. Hazard Functions
 
