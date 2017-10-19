@@ -28,7 +28,6 @@
 library(deSolve) #  solving differential equations
 library(ggplot2) #  plotting
 library(mvtnorm) #  Monte Carlo simulation
-# library(minpack.lm) #  non-linear regression #egh actually I don't think we use any functions from this package
 rm(list=ls())
 #=========================== DATA START ===========================#
 hg_data <- data.frame( #  data used in 16Chang; includes data analyzed in .93Alp and .94Alp  
@@ -186,21 +185,32 @@ points(clean_light_ion_data[1:8, "dose"], clean_light_ion_data[1:8,"HG"], pch = 
 points(clean_light_ion_data[9:12, "dose"], clean_light_ion_data[9:12, "HG"] )  #  proton data points 
 
 ################## I(d) calculator for high Z, high E, NTE model hi_nte_model plus optionally LOW. START ##################
-calculate_complex_id_nte <- function(r, L, d, aa1 = hi_nte_model_coef[1], aa2 = hi_nte_model_coef[2], kk1 = hi_nte_model_coef[3], phi = 2000, beta = low_let_model_coef, lowLET = FALSE) {
+calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE", 
+                                 aa1 = hi_nte_model_coef[1], aa2 = hi_nte_model_coef[2], kk1 = hi_nte_model_coef[3], 
+                                 aate1 = hi_te_model_coef[1], aate2 = hi_te_model_coef[2],
+                                 phi = 2000, beta = low_let_model_coef) {
   # Calculates incremental effect additivity function I(d) for mixture of N >= 1 HZE NTE IDERs and optionally one low-LET IDER 
   # new argument: lowLET (FALSE by default, TRUE when one IDER is low-LET)
   dE <- function(yini, state, pars) { #  Constructing an ode from the IDERS
-    aa1 <- aa1; aa2 <- aa2; kk1 <- kk1; beta <- beta; phi <- phi; L <- L
+    aa1 <- aa1; aa2 <- aa2; kk1 <- kk1; aate1 <- aate1; aate2 <- aate2; beta <- beta; phi <- phi; L <- L
     with(as.list(c(state, pars)), {
       aa <- vector(length = length(L))  
       u <- vector(length = length(L))  
       for (i in 1:length(L)) {
         aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
-        u[i] <- uniroot(function(d) 1 - exp(-0.01 * (aa1 * L[i] * d * exp(-aa2 * L[i]) + (1 -exp(-phi * d)) * kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
+        if (model == "NTE") {
+          u[i] <- uniroot(function(d) 1 - exp(-0.01 * (aa1 * L[i] * d * exp(-aa2 * L[i]) + (1 -exp(-phi * d)) * kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
+        } else if (model == "TE") {
+          u[i] <- uniroot(function(d) 1 - exp(-0.01 * (aate1 * L[i] * d * exp(-aate2 * L[i]))) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+        }
       }
       dI <- vector(length = length(L))
       for (i in 1:length(L)) {
-        dI[i] <- r[i] * 0.01*(aa[i] + exp(-phi * u[i]) * kk1 * phi) * exp(-0.01 * (aa[i] * u[i] + (1 -exp(-phi * u[i])) * kk1))
+        if (model == "NTE") {
+          dI[i] <- r[i] * 0.01*(aa[i] + exp(-phi * u[i]) * kk1 * phi) * exp(-0.01 * (aa[i] * u[i] + (1 -exp(-phi * u[i])) * kk1))
+        } else if (model == "TE") {
+          dI[i] <- r[i] * 0.01 * aate[i] * exp(-0.01 * aate[i] * u[i])
+        }
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
         u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta * d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
@@ -210,54 +220,24 @@ calculate_complex_id_nte <- function(r, L, d, aa1 = hi_nte_model_coef[1], aa2 = 
       return(list(c(dI)))
     })
   }
-  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau")) #  Finds solution I(d) of the differential equation
-  # RKS to Yimin and Edward: I'm not convinced we need to or should add that the method is radau
+  return(ode(c(I = 0), times = d, dE, parms = NULL))#  Finds solution I(d) of the differential equation
 }
-################## I(d) calculator for high Z, high E, NTE model hi_nte_model plus optionally LOW. END ##################
-
-###### RKS to Yimin and Edward: Next is the same for hi_te_model; then some plots #####
-calculate_complex_id_te <- function(r, L, d, aate1 = hi_te_model_coef[1], aate2 = hi_te_model_coef[2], beta = low_let_model_coef, lowLET = FALSE) {
-  dE <- function(yini, state, pars) { #  Constructing an ode from the IDERS
-    aate1 <- aate1; aate2 <- aate2; beta <- beta; L <- L
-    with(as.list(c(state, pars)), {
-      aate <- vector(length = length(L))
-      u <- vector(length = length(L))
-      for (i in 1:length(L)) {
-        aate[i] <- aate1 * L[i] * exp(-aate2 * L[i])
-        u[i] <- uniroot(function(d) 1 - exp(-0.01 * (aate1 * L[i] * d * exp(-aate2 * L[i]))) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
-      }
-      dI <- vector(length = length(L))
-      for (i in 1:length(L)) {
-        dI[i] <- r[i] * 0.01 * aate[i] * exp(-0.01 * aate[i] * u[i])
-      }
-      if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta * d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10 ^-10)$root
-        dI[length(L) + 1] <- r[length(r)] * low_let_slope(d = u[length(L) + 1], L = 0)
-      }
-      dI <- sum(dI)
-      return(list(c(dI)))
-    })
-  }
-  return(ode(c(I = 0), times = d, dE, parms = NULL, method = "radau")) #  Finds solution I(d) of the differential equation
-}
-# RKS to Yimin and Edward: I'm not convinced we need to or should add that the method is radau
-
 
 # Example Plot 1 : one HZE one low-LET for hin
 d <- .01 * 0:300.; r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
 plot(x = d, y = calib_hze_nte_ider(dose = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
 lines(x = d, y = low_let_ider( d,0), col = 'green', lwd = 2)
-lines(x = d, y = calculate_complex_id_nte(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
+lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
 
 # Example Plot 1hit : one HZE one low-LET for hit
 d <- .01 * 0:300.; r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
 plot(x = d, y = calib_hze_te_ider(dose = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
 lines(x = d, y = low_let_ider(d, 0), col='green', lwd=2)
-lines(x = d, y = calculate_complex_id_te(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
+lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
 
 # Example Plot 2: four HZE
 r <- rep(0.25,4); L <- c(25, 70, 190, 250)
-plot(calculate_complex_id_nte(r, L, d = dose_vector), type='l', col='red', bty='l', ann='F') #  I(d) plot
+plot(calculate_complex_id(r, L, d = dose_vector), type='l', col='red', bty='l', ann='F') #  I(d) plot
 SEA <- function(dose) calib_hze_nte_ider(dose/4, 25) + calib_hze_nte_ider(dose/4, 70) + calib_hze_nte_ider(dose/4, 190) + calib_hze_nte_ider(dose/3, 250)
 lines(dose_vector, SEA(dose_vector), lty=2)
 lines(dose_vector, calib_hze_nte_ider(dose_vector,190), col='green') # component 4
@@ -270,7 +250,7 @@ d <- seq(0, .01, .0005); r <- c(1/20, 1/20, 9/10); L <- c(70, 173)
 plot(x = d, y = calib_hze_nte_ider(dose = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
 lines(x = d, y = calib_hze_nte_ider(d, 70), col='green', lwd=2) # component 3
 lines(x = d, y = low_let_ider(d, 0), col='green', lwd=2)
-lines(x = d, y = calculate_complex_id_nte(r, L, d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
+lines(x = d, y = calculate_complex_id(r, L, d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
 
 ################## I(d) calculator END ##################
 
