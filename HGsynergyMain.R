@@ -29,6 +29,7 @@ library(deSolve) #  solving differential equations
 library(ggplot2) #  plotting
 library(mvtnorm) #  Monte Carlo simulation
 rm(list=ls())
+
 #=========================== DATA START ===========================#
 hg_data <- data.frame( #  data used in 16Chang; includes data analyzed in .93Alp and .94Alp  
   dose = c(0.2,0.4,0.6,1.2,2.4,3.2,5.1,7,0.05,0.1,0.15,0.2,0.4,0.8,1.6,0.05,0.1,0.2,0.4,0,0.1,0.2,0.4,0.8,1.6,0.4,0.8,1.6,3.2,0.05,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.04,0.08,0.16,0.32,0.033,0.066,0.13,0.26,0.52,.2, .4, .6),
@@ -58,19 +59,27 @@ hg_data[, "beta"] <- round(hg_data[, "Z"] * sqrt(1 / hg_data[, "Katz"]), 3) #  i
 hg_data[, "Zeff"] <- round(hg_data[, "Z"] * (1 - exp( -125 * hg_data[, "Z"] ^ (-2.0 / 3))), 2) #  Barkas formula for Zeff; for us Zeff is almost Z
 
 clean_hg_data <- hg_data[c(1:19, 26:53), ] #  removes the zero dose case and the no isograft data
-#=========================== DATA END ===========================#
+clean_hze_data <- subset(clean_hg_data, Z > 3) # look only at HZE not at much lower Z and LET ions. # In next line phi controls how fast NTE build up from zero; not really needed during calibration since phi*Dose>>1 at every observed Dose !=0. phi needed for later synergy calculations.
+clean_light_ion_data <- subset(clean_hg_data, Z <= 3) #  for Light ions
+
+#====================== MISC. OBJECTS & VARIABLES =====================#
+phi <- 2000 #  even larger phi should give the same final results, but might cause extra problems with R. 
+
+dose_vector <- c(seq(0, .00001, by = 0.000001), #  look carefully near zero, but go out to 0.5 Gy
+                 seq(.00002, .0001, by=.00001),
+                 seq(.0002, .001, by=.0001),
+                 seq(.002, .01, by=.001),
+                 seq(.02, .5, by=.01))
 
 #####  photon model #####
 beta_decay_lm <- lm(HG ~ dose + I(dose ^ 2), data = beta_decay_data) # linear model fit on beta_decay_data dataset
 summary(beta_decay_lm, correlation = TRUE) 
 
-#===================== HZE/NTE MODEL, abbreviated  "hin" for "high non-targeted" =====================# 
-# Uses 3 adjustable parameters. There is also an HZE/TE model, abbreviated "hit" for "high targeted" and a "LOW"
-# model for Z <= 3. Both hin and hit are for Z>3 in principle and here have data for Z >= 8.  
+#===================== HZE/NTE MODEL =====================# 
+# Uses 3 adjustable parameters. There is also an HZE/TE model and a "LOW"
+# model for Z <= 3. Both models are for Z > 3 in principle and here have 
+# data for Z >= 8.  
 
-clean_hze_data <- subset(clean_hg_data, Z > 3) # look only at HZE not at much lower Z and LET ions. # In next line phi controls how fast NTE build up from zero; not really needed during calibration since phi*Dose>>1 at every observed Dose !=0. phi needed for later synergy calculations.
-
-phi <- 2000 #  even larger phi should give the same final results, but might cause extra problems with R. 
 hi_nte_model <- nls(HG ~ .0275 + (1 - exp ( -0.01 * (aa1 * L * dose * exp( -aa2 * L) + (1 - exp( - phi * dose)) * kk1))), #  calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc. "hi_nte_model" is for hin model
             data = clean_hze_data, 
             weights = NWeight,
@@ -86,7 +95,7 @@ calib_hze_nte_ider <- function(dose, L) {
   1 - exp(-calib_nte_hazard_func(dose, L)) #  Calibrated HZE NTE IDER
 }
 
-######### TE model #########
+#======================== HZE TE model ======================#
 hi_te_model <- nls(HG ~ .0275 + (1 - exp ( -0.01 * (aate1 * L * dose * exp( -aate2 * L) ))), #  calibrating parameters in a TE only model.
             data = clean_hze_data,  
             weights = NWeight,
@@ -101,16 +110,12 @@ calib_te_hazard_func <- function(dose, L) { #  calibrated hazard function
 calib_hze_te_ider <- function(dose, L) {
   1 - exp(-calib_te_hazard_func(dose, L)) #  Calibrated HZE TE IDER
 }
+
+#=================== INFORMATION COEFFICIENTS =================#
 info_coef_table <- cbind(AIC(hi_te_model, hi_nte_model), BIC(hi_te_model, hi_nte_model))
 print(info_coef_table)
 
-dose_vector <- c(seq(0, .00001, by = 0.000001), #  look carefully near zero, but go out to 0.5 Gy
-                 seq(.00002, .0001, by=.00001),
-                 seq(.0002, .001, by=.0001),
-                 seq(.002, .01, by=.001),
-                 seq(.02, .5, by=.01))
-
-####### calculate baseline MIXDER I(d) for mixtures of HZE components modeled by NTE IDER and then those by TE IDER #######
+#======= CALCULATE BASELINE MIXDER I(d) FOR MIXTURE OF HZE COMPONENTS WITH NTE/TE MODELS ========#
 calculate_id_hze_nte_mixder <- function(r, L, d = dose_vector, aa1 = hi_nte_model_coef[1], aa2 = hi_nte_model_coef[2], kk1 = hi_nte_model_coef[3]) {
   dE <- function(yini, state, pars) {
     aa1 <- aa1; aa2 <- aa2; kk1 <- kk1
@@ -133,7 +138,8 @@ calculate_id_hze_nte_mixder <- function(r, L, d = dose_vector, aa1 = hi_nte_mode
   out = ode(yini, times = d, dE, pars, method = "radau")
   return(out)
 } 
-#Now hit instead of hin
+
+#=== TE VARIANT ===#
 calculate_id_hze_te_mixder <- function(r, L, d = dose_vector, aate1 = hi_te_model_coef[1], aate2 = hi_te_model_coef[2]) {
   dE <- function(yini, state, pars) {
     aate1 <- aate1; aate2 <- aate2; kk1 <- kk1
@@ -157,9 +163,8 @@ calculate_id_hze_te_mixder <- function(r, L, d = dose_vector, aate1 = hi_te_mode
   out = ode(yini, times = d, dE, pars, method = "radau")
   return(out)
 } 
-########### Light ion, low Z (<= 3), low LET model ######### 
-clean_light_ion_data <- subset(clean_hg_data, Z <= 3) #  for Light ions
 
+#================== LIGHT ION, LOW Z (<= 3), LOW LET MODEL =================#
 low_let_model <- nls(HG ~ .0275 + 1-exp(-bet * dose),
              data = clean_light_ion_data,
              weights = NWeight,
@@ -176,6 +181,7 @@ low_let_slope <- function(dose,L) { # Slope dE/dd of the low LET, low Z model; l
   low_let_model_coef * exp(-low_let_model_coef * dose)  
 }
 
+#================== VISUAL CHECKS ==================#
 # plot () chunks such as the following are visual check to see if our calibration is consistent with 16Chang, .93Alp, .94Alp
 # and 17Cuc; (ggplot commands are Yinmin's and concern CI)
 # Put various values in our calibrated model to check with numbers and graphs in these references
@@ -184,23 +190,23 @@ lines(0.01 * 0:700, low_let_ider(0.01 * 0:700, 0) + .0275)  #  calibrated lowLET
 points(clean_light_ion_data[1:8, "dose"], clean_light_ion_data[1:8,"HG"], pch = 19) #  RKS: Helium data points
 points(clean_light_ion_data[9:12, "dose"], clean_light_ion_data[9:12, "HG"] )  #  proton data points 
 
-################## I(d) calculator for high Z, high E, NTE model hi_nte_model plus optionally LOW. START ##################
+#====== I(d) CALCULATOR; HIGH Z, HIGH E, NTE/TE MODEL(S); OPTIONAL LOW-LET ======#
 calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE", 
                                  aa1 = hi_nte_model_coef[1], aa2 = hi_nte_model_coef[2], kk1 = hi_nte_model_coef[3], 
                                  aate1 = hi_te_model_coef[1], aate2 = hi_te_model_coef[2],
                                  phi = 2000, beta = low_let_model_coef) {
   # Calculates incremental effect additivity function I(d) for mixture of N >= 1 HZE NTE IDERs and optionally one low-LET IDER 
-  # new argument: lowLET (FALSE by default, TRUE when one IDER is low-LET)
   dE <- function(yini, state, pars) { #  Constructing an ode from the IDERS
     aa1 <- aa1; aa2 <- aa2; kk1 <- kk1; aate1 <- aate1; aate2 <- aate2; beta <- beta; phi <- phi; L <- L
     with(as.list(c(state, pars)), {
       aa <- vector(length = length(L))  
       u <- vector(length = length(L))  
       for (i in 1:length(L)) {
-        aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
         if (model == "NTE") {
+          aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
           u[i] <- uniroot(function(d) 1 - exp(-0.01 * (aa1 * L[i] * d * exp(-aa2 * L[i]) + (1 -exp(-phi * d)) * kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
         } else if (model == "TE") {
+          aa[i] <- aate1 * L[i] * exp(-aate2 * L[i])
           u[i] <- uniroot(function(d) 1 - exp(-0.01 * (aate1 * L[i] * d * exp(-aate2 * L[i]))) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
         }
       }
@@ -209,7 +215,7 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
         if (model == "NTE") {
           dI[i] <- r[i] * 0.01*(aa[i] + exp(-phi * u[i]) * kk1 * phi) * exp(-0.01 * (aa[i] * u[i] + (1 -exp(-phi * u[i])) * kk1))
         } else if (model == "TE") {
-          dI[i] <- r[i] * 0.01 * aate[i] * exp(-0.01 * aate[i] * u[i])
+          dI[i] <- r[i] * 0.01 * aa[i] * exp(-0.01 * aa[i] * u[i])
         }
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
@@ -223,19 +229,22 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
   return(ode(c(I = 0), times = d, dE, parms = NULL))#  Finds solution I(d) of the differential equation
 }
 
-# Example Plot 1 : one HZE one low-LET for hin
+#====================== EXAMPLE PLOTS ========================#
+
+# Plot 1 : one HZE one low-LET; NTE
 d <- .01 * 0:300.; r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
 plot(x = d, y = calib_hze_nte_ider(dose = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
 lines(x = d, y = low_let_ider( d,0), col = 'green', lwd = 2)
 lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
 
-# Example Plot 1hit : one HZE one low-LET for hit
+# Plot 2 : one HZE one low-LET, TE
 d <- .01 * 0:300.; r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
 plot(x = d, y = calib_hze_te_ider(dose = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
 lines(x = d, y = low_let_ider(d, 0), col='green', lwd=2)
-lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
+lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, model = "TE", lowLET = TRUE)[, 2], col = "orange", lwd=2) # I(d)
+lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd=2)
 
-# Example Plot 2: four HZE
+# Plot 3: four HZE; NTE
 r <- rep(0.25,4); L <- c(25, 70, 190, 250)
 plot(calculate_complex_id(r, L, d = dose_vector), type='l', col='red', bty='l', ann='F') #  I(d) plot
 SEA <- function(dose) calib_hze_nte_ider(dose/4, 25) + calib_hze_nte_ider(dose/4, 70) + calib_hze_nte_ider(dose/4, 190) + calib_hze_nte_ider(dose/3, 250)
