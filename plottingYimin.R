@@ -276,67 +276,181 @@ calculateComplexId.te <- function(r, L, d, aate1 = hit.c[1], aate2 = hit.c[2], b
 
 ################## I(d) calculator END ##################
 
+
+# http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
 plottingHelper <- function(Lval, blackwhite) {
   d = c()
   nWeight = c()
   hgArr = c()
   for (row in 1:nrow(dfr)) {
-    if (dfr[row, "L"] == Lval) {
+    if (Lval == 1) {
+      if (dfr[row, "L"] == 0.4 || dfr[row, "L"] == 1.6) {
+        d = c(d, dfr[row, "dose.1"])
+        nWeight = c(nWeight, dfr[row, "NWeight"])
+        hgArr = c(hgArr, dfr[row, "HG"])
+      }
+    } else if (Lval == 193 || Lval == 195) {
+      if (dfr[row, "L"] == 193 || dfr[row, "L"] == 195) {
+        d = c(d, dfr[row, "dose.1"])
+        nWeight = c(nWeight, dfr[row, "NWeight"])
+        hgArr = c(hgArr, dfr[row, "HG"])
+      }
+    } else if (dfr[row, "L"] == Lval) {
       d = c(d, dfr[row, "dose.1"])
       nWeight = c(nWeight, dfr[row, "NWeight"])
       hgArr = c(hgArr, dfr[row, "HG"])
     }
   }
+  
+  if (Lval == 1) {
+    endpoint = 7.2
+  } else if (Lval == 195) {
+    endpoint = 1.6
+  } else {
+    endpoint = d[length(d)]
+  }
+  
   dose <- c(seq(0, .00001, by = 0.000001),
             seq(.00002, .0001, by=.00001),
             seq(.0002, .001, by=.0001),
             seq(.002, .01, by=.001),
-            seq(.02, d[length(d)], by=.01))
+            seq(.02, endpoint, by=.01))
   
-  hinVal = Calculate.hinC(dose, Lval)
-  hitVal = Calculate.hitC(dose, Lval)
-  # plot(x = dose, y = hinVal, type='l', col='red', bty='l', ann='F', xaxt = "n", yaxt = "n", lwd = 2)
-  # axis(side = 1, at = seq(0, d[length(d)], length.out = 10), c(0, rep("", 8), trunc(10*d[length(d)])/10), las = 1)
-  # axis(side = 2, at = seq(0, hinVal[length(hinVal)] + 1/sqrt(nWeight[1]), length.out = 5), c(0, rep("", 3), trunc(10*(hinVal[length(hinVal)] + 1/sqrt(nWeight[1])))/10), las = 1)
-  # lines(x = dose, y = hitVal, type='l', col='green', bty='l', ann='F', lwd = 2)
-  # points(d, hgArr, pch = 19)
-  # for (i in 1:length(nWeight)) {
-  #   arrows(d[i], hgArr[i] - 1/sqrt(nWeight[i]), d[i], hgArr[i] + 1/sqrt(nWeight[i]), code = 3, length = 0.04, angle = 90, lwd = 2)
-  # }
-  df1 = data.frame(d = dose, hgNTE = hinVal, hgTE = hitVal)
-  df2 = data.frame(x = d, hg = hgArr, nw = nWeight)
   if (blackwhite) {
     color1 = "black"
     color2 = "black"
   } else {
     color1 = "red"
     color2 = "blue"
+  } 
+  
+  if (Lval == 1) {
+    lowVal = CalculateLOW.C(dose, Lval)
+    df1 = data.frame(d = dose, low = lowVal)
+    df2 = data.frame(x = d, hg = hgArr, nw = nWeight)
+    p = ggplot() + theme_bw() + 
+      geom_line(data = df1, aes(x = dose, y = low), colour = color1, size = 1) + 
+      geom_point(data = df2, aes(x = d, y = hg), size = 2) +
+      geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg - 1/sqrt(nWeight), yend = hg + 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) + 
+      geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg, yend = hg - 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) +
+      theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank())
+    if (blackwhite) {
+      ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Blackwhite", ".eps"), plot = p, device = "eps")
+    } else {
+      ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Color", ".eps"), plot = p, device = "eps")
+    }
+    return(p)
   }
+  
+  hinVal = Calculate.hinC(dose, Lval)
+  hitVal = Calculate.hitC(dose, Lval)
+
+  df1 = data.frame(d = dose, hgNTE = hinVal, hgTE = hitVal)
+  df2 = data.frame(x = d, hg = hgArr, nw = nWeight)
   p = ggplot() + theme_bw() + 
          geom_line(data = df1, aes(x = dose, y = hgNTE), colour = color1, size = 1) + 
          geom_line(data = df1, aes(x = dose, y = hgTE), colour = color2, size = 1) + 
          geom_point(data = df2, aes(x = d, y = hg), size = 2) +
          geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg - 1/sqrt(nWeight), yend = hg + 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) + 
          geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg, yend = hg - 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) +
-         theme(axis.title.x=element_blank(), axis.title.y=element_blank())
-         # scale_x_discrete(limits = seq(0, d[length(d)], length.out = 5), labels = c(0, rep("", 3), trunc(100*d[length(d)])/100)) + 
-         # scale_y_discrete(limits = seq(0, hgArr[length(hgArr)], length.out = 5), labels = c(0, rep("", 3), trunc(100*hgArr[length(hgArr)])/100))
-  # if (blackwhite) {
-  #   ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Blackwhite", ".eps"), plot = p, device = "eps")
-  # } else {
-  #   ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Color", ".eps"), plot = p, device = "eps")
-  # }
-  print(p)
+         theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank())
+  if (blackwhite) {
+    ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Blackwhite", ".eps"), plot = p, device = "eps")
+  } else {
+    ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Color", ".eps"), plot = p, device = "eps")
+  }
+  return (p)
 }
 
-possibleLVal = c(25, 70, 100, 195, 250, 464, 953)
+possibleLVal = c(1, 25, 70, 100, 195, 250, 464, 953)
+plotArrBW = list(0)
+plotArrColor = list(0)
+count = 1
 
 for (val in possibleLVal) {
-  plottingHelper(val, TRUE)
-  plottingHelper(val, FALSE)
+  p1 = plottingHelper(val, TRUE)
+  p2 = plottingHelper(val, FALSE)
+  plotArrBW[[count]] = p1
+  plotArrColor[[count]] = p2
+  count = count + 1
 }
 
-#plot(x = dose, y = Calculate.hinC(dose, 190), type='l', col='red', bty='l', ann='F')
-# plot(x = dose, y = Calculate.hinC(dose, 100), col = 'red')
-#lines(x = dose, y = Calculate.hinC(dose, 100), type='l', col='red', bty='l', ann='F') 
-# lines(x = dose, y = Calculate.hitC(dose.1 = dose, L = 100), col='green')
+# blackwhite 2 panel
+multiplot(plotArrBW[[1]], plotArr[[5]], cols = 2)
+
+# color 2 panel
+multiplot(plotArrColor[[1]], plotArr[[5]], cols = 2)
+
+# blackwhite 8 panel
+multiplot(plotArrBW[[1]], plotArrBW[[2]], plotArrBW[[3]], plotArrBW[[4]], plotArrBW[[5]], plotArrBW[[6]], plotArrBW[[7]], plotArrBW[[8]], cols = 2)
+multiplot(plotArrBW[[1]], plotArrBW[[2]], plotArrBW[[3]], plotArrBW[[4]], plotArrBW[[5]], plotArrBW[[6]], plotArrBW[[7]], plotArrBW[[8]], cols = 4)
+
+# Color 8 panel
+multiplot(plotArrColor[[1]], plotArrColor[[2]], plotArrColor[[3]], plotArrColor[[4]], plotArrColor[[5]], plotArrColor[[6]], plotArrColor[[7]], plotArrColor[[8]], cols = 2)
+multiplot(plotArrColor[[1]], plotArrColor[[2]], plotArrColor[[3]], plotArrColor[[4]], plotArrColor[[5]], plotArrColor[[6]], plotArrColor[[7]], plotArrColor[[8]], cols = 4)
+
+############################### Native plot ###############################
+Lval = 100
+d = c()
+nWeight = c()
+hgArr = c()
+for (row in 1:nrow(dfr)) {
+  if (dfr[row, "L"] == Lval) {
+    d = c(d, dfr[row, "dose.1"])
+    nWeight = c(nWeight, dfr[row, "NWeight"])
+    hgArr = c(hgArr, dfr[row, "HG"])
+  }
+}
+dose <- c(seq(0, .00001, by = 0.000001),
+          seq(.00002, .0001, by=.00001),
+          seq(.0002, .001, by=.0001),
+          seq(.002, .01, by=.001),
+          seq(.02, d[length(d)], by=.01))
+hinVal = Calculate.hinC(dose, Lval)
+hitVal = Calculate.hitC(dose, Lval)
+
+
+plot(x = dose, y = hinVal, type='l', col='red', bty='l', ann='F', xaxt = "n", yaxt = "n", lwd = 2)
+axis(side = 1, at = seq(0, d[length(d)], length.out = 10), c(0, rep("", 8), trunc(10*d[length(d)])/10), las = 1)
+axis(side = 2, at = seq(0, hinVal[length(hinVal)] + 1/sqrt(nWeight[1]), length.out = 5), c(0, rep("", 3), trunc(10*(hinVal[length(hinVal)] + 1/sqrt(nWeight[1])))/10), las = 1)
+lines(x = dose, y = hitVal, type='l', col='green', bty='l', ann='F', lwd = 2)
+points(d, hgArr, pch = 19)
+for (i in 1:length(nWeight)) {
+  arrows(d[i], hgArr[i] - 1/sqrt(nWeight[i]), d[i], hgArr[i] + 1/sqrt(nWeight[i]), code = 3, length = 0.04, angle = 90, lwd = 2)
+}
