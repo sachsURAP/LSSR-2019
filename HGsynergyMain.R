@@ -25,6 +25,7 @@
 #   "16Srn" = Siranart et al."Mixed Beam Murine Harderian Gland Tumorigenesis: Predicted Dose-Effect Relationships if neither Synergism nor Antagonism Occurs." Radiat Res 186(6): 577-591 (2016).  
 #   "17Cuc" = Cucinotta & Cacao. "Non-Targeted Effects Models Predict Significantly Higher Mars Mission Cancer Risk than Targeted Effects Models." Sci Rep 7(1): 1832. (2017). PMC5431989
 
+#======================= LOAD CRAN PACKAGES =======================#
 library(deSolve) #  solving differential equations
 library(ggplot2) #  plotting
 library(mvtnorm) #  Monte Carlo simulation
@@ -115,55 +116,6 @@ calib_hze_te_ider <- function(dose, L) {
 info_coef_table <- cbind(AIC(hi_te_model, hi_nte_model), BIC(hi_te_model, hi_nte_model))
 print(info_coef_table)
 
-# #======= CALCULATE BASELINE MIXDER I(d) FOR MIXTURE OF HZE COMPONENTS WITH NTE/TE MODELS ========#
-# calculate_id_hze_nte_mixder <- function(r, L, d = dose_vector, aa1 = hi_nte_model_coef[1], aa2 = hi_nte_model_coef[2], kk1 = hi_nte_model_coef[3]) {
-#   dE <- function(yini, state, pars) {
-#     aa1 <- aa1; aa2 <- aa2; kk1 <- kk1
-#     with(as.list(c(state, pars)), {
-#       aa = vector(length = length(L))
-#       u = vector(length = length(L))
-#       for (i in 1:length(L)) {
-#         aa[i] = aa1*L[i]*exp(-aa2*L[i])
-#         u[i] = uniroot(function(d) 1-exp(-0.01*(aa[i]*d+(1-exp(-phi*d))*kk1)) - I, lower = 0, upper = 20, tol = 10^-10)$root
-#       }
-#       dI = vector(length = length(L))
-#       for (i in 1:length(L)) {
-#         dI[i] = r[i]*0.01*(aa[i]+exp(-phi*u[i])*kk1*phi)*exp(-0.01*(aa[i]*u[i]+(1-exp(-phi*u[i]))*kk1))
-#       }
-#       dI = sum(dI)
-#       return(list(c(dI)))
-#     })
-#   }
-#   pars = NULL; yini = c(I = 0); d = d
-#   out = ode(yini, times = d, dE, pars, method = "radau")
-#   return(out)
-# } 
-
-# #=== TE VARIANT ===#
-# calculate_id_hze_te_mixder <- function(r, L, d = dose_vector, aate1 = hi_te_model_coef[1], aate2 = hi_te_model_coef[2]) {
-#   dE <- function(yini, state, pars) {
-#     aate1 <- aate1; aate2 <- aate2
-#     with(as.list(c(state, pars)), {
-#       aate = vector(length = length(L))
-#       u = vector(length = length(L))
-#       for (i in 1:length(L)) {
-#         aate[i] = aate1*L[i]*exp(-aate2*L[i])
-#         u[i] = uniroot(function(d) 1-exp(-0.01*(aate[i]*d)) - I, lower = 0, upper = 20, tol = 10^-10)$root
-#       }
-#       dI = vector(length = length(L))
-#       for (i in 1:length(L)) {
-#         dI[i] = r[i]*0.01*aate[i]*exp(-0.01*(aate[i]*u[i]))
-#         
-#       }
-#       dI = sum(dI)
-#       return(list(c(dI)))
-#     })
-#   }
-#   pars = NULL; yini = c(I= 0); d = d
-#   out = ode(yini, times = d, dE, pars, method = "radau")
-#   return(out)
-# } 
-
 #================== LIGHT ION, LOW Z (<= 3), LOW LET MODEL =================#
 low_let_model <- nls(HG ~ .0275 + 1-exp(-bet * dose),
              data = clean_light_ion_data,
@@ -204,10 +156,10 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
       for (i in 1:length(L)) {
         if (model == "NTE") {
           aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
-          u[i] <- uniroot(function(d) 1 - exp(-0.01 * (aa1 * L[i] * d * exp(-aa2 * L[i]) + (1 -exp(-phi * d)) * kk1)) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
+          u[i] <- uniroot(function(d) calib_hze_nte_ider(d, L[i]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
         } else if (model == "TE") {
           aa[i] <- aate1 * L[i] * exp(-aate2 * L[i])
-          u[i] <- uniroot(function(d) 1 - exp(-0.01 * (aate1 * L[i] * d * exp(-aate2 * L[i]))) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+          u[i] <- uniroot(function(d) calib_hze_te_ider(d, L[i]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
         }
       }
       dI <- vector(length = length(L))
@@ -219,7 +171,7 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
         }
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta * d) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+        u[length(L) + 1] <- uniroot(function(d) low_let_ider(d, L) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
         dI[length(L) + 1] <- r[length(r)] * low_let_slope(d = u[length(L) + 1], L = 0)
       }
       dI <- sum(dI)
