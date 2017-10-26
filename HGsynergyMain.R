@@ -115,54 +115,54 @@ calib_hze_te_ider <- function(dose, L) {
 info_coef_table <- cbind(AIC(hi_te_model, hi_nte_model), BIC(hi_te_model, hi_nte_model))
 print(info_coef_table)
 
-#======= CALCULATE BASELINE MIXDER I(d) FOR MIXTURE OF HZE COMPONENTS WITH NTE/TE MODELS ========#
-calculate_id_hze_nte_mixder <- function(r, L, d = dose_vector, aa1 = hi_nte_model_coef[1], aa2 = hi_nte_model_coef[2], kk1 = hi_nte_model_coef[3]) {
-  dE <- function(yini, state, pars) {
-    aa1 <- aa1; aa2 <- aa2; kk1 <- kk1
-    with(as.list(c(state, pars)), {
-      aa = vector(length = length(L))
-      u = vector(length = length(L))
-      for (i in 1:length(L)) {
-        aa[i] = aa1*L[i]*exp(-aa2*L[i])
-        u[i] = uniroot(function(d) 1-exp(-0.01*(aa[i]*d+(1-exp(-phi*d))*kk1)) - I, lower = 0, upper = 20, tol = 10^-10)$root
-      }
-      dI = vector(length = length(L))
-      for (i in 1:length(L)) {
-        dI[i] = r[i]*0.01*(aa[i]+exp(-phi*u[i])*kk1*phi)*exp(-0.01*(aa[i]*u[i]+(1-exp(-phi*u[i]))*kk1))
-      }
-      dI = sum(dI)
-      return(list(c(dI)))
-    })
-  }
-  pars = NULL; yini = c(I = 0); d = d
-  out = ode(yini, times = d, dE, pars, method = "radau")
-  return(out)
-} 
+# #======= CALCULATE BASELINE MIXDER I(d) FOR MIXTURE OF HZE COMPONENTS WITH NTE/TE MODELS ========#
+# calculate_id_hze_nte_mixder <- function(r, L, d = dose_vector, aa1 = hi_nte_model_coef[1], aa2 = hi_nte_model_coef[2], kk1 = hi_nte_model_coef[3]) {
+#   dE <- function(yini, state, pars) {
+#     aa1 <- aa1; aa2 <- aa2; kk1 <- kk1
+#     with(as.list(c(state, pars)), {
+#       aa = vector(length = length(L))
+#       u = vector(length = length(L))
+#       for (i in 1:length(L)) {
+#         aa[i] = aa1*L[i]*exp(-aa2*L[i])
+#         u[i] = uniroot(function(d) 1-exp(-0.01*(aa[i]*d+(1-exp(-phi*d))*kk1)) - I, lower = 0, upper = 20, tol = 10^-10)$root
+#       }
+#       dI = vector(length = length(L))
+#       for (i in 1:length(L)) {
+#         dI[i] = r[i]*0.01*(aa[i]+exp(-phi*u[i])*kk1*phi)*exp(-0.01*(aa[i]*u[i]+(1-exp(-phi*u[i]))*kk1))
+#       }
+#       dI = sum(dI)
+#       return(list(c(dI)))
+#     })
+#   }
+#   pars = NULL; yini = c(I = 0); d = d
+#   out = ode(yini, times = d, dE, pars, method = "radau")
+#   return(out)
+# } 
 
-#=== TE VARIANT ===#
-calculate_id_hze_te_mixder <- function(r, L, d = dose_vector, aate1 = hi_te_model_coef[1], aate2 = hi_te_model_coef[2]) {
-  dE <- function(yini, state, pars) {
-    aate1 <- aate1; aate2 <- aate2; kk1 <- kk1
-    with(as.list(c(state, pars)), {
-      aate = vector(length = length(L))
-      u = vector(length = length(L))
-      for (i in 1:length(L)) {
-        aate[i] = aate1*L[i]*exp(-aate2*L[i])
-        u[i] = uniroot(function(d) 1-exp(-0.01*(aate[i]*d)) - I, lower = 0, upper = 20, tol = 10^-10)$root
-      }
-      dI = vector(length = length(L))
-      for (i in 1:length(L)) {
-        dI[i] = r[i]*0.01*aate[i]*exp(-0.01*(aate[i]*u[i]))
-        
-      }
-      dI = sum(dI)
-      return(list(c(dI)))
-    })
-  }
-  pars = NULL; yini = c(I= 0); d = d
-  out = ode(yini, times = d, dE, pars, method = "radau")
-  return(out)
-} 
+# #=== TE VARIANT ===#
+# calculate_id_hze_te_mixder <- function(r, L, d = dose_vector, aate1 = hi_te_model_coef[1], aate2 = hi_te_model_coef[2]) {
+#   dE <- function(yini, state, pars) {
+#     aate1 <- aate1; aate2 <- aate2
+#     with(as.list(c(state, pars)), {
+#       aate = vector(length = length(L))
+#       u = vector(length = length(L))
+#       for (i in 1:length(L)) {
+#         aate[i] = aate1*L[i]*exp(-aate2*L[i])
+#         u[i] = uniroot(function(d) 1-exp(-0.01*(aate[i]*d)) - I, lower = 0, upper = 20, tol = 10^-10)$root
+#       }
+#       dI = vector(length = length(L))
+#       for (i in 1:length(L)) {
+#         dI[i] = r[i]*0.01*aate[i]*exp(-0.01*(aate[i]*u[i]))
+#         
+#       }
+#       dI = sum(dI)
+#       return(list(c(dI)))
+#     })
+#   }
+#   pars = NULL; yini = c(I= 0); d = d
+#   out = ode(yini, times = d, dE, pars, method = "radau")
+#   return(out)
+# } 
 
 #================== LIGHT ION, LOW Z (<= 3), LOW LET MODEL =================#
 low_let_model <- nls(HG ~ .0275 + 1-exp(-bet * dose),
