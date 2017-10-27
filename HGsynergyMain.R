@@ -143,74 +143,74 @@ points(clean_light_ion_data[1:8, "dose"], clean_light_ion_data[1:8,"HG"], pch = 
 points(clean_light_ion_data[9:12, "dose"], clean_light_ion_data[9:12, "HG"] )  #  proton data points 
 
 #====== I(d) CALCULATOR; HIGH Z, HIGH E, NTE/TE MODEL(S); OPTIONAL LOW-LET ======#
+# calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
+#                                  aa1 = hi_nte_model_coef[1], aa2 = hi_nte_model_coef[2], kk1 = hi_nte_model_coef[3],
+#                                  aate1 = hi_te_model_coef[1], aate2 = hi_te_model_coef[2],
+#                                  phi = 2000, beta = low_let_model_coef) {
+#   # Calculates incremental effect additivity function I(d) for mixture of N >= 1 HZE NTE IDERs and optionally one low-LET IDER
+#   dE <- function(yini, state, pars) { #  Constructing an ode from the IDERS
+#     with(as.list(c(state, pars)), {
+#       aa <- u <- dI <- vector(length = length(L))
+#       for (i in 1:length(L)) {
+#         if (model == "NTE") {
+#           aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
+#           # browser()
+#           u[i] <- uniroot(function(d) calib_hze_nte_ider(d, L[i]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
+#         } else if (model == "TE") {
+#           aa[i] <- aate1 * L[i] * exp(-aate2 * L[i])
+#           u[i] <- uniroot(function(d) calib_hze_te_ider(d, L[i]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+#         }
+#       }
+#       for (i in 1:length(L)) {
+#         if (model == "NTE") {
+#           dI[i] <- r[i] * 0.01*(aa[i] + exp(-phi * u[i]) * kk1 * phi) * exp(-0.01 * (aa[i] * u[i] + (1 -exp(-phi * u[i])) * kk1))
+#         } else if (model == "TE") {
+#           dI[i] <- r[i] * 0.01 * aa[i] * exp(-0.01 * aa[i] * u[i])
+#         }
+#       }
+#       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
+#         u[length(L) + 1] <- uniroot(function(d) low_let_ider(d, L) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+#         dI[length(L) + 1] <- r[length(r)] * low_let_slope(d = u[length(L) + 1], L = 0)
+#       }
+#       dI <- sum(dI)
+#       return(list(c(dI)))
+#     })
+#   }
+#   return(ode(c(I = 0), times = d, dE, parms = NULL))#  Finds solution I(d) of the differential equation
+# }
+
+## NEW GENERALIZED VERSION ##
 calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
-                                 aa1 = hi_nte_model_coef[1], aa2 = hi_nte_model_coef[2], kk1 = hi_nte_model_coef[3],
-                                 aate1 = hi_te_model_coef[1], aate2 = hi_te_model_coef[2],
-                                 phi = 2000, beta = low_let_model_coef) {
-  # Calculates incremental effect additivity function I(d) for mixture of N >= 1 HZE NTE IDERs and optionally one low-LET IDER
+                                 coef = list(NTE = hi_nte_model_coef, TE = hi_te_model_coef, lowLET = low_let_model_coef),
+                                 iders = list(NTE = calib_hze_nte_ider, TE = calib_hze_te_ider, lowLET = low_let_ider),
+                                 calculate_dI = c(NTE = .calculate_dI_nte, TE = .calculate_dI_te),
+                                 phi = 2000) {
   dE <- function(yini, state, pars) { #  Constructing an ode from the IDERS
     with(as.list(c(state, pars)), {
       aa <- u <- dI <- vector(length = length(L))
       for (i in 1:length(L)) {
-        if (model == "NTE") {
-          aa[i] <- aa1 * L[i] * exp(-aa2 * L[i])
-          # browser()
-          u[i] <- uniroot(function(d) calib_hze_nte_ider(d, L[i]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root #egh this is used in the single HZE and lowLET example
-        } else if (model == "TE") {
-          aa[i] <- aate1 * L[i] * exp(-aate2 * L[i])
-          u[i] <- uniroot(function(d) calib_hze_te_ider(d, L[i]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
-        }
-      }
-      for (i in 1:length(L)) {
-        if (model == "NTE") {
-          dI[i] <- r[i] * 0.01*(aa[i] + exp(-phi * u[i]) * kk1 * phi) * exp(-0.01 * (aa[i] * u[i] + (1 -exp(-phi * u[i])) * kk1))
-        } else if (model == "TE") {
-          dI[i] <- r[i] * 0.01 * aa[i] * exp(-0.01 * aa[i] * u[i])
-        }
+        aa[i] <- pars[1] * L[i] * exp(-pars[2] * L[i])
+        u[i] <- uniroot(function(d) hze_ider(d, L[i]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+        dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(L) + 1] <- uniroot(function(d) low_let_ider(d, L) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
+        u[length(L) + 1] <- uniroot(function(d) low_let_ider(d, coef["lowLET"]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
         dI[length(L) + 1] <- r[length(r)] * low_let_slope(d = u[length(L) + 1], L = 0)
       }
-      dI <- sum(dI)
-      return(list(c(dI)))
+      return(list(sum(dI)))
     })
   }
-  return(ode(c(I = 0), times = d, dE, parms = NULL))#  Finds solution I(d) of the differential equation
+  p <- list(pars = coef[[model]], hze_ider = iders[[model]], low_let_ider = iders[["lowLET"]], calc_dI = calculate_dI[[model]])
+  return(ode(c(I = 0), times = d, dE, parms = p))
 }
 
-## NEW GENERALIZED VERSION ##
-# calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE", 
-#                                  coef = list(NTE = hi_nte_model_coef, TE = hi_te_model_coef, lowLET = low_let_model_coef),
-#                                  iders = list(NTE = calib_hze_nte_ider, TE = calib_hze_te_ider, lowLET = low_let_ider),
-#                                  calculate_dI = c(NTE = .calculate_dI_nte, TE = .calculate_dI_te),
-#                                  phi = 2000) {
-#   dE <- function(yini, state, pars) { #  Constructing an ode from the IDERS
-#     with(as.list(c(state, pars)), {
-#       aa <- u <- dI <- vector(length = length(L))  
-#       for (i in 1:length(L)) {
-#         aa[i] <- pars[1] * L[i] * exp(-pars[2] * L[i])
-#         u[i] <- uniroot(function(d) hze_ider(d, L[i]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root 
-#         dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
-#       }
-#       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
-#         u[length(L) + 1] <- uniroot(function(d) low_let_ider(d, coef["lowLET"]) - I, lower = 0, upper = 200, extendInt = "yes", tol = 10^-10)$root
-#         dI[length(L) + 1] <- r[length(r)] * low_let_slope(d = u[length(L) + 1], L = 0)
-#       }
-#       return(list(sum(dI)))
-#     })
-#   }
-#   p <- list(pars = coef[[model]], hze_ider = iders[[model]], low_let_ider = iders[["lowLET"]], calc_dI = calculate_dI[[model]])
-#   return(ode(c(I = 0), times = d, dE, parms = p))
-# }
-# 
-# .calculate_dI_nte <- function(aa, u, kk1) {
-#   return(0.01 * (aa + exp(-phi * u) * kk1 * phi) * exp(-0.01 * (aa * u + (1 -exp(-phi * u)) * kk1)))
-# }
-# 
-# .calculate_dI_te <- function(aa, u, pars = NULL) {
-#   return(0.01 * aa * exp(-0.01 * aa * u))
-# }
+.calculate_dI_nte <- function(aa, u, kk1) {
+  return(0.01 * (aa + exp(-phi * u) * kk1 * phi) * exp(-0.01 * (aa * u + (1 -exp(-phi * u)) * kk1)))
+}
+
+.calculate_dI_te <- function(aa, u, pars = NULL) {
+  return(0.01 * aa * exp(-0.01 * aa * u))
+}
 
 #====================== EXAMPLE PLOTS ========================#
 
@@ -275,12 +275,11 @@ Generate_CI <- function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = hi_n
     for (i in 1:500) {
       # print(calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i]))[1]
       # browser()
-      valueArr = c(valueArr, calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
+    #   valueArr = c(valueArr, calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
+      valueArr = c(valueArr, calculate_complex_id(r = r, L = L, d = c(0, d), coef = list(NTE = c(aa1 = monteCarloSamples[, 1][i],
+                                                                                                 aa2 = monteCarloSamples[, 2][i],
+                                                                                                 kk1 = monteCarloSamples[, 3][i])))[, 2][2])
     }
-    #   valueArr = c(valueArr, calculate_complex_id(r = r, L = L, d = c(0, d), coef = list(NTE = c(aa1 = monteCarloSamples[, 1][i], 
-    #                                                                                              aa2 = monteCarloSamples[, 2][i], 
-    #                                                                                              kk1 = monteCarloSamples[, 3][i])))[, 2][2])
-    # }
     valueArr = sort(valueArr)
     
     # Returning resulting CI
@@ -289,16 +288,16 @@ Generate_CI <- function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = hi_n
     #========= Naive =========#
     stdErrArr = summary(HZEmodel)$coefficients[, "Std. Error"]
     meanArr = summary(HZEmodel)$coefficients[, "Estimate"]
-    upper = calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])[, 2][2]
-    lower = calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])[, 2][2]
-    # upper = calculate_complex_id(r = r, L = L, d = c(0, d), 
-    #                              coef = list(NTE = c(aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"], 
-    #                                                  aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"], 
-    #                                                  kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])))[, 2][2]
-    # lower = calculate_complex_id(r = r, L = L, d = c(0, d), 
-    #                              coef = list(NTE = c(aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"], 
-    #                                                  aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"], 
-    #                                                  kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])))[, 2][2]
+    # upper = calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])[, 2][2]
+    # lower = calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])[, 2][2]
+    upper = calculate_complex_id(r = r, L = L, d = c(0, d),
+                                 coef = list(NTE = c(aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"],
+                                                     aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"],
+                                                     kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])))[, 2][2]
+    lower = calculate_complex_id(r = r, L = L, d = c(0, d),
+                                 coef = list(NTE = c(aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"],
+                                                     aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"],
+                                                     kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])))[, 2][2]
     return (c(lower, upper))
   }
 }
