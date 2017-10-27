@@ -366,10 +366,13 @@ plottingHelper <- function(Lval, blackwhite) {
     df2 = data.frame(x = d, hg = hgArr, nw = nWeight)
     p = ggplot() + theme_bw() + 
       geom_line(data = df1, aes(x = dose, y = low), colour = color1, size = 1) + 
-      geom_point(data = df2, aes(x = d, y = hg), size = 2) +
       geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg - 1/sqrt(nWeight), yend = hg + 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) + 
       geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg, yend = hg - 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) +
-      theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank())
+      theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+      theme(axis.ticks.x = element_line(size = 1), axis.text.x=element_blank()) +
+      theme(axis.ticks.y = element_line(size = 1), axis.text.y=element_blank()) +
+      theme(axis.ticks.length=unit(0.4,"cm"))
+    p = last_plot() + geom_point(data = df2, aes(x = d, y = hg), size = 4, fill ="white", shape = 21)
     if (blackwhite) {
       ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Blackwhite", ".eps"), plot = p, device = "eps")
     } else {
@@ -385,11 +388,14 @@ plottingHelper <- function(Lval, blackwhite) {
   df2 = data.frame(x = d, hg = hgArr, nw = nWeight)
   p = ggplot() + theme_bw() + 
          geom_line(data = df1, aes(x = dose, y = hgNTE), colour = color1, size = 1) + 
-         geom_line(data = df1, aes(x = dose, y = hgTE), colour = color2, size = 1) + 
-         geom_point(data = df2, aes(x = d, y = hg), size = 2) +
+         geom_line(data = df1, aes(x = dose, y = hgTE), colour = color2, size = 1, linetype = "dashed") + 
          geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg - 1/sqrt(nWeight), yend = hg + 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) + 
          geom_segment(data = df2, size = 0.8, aes(x = d, xend = d, y = hg, yend = hg - 1/sqrt(nWeight)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) +
-         theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank())
+         theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+         theme(axis.ticks.x = element_line(size = 1), axis.text.x=element_blank()) +
+         theme(axis.ticks.y = element_line(size = 1), axis.text.y=element_blank()) +
+         theme(axis.ticks.length=unit(0.4,"cm"))
+  p = last_plot() + geom_point(data = df2, aes(x = d, y = hg), size = 2, fill ="black", shape = 21)
   if (blackwhite) {
     ggsave(filename = paste("~/Dropbox/sachsResearch/plots/", toString(Lval), "Blackwhite", ".eps"), plot = p, device = "eps")
   } else {
@@ -423,7 +429,109 @@ multiplot(plotArrBW[[1]], plotArrBW[[2]], plotArrBW[[3]], plotArrBW[[4]], plotAr
 
 # Color 8 panel
 multiplot(plotArrColor[[1]], plotArrColor[[2]], plotArrColor[[3]], plotArrColor[[4]], plotArrColor[[5]], plotArrColor[[6]], plotArrColor[[7]], plotArrColor[[8]], cols = 2)
-multiplot(plotArrColor[[1]], plotArrColor[[2]], plotArrColor[[3]], plotArrColor[[4]], plotArrColor[[5]], plotArrColor[[6]], plotArrColor[[7]], plotArrColor[[8]], cols = 4)
+multiplot(plotArrColor[[1]], plotArrColor[[5]], plotArrColor[[2]], plotArrColor[[6]], plotArrColor[[3]], plotArrColor[[7]], plotArrColor[[4]], plotArrColor[[8]], cols = 4)
+
+
+# Oct 26 graphs
+dose <- c(seq(0, .00001, by = 0.000001), 
+          seq(.00002, .0001, by=.00001),
+          seq(.0002, .001, by=.0001),
+          seq(.002, .01, by=.001),
+          seq(.02, 1., by=.01))
+
+# 80% 195, 20% low
+r <- c(0.8, 0.2); L <- c(195)
+incremental = calculateComplexId(r, L, d = dose, lowLET = TRUE)
+highVal = Calculate.hinC(dose, 195)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df2 = data.frame(d = dose, hg = highVal)
+df3 = data.frame(d = dose, hg = lowVal)
+p = ggplot() + theme_bw() + 
+  geom_line(data = df2, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df3, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 2) + 
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1), axis.text.x=element_blank()) +
+  theme(axis.ticks.y = element_line(size = 1), axis.text.y=element_blank()) +
+  theme(axis.ticks.length=unit(0.4,"cm"))
+print(p)
+
+# 20% 195, 80% low
+r <- c(0.2, 0.8); L <- c(195)
+incremental = calculateComplexId(r, L, d = dose, lowLET = TRUE)
+highVal = Calculate.hinC(dose, 195)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df2 = data.frame(d = dose, hg = highVal)
+df3 = data.frame(d = dose, hg = lowVal)
+p = ggplot() + theme_bw() + 
+  geom_line(data = df2, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df3, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 2) + 
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1), axis.text.x=element_blank()) +
+  theme(axis.ticks.y = element_line(size = 1), axis.text.y=element_blank()) +
+  theme(axis.ticks.length=unit(0.4,"cm"))
+print(p)
+
+# 80% low, 5% 25,  5% 70,  5% 100,  5% 195
+r <- c(0.05, 0.05, 0.05, 0.05, 0.8); L <- c(25, 70, 100, 195)
+incremental = calculateComplexId(r, L, d = dose, lowLET = TRUE)
+Val195 = Calculate.hinC(dose, 195)
+Val25 = Calculate.hinC(dose, 25)
+Val70 = Calculate.hinC(dose, 70)
+Val100 = Calculate.hinC(dose, 100)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df25 = data.frame(d = dose, hg = Val25)
+df70 = data.frame(d = dose, hg = Val70)
+df100 = data.frame(d = dose, hg = Val100)
+df195 = data.frame(d = dose, hg = Val195)
+dflow = data.frame(d = dose, hg = lowVal)
+p = ggplot() + theme_bw() + 
+  geom_line(data = df25, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df70, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df100, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df195, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = dflow, aes(x = d, y = hg), colour = "#55aaff", size = 1) +
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 2) +
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1), axis.text.x=element_blank()) +
+  theme(axis.ticks.y = element_line(size = 1), axis.text.y=element_blank()) +
+  theme(axis.ticks.length=unit(0.4,"cm"))
+print(p)
+
+# 20% low, 20% 25,  20% 70,  20% 100,  20% 195
+r <- c(0.2, 0.2, 0.2, 0.2, 0.2); L <- c(25, 70, 100, 195)
+incremental = calculateComplexId(r, L, d = dose, lowLET = TRUE)
+Val195 = Calculate.hinC(dose, 195)
+Val25 = Calculate.hinC(dose, 25)
+Val70 = Calculate.hinC(dose, 70)
+Val100 = Calculate.hinC(dose, 100)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df25 = data.frame(d = dose, hg = Val25)
+df70 = data.frame(d = dose, hg = Val70)
+df100 = data.frame(d = dose, hg = Val100)
+df195 = data.frame(d = dose, hg = Val195)
+dflow = data.frame(d = dose, hg = lowVal)
+p = ggplot() + theme_bw() + 
+  geom_line(data = df25, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df70, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df100, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df195, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = dflow, aes(x = d, y = hg), colour = "#55aaff", size = 1) +
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 2) +
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1), axis.text.x=element_blank()) +
+  theme(axis.ticks.y = element_line(size = 1), axis.text.y=element_blank()) +
+  theme(axis.ticks.length=unit(0.4,"cm"))
+print(p)
 
 ############################### Native plot ###############################
 Lval = 100
