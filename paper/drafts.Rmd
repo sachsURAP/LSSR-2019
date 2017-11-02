@@ -45,20 +45,23 @@ For the purposes for incremental effect additivity, IDERs are ideally smooth and
 
 Three IDER variants in this paper are implemented to reflect differing particle types and modeling approaches. We describe the effects of individual HZE particles with IDERs corresponding to the TE approach and the NTE approach. The functional form of the HZE, NTE hazard function is as follows:
 
-$$ H =  0.01 * [aa1 * L * d * exp(-aa2 * L) + (1 - exp(- \phi * d)) * kk1] \quad \text{(2.3.2.1)}$$
+$$ H =  0.01 * [aa1 * L * d * exp(-aa2 * L) + (1 - exp(- \phi * d)) * kk1] \quad \text{(2.3.2.1)} $$
 
 Additionally, the HZE, TE hazard function appears as:
-$$ H = -0.01 [aate1 * L * d * exp(-aate2 * L)] \quad \text{(2.3.2.2)}$$
+$$ H = -0.01 [aate1 * L * d * exp(-aate2 * L)] \quad \text{(2.3.2.2)} $$
 Here, $aate1$ and $aate2$ are adjustable parameters with dimensions $\mu$m Gy$^{-1}$ keV$^{-1}$.  
 
 Lastly, we describe an IDER for low-LET particles. We do not use the hazard function to construct this IDER. (#egh note to Ray - why don't we used a NTE/TE model to describe low-LET IDERs?)
-$$ I_{low-LET}(d) = 1 - exp(- \beta * d) \quad \text{(2.3.2.3)}$$
+$$ I_{low-LET}(d) = 1 - exp(- \beta * d) \quad \text{(2.3.2.3)} $$
 
 ### 2.4. Synergy Analysis 
 
 ### 2.4.1. Distribution of Mixture Dose Between Mixture Component
+A mixed radiation field consists of $N \geq 2$ components. Each component independently has a dose-effect relation consisting of background and radiogenic contributions. We define an IDER as the radiogenic contribution from a component. Thus by definition IDERs are zero when dose is zero.
 
-#### 2.4.2. Simple versus Incremental Additivity
+#### 2.4.2. Simple versus Incremental Additivity  
+
+Simple effect additivity (SEA) synergy theory carries weaknesses that incremental effect additivity attempts to address. SEA notably has the tendency to defy what is known as the "sham mixture principle". Suppose that there exists a single-agent beam with dose $d$ that is described by an IDER $I$. The principle asserts that synergy theory applied to a sham mixture of $I(d_1), \dots, I(d_i), \dots, I(d_n)$, such that $\sum_{i = 1}^{n}{d_i} = d$, would yield a MIXDER $M$ equivalent to $I$. < add plots and discuss examples > . As shown in the figures, SEA violates the sham mixture principle for IDERs that are concave or convex. This characteristic of SEA is indicative of flawed synergy analyses for actual mixtures. Notably, incremental effect additivity does not violate the sham mixture principle. IEA avoids the pitfalls of SEA estimates by analysing the linear relation between a dose increment and the resulting effect increment. An ordinary differential equation is constructed from these analyses and solved to find the resulting MIXDER. This approach has become practical in light of modern computing advances.
 
 ### 2.5. Computational Implementation  
 The data are sourced from Chang et al. (2016) and Alpen et al. (1993, 1994) and implemented as R dataframes throughout the calculations. A number of R packages from the CRAN repository were used, notably `stats` for non-linear regression, `deSolve` for solving differential equations, `mvtnorm` for Monte Carlo simulations, and `ggplot2` for plotting.  
