@@ -153,7 +153,7 @@ low_let_slope <- function(dose, L) { # Slope dE/dd of the low LET, low Z model; 
 # Put various values in our calibrated model to check with numbers and graphs in these references
 plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
 lines(0.01 * 0:700, calib_low_let_ider(0.01 * 0:700, 0) + .0275)  #  calibrated lowLET IDER
-points(clean_light_ion_data[1:8, "dose"], clean_light_ion_data[1:8,"HG"], pch = 19) #  RKS: Helium data points
+points(clean_light_ion_data[1:8, "dose"], clean_light_ion_data[1:8, "HG"], pch = 19) #  RKS: Helium data points
 points(clean_light_ion_data[9:12, "dose"], clean_light_ion_data[9:12, "HG"] )  #  proton data points 
 
 
@@ -173,11 +173,17 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
       aa <- u <- dI <- vector(length = length(L))
       for (i in 1:length(L)) {
         aa[i] <- pars[1] * L[i] * exp(-pars[2] * L[i])
-        u[i] <- uniroot(function(d) hze_ider(d, L[i]) - I, interval = c(0, 200), extendInt = "yes", tol = 10^-10)$root
+        u[i] <- uniroot(function(d) hze_ider(d, L[i]) - I, 
+                        interval = c(0, 200), 
+                        extendInt = "yes", 
+                        tol = 10 ^ - 10)$root
         dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(L) + 1] <- uniroot(function(d) calib_low_let_ider(d, coef["lowLET"]) - I, interval = c(0, 200), extendInt = "yes", tol = 10^-10)$root
+        u[length(L) + 1] <- uniroot(function(d) calib_low_let_ider(d, coef["lowLET"]) - I, 
+                                    interval = c(0, 200), 
+                                    extendInt = "yes", 
+                                    tol = 10 ^ - 10)$root
         dI[length(L) + 1] <- r[length(r)] * low_let_slope(d = u[length(L) + 1], L = 0)
       }
       return(list(sum(dI)))
@@ -220,18 +226,19 @@ lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, model = "TE", lowLE
 lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2)
 
 # Plot 3: four HZE; NTE
-plot(calculate_complex_id(r = rep(0.25,4), L = c(25, 70, 190, 250), d = dose_vector), type = 'l', col = 'red', bty = 'l', ann = 'F') #  I(d) plot
+plot(calculate_complex_id(r = rep(0.25, 4), L = c(25, 70, 190, 250), d = dose_vector), type = 'l', col = 'red', bty = 'l', ann = 'F') #  I(d) plot
 SEA <- function(dose) {
   return(calib_hze_nte_ider(dose / 4, 25) + 
          calib_hze_nte_ider(dose / 4, 70) + 
          calib_hze_nte_ider(dose / 4, 190) + 
-         calib_hze_nte_ider(dose / 3, 250))
+         calib_hze_nte_ider(dose / 4, 250))
 }
 lines(dose_vector, SEA(dose_vector), lty = 2)
-lines(dose_vector, calib_hze_nte_ider(dose_vector,190), col = 'green') # component 4
+lines(dose_vector, calib_hze_nte_ider(dose_vector, 190), col = 'green') # component 4
 lines(dose_vector, calib_hze_nte_ider(dose_vector, 250), col = 'green') # component 3
 lines(dose_vector, calib_hze_nte_ider(dose_vector, 70), col = 'green') # component 2
 lines(dose_vector, calib_hze_nte_ider(dose_vector, 25), col = 'green') # component 1
+
 
 # Plot 4: two HZE; NTE; one low-LET
 d <- seq(0, .01, .0005)
@@ -325,3 +332,5 @@ print(mixderGraphWithNaiveAndMonteCarloCI)
 #========================================#
 #===================End==================#
 #========================================#
+
+

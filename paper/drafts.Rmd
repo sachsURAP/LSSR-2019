@@ -32,7 +32,7 @@ Let $E(d; \textbf{p})$ represent a standard IDER such that $d$ is dose and $\tex
 
 All our essential calculations take $E(d; \textbf{p})$ to be given by the equation $E = 1 - exp(-H)$ where $H(d; \textbf{p})$, called the hazard function, obeys the following conditions. (a) $H$ is 0 when $d = 0$. (b) $H$ has continuous first and second derivatives at all non-negative dosages including $d = 0$. (c) $H$ is convex and monotonic increasing. Note that these condtions on $H$ hold if and only if $E$ obeys similar conditions. 
 
-We assume $\lim_{d \to \infty} H  = \infty$ which is equivalent to $\lim_{d \to \infty} E(d, \textbf{p}) = 1$. For purposes of this paper, a curve is convex if it has a positive second derivative, which implies upward curvature. Concavity is the opposite. More general definitions are not needed here. Convexity is desired for $H$ because the resulting IDER will have an upper limit of 1 without additional frivolous parameters.
+We assume $\lim_{d \to \infty} H  = \infty$ which is equivalent to $\lim_{d \to \infty} E(d, \textbf{p}) = 1$. For purposes of this paper, a curve is convex if it has a positive second derivative, which implies upward curvature. Concavity is the opposite. More general definitions are not needed here. Convexity is desired for $H$ because the resulting IDER will have an upper limit of 1 without additional adjustable parameters.
 
 
 ### 2.3. IDERs Used in This Paper
@@ -61,7 +61,25 @@ A mixed radiation field consists of $N \geq 2$ components. Each component indepe
 
 #### 2.4.2. Simple versus Incremental Additivity  
 
-Simple effect additivity (SEA) synergy theory carries weaknesses that incremental effect additivity attempts to address. SEA notably has the tendency to defy what is known as the "sham mixture principle". Suppose that there exists a single-agent beam with dose $d$ that is described by an IDER $I$. The principle asserts that synergy theory applied to a sham mixture of $I(d_1), \dots, I(d_i), \dots, I(d_n)$, such that $\sum_{i = 1}^{n}{d_i} = d$, would yield a MIXDER $M$ equivalent to $I$. < add plots and discuss examples > . As shown in the figures, SEA violates the sham mixture principle for IDERs that are concave or convex. This characteristic of SEA is indicative of flawed synergy analyses for actual mixtures. Notably, incremental effect additivity does not violate the sham mixture principle. IEA avoids the pitfalls of SEA estimates by analysing the linear relation between a dose increment and the resulting effect increment. An ordinary differential equation is constructed from these analyses and solved to find the resulting MIXDER. This approach has become practical in light of modern computing advances.
+Simple effect additivity (SEA) synergy theory carries weaknesses that incremental effect additivity attempts to address. SEA notably has the tendency to defy what is known as the "sham mixture principle". Suppose that there exists a single-agent beam with dose $d$ that is described by an IDER $I$. The principle asserts that synergy theory applied to a sham mixture of $I(d_1), \dots, I(d_i), \dots, I(d_n)$, such that $\sum_{i = 1}^{n}{d_i} = d$, would yield a MIXDER $M$ equivalent to $I$. < add plots and discuss examples > . As an example, assume that we have an IDER $i(d)$ such that $i = d^2$ and SEA MIXDER $m(d) = 2 * i(d / 2)$ such that $m$ is a mixture of two identical $i$ components. According to the sham mixture principle, for any arbitrary dose $d_j$, $i(d_j) = 2 * i(d_j /2)$. However, this is trivially false, as shown in Fig. 2.4.1.
+
+``` {r, echo = FALSE}
+toy_ider <- function(d) return(d^2)
+toy2_ider <- function(d) return(2 * (d/2)^2)
+plot(1:1000 * .001, toy_ider(1:1000 * .001), type = "l", col = "blue", lwd = 2, bty = 'l', ylab = "Effect", xlab = "Dose (Gy)")
+lines(1:1000 * .001, toy2_ider(1:1000 * .001), col = "red", lwd = 2)
+title("Figure 2.4.1: Simple Effect Additivity Applied to Sham Mixture")
+legend("topleft",
+  legend = c("IDER", "Sham MIXDER"),
+  col = c("blue", "red"),
+  pch = c(16, 16),
+  pt.cex = 2,
+  bty = "n",
+  inset = c(0.1, 0.1)
+)
+```
+
+Notice that MIXDER $n * i(d / n)$ increases much more slowly than $i(d)$ in fig. 2.4.1. This is characteristic for sham mixtures of convex IDERs because SEA fails to take into account the rate at which an IDER rises. Alternatively, when SEA is applied to a sham mixture of concave IDERs, the resulting MIXDER tends to rise much faster than the lone IDER. This characteristic of SEA is indicative of flawed synergy analyses for actual mixtures. One of the greatest advantages of incremental effect additivity (IEA) over SEA is that IEA does not violate the sham mixture principle. IEA avoids the pitfalls of SEA estimates by analysing the linear relation between a dose increment and the resulting effect increment. An ordinary differential equation is constructed from these analyses and solved to find the resulting MIXDER. We can guarantee that the MIXDER for each mixture is unqiue because ODEs only have one unique solution. This approach has become very practical in light of modern computing advances.
 
 ### 2.5. Computational Implementation  
 The data are sourced from Chang et al. (2016) and Alpen et al. (1993, 1994) and implemented as R dataframes throughout the calculations. A number of R packages from the CRAN repository were used, notably `stats` for non-linear regression, `deSolve` for solving differential equations, `mvtnorm` for Monte Carlo simulations, and `ggplot2` for plotting.  
