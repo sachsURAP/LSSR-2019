@@ -1,7 +1,7 @@
 #   Filename: HGsynergyMain.R 
 #   Purpose: Concerns radiogenic mouse HG tumorigenesis.
 
-#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs
+#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs #Edward: why do we need this?
 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License version 3 as published 
