@@ -1,7 +1,12 @@
 #   Filename: HGsynergyMain.R 
 #   Purpose: Concerns radiogenic mouse HG tumorigenesis.
 
-#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs #Edward: why do we need this?
+#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs #Edward: why do we need this? 
+#   #Ray: The gnu website (https://www.gnu.org/licenses/gpl-howto.html) 
+#         recommends a copyright notice and license notice at the top of our 
+#         files. I do not feel particularly strongly about keeping them but I 
+#         have seen license/copyright notices in other published scripts
+#         and feel that it adds to the professional appearance of ours.
 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License version 3 as published 
@@ -16,7 +21,9 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #   Attribution Information: This R script was developed at UC Berkeley.
-#  Written by Dae Woong Ham Summer 2017. Additions, corrections, changes, quality control, reorganization by Edward Huang, Yimin Lin, Mark Ebert and Ray Sachs Fall UCB semester 2017.
+#   Written by Dae Woong Ham Summer 2017. Additions, corrections, changes, 
+#   quality control, reorganization by Edward Huang, Yimin Lin, Mark Ebert 
+#   and Ray Sachs Fall UCB semester 2017.
 
 #   Relevant references and abbreviations:
 #   ".93Alp" = Alpen et al. "Tumorigenic potential of high-Z, high-LET charged-particle radiations." Rad Res 136:382-391 (1993)
