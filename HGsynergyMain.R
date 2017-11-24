@@ -56,7 +56,7 @@ hg_data <- data.frame( #  Data used in 16Chang; includes data analyzed in .93Alp
   comments = c(".93AlpLooksOK", rep("", 7), ".93AlplooksOK", rep("", 11), ".93Alp.no.iso", "not in 17Cuc (or 16Chang?)", rep("", 3), "16Chang all OK?", rep('', 24), ".94Alp","From graphs",'e.g. in 17Cuc')
 ) 
 
-# Data for HG induced by photons from Cs-137 or Co-60 beta decay; from 16Chang (and calibration of beta_decay_lm model)
+# Data for HG induced by photons from Cs-137 or Co-60 beta decay; from 16Chang 
 beta_decay_data <- data.frame(
   dose = c(0, 0.4, 0.8, 1.6, 3.2, 7, 0, .4, .8, .12, 1.6),
   HG = c(.026, .048, .093, .137, .322, .462, .0497, .054, .067, .128, .202),
@@ -70,11 +70,13 @@ hg_data[, "Katz"] <- round(hg_data[, "Z"] ^ 2 * (2.57 * GeVu ^2 + 4.781 * GeVu +
 hg_data[, "beta"] <- round(hg_data[, "Z"] * sqrt(1 / hg_data[, "Katz"]), 3) #  i.e. Z * sqrt(beta ^ 2 / Z ^ 2) 
 hg_data[, "Zeff"] <- round(hg_data[, "Z"] * (1 - exp( -125 * hg_data[, "Z"] ^ ( - 2.0 / 3))), 2) #  Barkas formula for Zeff; for us Zeff is almost Z
 
-hg_data <- within(hg_data, L[L < 200 & ion == 'Fe56'] <- 185) # Set all Fe56 with L < 200 to L = 185 #Edward: changed to 185 instead of 180
-# clean_hg_data <- hg_data[c(1:19, 26:53), ] #  Removes the zero dose case and the no isograft data
-clean_hg_data <- hg_data[c(1:19, 21:53), ] # Reinstate Fe56 data other than zero dose case
+hg_data <- within(hg_data, L[L < 200 & ion == 'Fe56'] <- 185) # Set all Fe56 with L < 200 to L = 185 
+clean_hg_data <- hg_data[c(1:19, 21:53), ] # Removes the zero dose case 
 clean_hze_data <- subset(clean_hg_data, Z > 3) #  Look only at HZE not at much lower Z and LET ions. 
-clean_light_ion_data <- subset(clean_hg_data, Z <= 3) #  For Light ions
+clean_light_ion_data <- subset(clean_hg_data, Z <= 3) 
+#  NOTE: "Light" refers to ionized atomic nuclei lighter than Beryllium. 
+#  The data published to date has such a big gap between alpha particles (Z=2, LET~1.6) 
+#  and Neon (Z=10, LET~25) that we will here use independent models for Z<3 and Z>3 
 
 
 #===================== MISC. OBJECTS & VARIABLES ===================#
@@ -89,15 +91,14 @@ dose_vector <- c(
   seq(.02, .5, by = .01))
 
 #####  photon model #####
-beta_decay_lm <- lm(HG ~ dose + I(dose ^ 2), data = beta_decay_data) #  Linear model fit on beta_decay_data dataset
+beta_decay_lm <- lm(HG ~ dose , data = beta_decay_data) #  Linear model fit on beta_decay_data dataset 
 summary(beta_decay_lm, correlation = TRUE) 
 
 
-#========================== HZE/NTE MODEL ==========================# 
-# Uses 3 adjustable parameters. There is also an HZE/TE model and a "LOW"
-# model for Z <= 3. Both models are for Z > 3 in principle and here have 
-# data for Z >= 8.  
+#========================= HZE/NTE MODEL ===========================#
+# (HZE = high charge and energy; NTE = non-targeted effects are included)
 
+# Uses 3 adjustable parameters. 
 hi_nte_model <- nls( #  Calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc. 
   HG ~ .0275 + (1 - exp ( -0.01 * (aa1 * L * dose * exp( - aa2 * L) + (1 - exp( - phi * dose)) * kk1))), 
   data = clean_hze_data, 
@@ -117,7 +118,9 @@ calib_hze_nte_ider <- function(dose, L) { #  Calibrated HZE NTE IDER
 }
 
 
-#=========================== HZE/TE MODEL ==========================# 
+#=========================== HZE/TE MODEL  ==========================#
+#  (TE = targeted effects only)
+
 hi_te_model <- nls( #  Calibrating parameters in a TE only model.
   HG ~ .0275 + (1 - exp ( - 0.01 * (aate1 * L * dose * exp( - aate2 * L)))), 
   data = clean_hze_data,  
