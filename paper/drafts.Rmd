@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## 1. Introduction
+## 1. Introduction #Edward: to take advantage of the RR paper acceptance I rewrote abstract, all of section 1 Introduction, and most of section 2.2. I sent you a .docx with these changes because I was not sure how best to enter them. I can deal with GitHub now but am sort of drowning in multiple versions -- various versions in my .docx files or on my RStudio + your .Rmd and your .pdf on GitHub. Please never change the .Rmd without immediately changing the .pdf because then I get lost. Especially because I am also writing quite a few other similar papers/proposals at the same time. Below I add a few more changes, mainly to see if I am doing what is best or at least manageable for you. Do I have to notify you by email when I make any commitment or are you automatically notified by GitHub?
 
 ### 1.1. Terminology
 
@@ -19,10 +19,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## 2. Mathematical and Computational Methods
 
-### 2.1. Open-Source, Freely Available Programs
+### 2.1. Open-Source, Freely Available Programs #Edward: this sub-section is now in great shape. Thanks.
 All customized software we developed for this study are open source and freely available. We utilize the programming language R [(R Core Team 2017)](https://www.r-project.org/), which is primarily designed for statistical computing and graphics. We supplement the base R software environment with "R packages" - curated R code collections loaded from the Comprehensive R Archive Network [(CRAN)](https://cran.r-project.org/). The specific packages used are detailed under Computation Implementation (Section 2.5.). All development of the source code was performed in [RStudio](https://www.rstudio.com/), a integrated development environment for R. The current script and its past iterations are both stored on the online version control repository [GitHub](https://github.com/eghuang/NASAmouseHG). The script is offered for free use or modification under the (lenient) [GNU General Public License v3.0](https://github.com/eghuang/NASAmouseHG/blob/master/LICENSE). There is no warranty on the script, implied or otherwise.
 
-### 2.2. IDERs and Hazard Functions: General Approach 
+### 2.2. IDERs and Hazard Functions: General Approach #Edward: This whole subsection needs to be replaced by my .docx version.
 
 #### 2.2.1. Basic Properties
 
@@ -35,24 +35,25 @@ All our essential calculations take $E(d; \textbf{p})$ to be given by the equati
 We assume $\lim_{d \to \infty} H  = \infty$ which is equivalent to $\lim_{d \to \infty} E(d, \textbf{p}) = 1$. For purposes of this paper, a curve is convex if it has a positive second derivative, which implies upward curvature. Concavity is the opposite. More general definitions are not needed here. Convexity is desired for $H$ because the resulting IDER will have an upper limit of 1 without additional adjustable parameters.
 
 
-### 2.3. IDERs Used in This Paper
+### 2.3. IDERs Used in This Paper #Edward: I think my .docx also changed a lot of 2.3? 
 
 #### 2.3.1. Motivations
 
 For the purposes for incremental effect additivity, IDERs are ideally smooth and monotionically increasing. The hazard function utilized in Cucinotta & Cacao (2017) allows us to construct IDERs that satisfy these properties with fewer adjustable parameters than in earlier models (Ham 2017). Notably, our resulting IDER parameters are different from zero at significant levels ($p < 10^{-5}$). 
 
-#### 2.3.2. IDERs: Functional Forms
+#### 2.3.2. IDERs: Functional Forms #Edward: This subsection is basically in pretty good shape; thanks
 
 Three IDER variants in this paper are implemented to reflect differing particle types and modeling approaches. We describe the effects of individual HZE particles with IDERs corresponding to the TE approach and the NTE approach. The functional form of the HZE, NTE hazard function is as follows:
 
 $$ H =  0.01 * [aa1 * L * d * exp(-aa2 * L) + (1 - exp(- \phi * d)) * kk1] \quad \text{(2.3.2.1)} $$
+Here, $aa1$ and $aa2$ are adjustable parameters with respective dimensions $\mu$m Gy$^{-1}$ keV$^{-1}$ and $\mu$m keV$^{-1}$ and $kk1$ is dimensionless. #Edward: added this line
 
 Additionally, the HZE, TE hazard function appears as:
 $$ H = -0.01 [aate1 * L * d * exp(-aate2 * L)] \quad \text{(2.3.2.2)} $$
-Here, $aate1$ and $aate2$ are adjustable parameters with dimensions $\mu$m Gy$^{-1}$ keV$^{-1}$.  
+Here, $aate1$ and $aate2$ are adjustable parameters with respective dimensions $\mu$m Gy$^{-1}$ keV$^{-1}$.  #Edward: corrected this line.
 
-Lastly, we describe an IDER for low-LET particles. We do not use the hazard function to construct this IDER. (#egh note to Ray - why don't we used a NTE/TE model to describe low-LET IDERs?)
-$$ I_{low-LET}(d) = 1 - exp(- \beta * d) \quad \text{(2.3.2.3)} $$
+Lastly, we describe an IDER for low-LET ions. We do not use the hazard function to construct this IDER. (#egh note to Ray - why don't we used a NTE/TE model to describe low-LET IDERs?) #Edward: From now on I will use "egh" instead of "Edward". The NTE term is proportional to L for small L; in our data the two low LET ions have such small LET that the NTE contribution is negligible. Later I plan the following. Calibrate kk1 from HZE data at non-zero doses. Then add to $I_{low-LET}$ for the low LET ions a term for NTE effects that depends on L but holds kk1 fixed at its already calibrated value so there is no additional adjustable constant involved.
+$$ I_{low-LET}(d) = 1 - exp(- \beta * d) \quad \text{(2.3.2.3)} $$ #egh: When I have time I will add a motivation here for why we did not, unlike previous models, add a quadratic term in the exponent. Also, please rename this beta as alpha or alpha_{low-LET} because that is what radiobiologists always use for termsa linear in dose.
 
 ### 2.4. Synergy Analysis 
 
