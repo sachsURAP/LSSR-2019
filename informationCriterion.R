@@ -209,3 +209,8 @@ print(calculate_AIC_BIC(backgroundConst = .0275))
 print(calculate_AIC_BIC(backgroundConst = .05))
 print(calculate_AIC_BIC(backgroundConst = .01))
 
+for (i in 1:100) {
+  print(.001*i)
+  print(calculate_AIC_BIC(backgroundConst = .001*i))
+}
+
