@@ -206,6 +206,6 @@ calculate_AIC_BIC = function(numDataHZE = length(clean_hze_data$HG), backgroundC
 }
 
 print(calculate_AIC_BIC(backgroundConst = .0275))
-print(calculate_AIC_BIC(backgroundConst = 2*.0275))
-print(calculate_AIC_BIC(backgroundConst = 5*.0275))
+print(calculate_AIC_BIC(backgroundConst = .05))
+print(calculate_AIC_BIC(backgroundConst = .01))
 
