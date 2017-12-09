@@ -1,0 +1,24 @@
+---
+title: "Supplement to Synergy analysis for mouse Harderian gland radiation tumorigenesis induced by mixed beams whose individual components are simulated galactic cosmic rays"
+author: "Edward Greg Huang, Yimin Lin, Mark Ebert, Dae Woong Ham, and Rainer K. Sachs"
+date: "8 December 2017"
+---
+< add plots and discuss examples > . As an example, assume that we have an IDER $i(d)$ such that $i = d^2$ and SEA MIXDER $m(d) = 2 * i(d / 2)$ such that $m$ is a mixture of two identical $i$ components. According to the sham mixture principle, for any arbitrary dose $d_j$, $i(d_j) = 2 * i(d_j /2)$. However, this is trivially false, as shown in Fig. 2.4.1.
+
+``` {r, echo = FALSE}
+toy_ider <- function(d) return(d^2)
+toy2_ider <- function(d) return(2 * (d/2)^2)
+plot(1:1000 * .001, toy_ider(1:1000 * .001), type = "l", col = "blue", lwd = 2, bty = 'l', ylab = "Effect", xlab = "Dose (Gy)")
+lines(1:1000 * .001, toy2_ider(1:1000 * .001), col = "red", lwd = 2)
+title("Figure 2.4.1: Simple Effect Additivity Applied to Sham Mixture")
+legend("topleft",
+  legend = c("IDER", "Sham MIXDER"),
+  col = c("blue", "red"),
+  pch = c(16, 16),
+  pt.cex = 2,
+  bty = "n",
+  inset = c(0.1, 0.1)
+)
+```
+
+Notice that MIXDER $n * i(d / n)$ increases much more slowly than $i(d)$ in fig. 2.4.1. This is characteristic for sham mixtures of convex IDERs because SEA fails to take into account the rate at which an IDER rises. Alternatively, when SEA is applied to a sham mixture of concave IDERs, the resulting MIXDER tends to rise much faster than the lone IDER. This characteristic of SEA is indicative of flawed synergy analyses for actual mixtures. One of the greatest advantages of incremental effect additivity (IEA) over SEA is that IEA does not violate the sham mixture principle. IEA avoids the pitfalls of SEA estimates by analysing the linear relation between a dose increment and the resulting effect increment. An ordinary differential equation is constructed from these analyses and solved to find the resulting MIXDER. We can guarantee that the MIXDER for each mixture is unqiue because ODEs only have one unique solution. 
