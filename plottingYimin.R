@@ -178,13 +178,6 @@ dE_2 <- function(dose,L) { # Slope dE/dd of the low LET, low Z model; looking at
 # points(dfrL[1:8, "dose.1"], dfrL[1:8,"HG"],pch=19) #  RKS: Helium data points
 # points(dfrL[9:12, "dose.1"], dfrL[9:12, "HG"] )  #  proton data points 
 
-####### remove following lines I think RKS ####### 
-#dE_1 <- function(d, aa1, aa2, kk1, phi, L) { # For hin
-#    ((kk1 * phi * exp(-phi * d )  + aa1 * L * exp( -aa2 * L)) * 
-#   exp(-0.01 * (kk1 * (1 - exp( -phi * d)) + aa1 * L * exp(-aa2 * L) * d))) / 100
-#  }
-########## END remove these lines RKS #########
-
 ################## I(d) calculator for high Z, high E, NTE model hinm plus optionally LOW. START ##################
 calculateComplexId <- function(r, L, d, aa1 = hin.c[1], aa2 = hin.c[2], kk1 = hin.c[3], phi = 2000, beta = LOW.c, lowLET = FALSE) {
   # Calculates incremental effect additivity function I(d) for mixture of N >= 1 HZE NTE IDERs and optionally one low-LET IDER 
@@ -242,39 +235,57 @@ calculateComplexId.te <- function(r, L, d, aate1 = hit.c[1], aate2 = hit.c[2], b
 }
 # RKS to Yimin and Edward: I'm not convinced we need to or should add that the method is radau
 
+######################
+#### RKS plotting ####
+######################
 
-# Example Plot 1 : one HZE one low-LET for hin
-# d <- .01 * 0:300.; r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
-# plot(x = d, y = Calculate.hinC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
-# lines(x = d, y = CalculateLOW.C( d,0), col='green', lwd=2)
-#lines(x = d, y = calculateComplexId(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
-# 
-# # Example Plot 1hit : one HZE one low-LET for hit
-# d <- .01 * 0:300.; r1 <- .2; r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
-# plot(x = d, y = Calculate.hitC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
-# lines(x = d, y = CalculateLOW.C( d,0), col='green', lwd=2)
-# lines(x = d, y = calculateComplexId.te(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd=2) # I(d)
-# 
-# Example Plot 2: four HZE
-# r <- rep(0.25,4); L <- c(25, 70, 190, 250)
-# plot(calculateComplexId(r, L, d = dose), type='l', col='red', bty='l', ann='F') #  I(d) plot
-# #SEA <- function(dose.1) Calculate.hinC(dose.1/4, 25) + Calculate.hinC(dose.1/4, 70) + Calculate.hinC(dose.1/4, 190) + Calculate.hinC(dose.1/3, 250)
-# #lines(dose, SEA(dose), lty=2)
-# lines(dose, Calculate.hinC(dose,190), col='green') # component 4
-# lines(dose, Calculate.hinC(dose, 250), col='green') # component 3
-# lines(dose, Calculate.hinC(dose, 70), col='green') # component 2
-# lines(dose, Calculate.hinC(dose, 25), col='green') # component 1
+plotIDER <- function(d, L, color) {
+  plot(x = d, y = Calculate.hinC(dose.1 = d, L = L), type = "l", xlab="dose",ylab="HG",bty='l',col=color,lwd=2)
+}
 
 
-# 
-# # Example Plot 3: two HZE one low-LET
-# d <- seq(0, .01, .0005); r <- c(1/20, 1/20, 9/10); L <- c(70, 173)
-# plot(x = d, y = Calculate.hinC(dose.1 = d, L = 173), type = "l", xlab="dose",ylab="HG",bty='l',col='green',lwd=2)
-# lines(x = d, y = Calculate.hinC(d, 70), col='green', lwd=2) # component 3
-# lines(x = d, y = CalculateLOW.C(d, 0), col='green', lwd=2)
-# lines(x = d, y = calculateComplexId(r, L, d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
+# Plot any individual IDER
+d = .01 * 0:100                 # dose range
+L = 173                         # LET
+individualIDERcolor = "red"     # color of line for a single LET
+plotIDER(d, L, individualIDERcolor)
 
-################## I(d) calculator END ##################
+# 40% Fe, 30% Si, 30% Proton, NTE
+d = .01 * 0:100;
+r = c(0.4, 0.3, 0.3);
+L = c(193, 70);
+hasLowLET = TRUE;
+lineWidth = 2;
+colorIndividualIDER = "green";
+colorIncremental = "red";
+colorSimpleAdditivity = "red";
+
+plot(x = d, y = Calculate.hinC(dose.1 = d, L = 193), type = "l", xlab="dose",ylab="HG",bty='l',col=colorIndividualIDER,lwd=lineWidth)
+lines(x = d, y = Calculate.hinC(dose.1 = d, L = 70), col = colorIndividualIDER, lwd=lineWidth)
+lines(x = d, y = CalculateLOW.C(d,0), col=colorIndividualIDER, lwd=lineWidth)
+lines(x = d, y = calculateComplexId(r = r, L = L, d = d, lowLET = hasLowLET)[, 2], col = colorIncremental, lwd=lineWidth)
+SEA <- function(dose.1) Calculate.hinC(dose.1*0.4, 193) + Calculate.hinC(dose.1*0.3, 70) + CalculateLOW.C(dose.1*0.3, 0)
+lines(d, SEA(d), col = colorSimpleAdditivity, lty=2, lwd = lineWidth)
+
+# 25% 25, 50, 75, 100 LET each, NTE
+d = .01 * 0:100;
+r = c(0.25, 0.25, 0.25, 0.25);
+L = c(25, 50, 75, 100);
+hasLowLET = FALSE;
+lineWidth = 2;
+colorIndividualIDER = "green";
+colorIncremental = "red";
+colorSimpleAdditivity = "red";
+
+SEA <- function(dose.1) Calculate.hinC(dose.1*0.25, 25) + Calculate.hinC(dose.1*0.25, 50) + Calculate.hinC(dose.1*0.25, 75) + Calculate.hinC(dose.1*0.25, 100)
+
+plot(x = d, y = Calculate.hinC(dose.1 = d, L = 100), type = "l", xlab="dose",ylab="HG",bty='l',col=colorIndividualIDER,lwd=lineWidth)
+lines(x = d, y = Calculate.hinC(dose.1 = d, L = 25), col = colorIndividualIDER, lwd=lineWidth)
+lines(x = d, y = Calculate.hinC(dose.1 = d, L = 50), col = colorIndividualIDER, lwd=lineWidth)
+lines(x = d, y = Calculate.hinC(dose.1 = d, L = 75), col = colorIndividualIDER, lwd=lineWidth)
+lines(x = d, y = calculateComplexId(r = r, L = L, d = d, lowLET = hasLowLET)[, 2], col = colorIncremental, lwd=lineWidth)
+lines(d, SEA(d), col = colorSimpleAdditivity, lty=2, lwd = lineWidth)
+
 
 #==============================================#
 #==========Confidence Interval Part============#
