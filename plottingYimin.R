@@ -235,58 +235,6 @@ calculateComplexId.te <- function(r, L, d, aate1 = hit.c[1], aate2 = hit.c[2], b
 }
 # RKS to Yimin and Edward: I'm not convinced we need to or should add that the method is radau
 
-######################
-#### RKS plotting ####
-######################
-
-plotIDER <- function(d, L, color) {
-  plot(x = d, y = Calculate.hinC(dose.1 = d, L = L), type = "l", xlab="dose",ylab="HG",bty='l',col=color,lwd=2)
-}
-
-
-# Plot any individual IDER
-d = .01 * 0:100                 # dose range
-L = 173                         # LET
-individualIDERcolor = "red"     # color of line for a single LET
-plotIDER(d, L, individualIDERcolor)
-
-# 40% Fe, 30% Si, 30% Proton, NTE
-d = .01 * 0:100;
-r = c(0.4, 0.3, 0.3);
-L = c(193, 70);
-hasLowLET = TRUE;
-lineWidth = 2;
-colorIndividualIDER = "green";
-colorIncremental = "red";
-colorSimpleAdditivity = "red";
-
-plot(x = d, y = Calculate.hinC(dose.1 = d, L = 193), type = "l", xlab="dose",ylab="HG",bty='l',col=colorIndividualIDER,lwd=lineWidth)
-lines(x = d, y = Calculate.hinC(dose.1 = d, L = 70), col = colorIndividualIDER, lwd=lineWidth)
-lines(x = d, y = CalculateLOW.C(d,0), col=colorIndividualIDER, lwd=lineWidth)
-lines(x = d, y = calculateComplexId(r = r, L = L, d = d, lowLET = hasLowLET)[, 2], col = colorIncremental, lwd=lineWidth)
-SEA <- function(dose.1) Calculate.hinC(dose.1*0.4, 193) + Calculate.hinC(dose.1*0.3, 70) + CalculateLOW.C(dose.1*0.3, 0)
-lines(d, SEA(d), col = colorSimpleAdditivity, lty=2, lwd = lineWidth)
-
-# 25% 25, 50, 75, 100 LET each, NTE
-d = .01 * 0:100;
-r = c(0.25, 0.25, 0.25, 0.25);
-L = c(25, 50, 75, 100);
-hasLowLET = FALSE;
-lineWidth = 2;
-colorIndividualIDER = "green";
-colorIncremental = "red";
-colorSimpleAdditivity = "red";
-
-SEA <- function(dose.1) Calculate.hinC(dose.1*0.25, 25) + Calculate.hinC(dose.1*0.25, 50) + Calculate.hinC(dose.1*0.25, 75) + Calculate.hinC(dose.1*0.25, 100)
-
-plot(x = d, y = Calculate.hinC(dose.1 = d, L = 100), type = "l", xlab="dose",ylab="HG",bty='l',col=colorIndividualIDER,lwd=lineWidth)
-lines(x = d, y = Calculate.hinC(dose.1 = d, L = 25), col = colorIndividualIDER, lwd=lineWidth)
-lines(x = d, y = Calculate.hinC(dose.1 = d, L = 50), col = colorIndividualIDER, lwd=lineWidth)
-lines(x = d, y = Calculate.hinC(dose.1 = d, L = 75), col = colorIndividualIDER, lwd=lineWidth)
-lines(x = d, y = calculateComplexId(r = r, L = L, d = d, lowLET = hasLowLET)[, 2], col = colorIncremental, lwd=lineWidth)
-lines(d, SEA(d), col = colorSimpleAdditivity, lty=2, lwd = lineWidth)
-
-
 #==============================================#
 #==========Confidence Interval Part============#
 #==============================================#
