@@ -26,3 +26,9 @@
 ## provide instructions for making rStudio project with gitHub on the issues page
 ## Sys.time() on issues page - DONE
 ## apply vs for loop on issues page - DONE
+
+## SACHS & HUANG @ EVANS 02.23.18
+## 7 High LET and HZE plots (4 top 3 bottom) and one low HZE plot bottom right (single ion beams)
+## Lori Chappelle (Cucinotta's former statistician) wants to collaborate (She'll meet with Ray on Wednesday)
+## I will hold off on edits until after Yimin's latest updates are live on GitHub
+## Change HZE and LET acronyms in cript to upper-case
