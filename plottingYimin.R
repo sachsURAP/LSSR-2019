@@ -347,9 +347,9 @@ for (i in 1 : numDosePoints) {
 #############
 # CI Helper #
 #############
-CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hinm, HITmodel = hitm, LOWmodel = LOW.m, model = mod) {
+CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hinm, HITmodel = hitm, LOWmodel = LOW.m, model = mod, seed = 100) {
   # Set the pseudorandom seed
-  set.seed(100)
+  set.seed(seed)
   
   # Generate N randomly generated samples of parameters of HZE model.
   curveList = Generate_samples(N = sampleNum, r = r, L = L, d = d)
@@ -723,6 +723,8 @@ p = ggplot() + theme_bw() +
   theme(axis.ticks.y = element_line(size = 1)) +
   theme(axis.ticks.length=unit(0.4,"cm"))
 
+print(p)
+
 ggsave(filename = paste(save_path, "IDER 80percent_195, 20percent_LOW", ".eps"), plot = p, device = "eps")
 
 # 20% 195, 80% low
@@ -867,6 +869,8 @@ dose <- c(seq(0, .00001, by = 0.000001),
           seq(.002, .01, by=.001),
           seq(.02, 1., by=.01))
 
+dose <- c(seq(0.0, 1., by = 0.1))
+
 # 5x0.2 Confidence Interval Monte
 confidenceIntervals = CIHelper(sampleNum = sampleN, d = dose, r = c(0.2, 0.2, 0.2, 0.2, 0.2), L = c(25, 70, 100, 180), model = 0)
 naiveCI = confidenceIntervals[[1]]
@@ -901,6 +905,9 @@ ciPlot1 = ggplot() + theme_bw() +
   theme(axis.ticks.y = element_line(size = 1)) +
   theme(axis.ticks.length=unit(0.4,"cm")) +
   theme(plot.margin=unit(c(1,1,1,1),"cm"))
+
+print(ciPlot1)
+
 ggsave(filename = paste(save_path, "ConfidenceIntervalMonteCarlo 20percent_LOW,25,70,100,195 each", ".eps"), plot = ciPlot1, device = "eps")
 
 # 5x0.2 Confidence Interval Naive
@@ -1020,6 +1027,509 @@ p2 = plottingHelper(195, FALSE, save_path = save_path, zoom = 2)
 twoPanelArr[[1]] = p1
 twoPanelArr[[2]] = p2
 multiplotHelper(twoPanelArr, "~/Desktop/plots/1*2 Fe Zoomed Color.eps", num_col = 2, w = 8, h = 4)
+
+
+
+
+
+
+
+###############
+# Feb 9 plots #
+###############
+
+dose1 = 0.01 * 0:100                 # dose range
+dose2 = 0.0001 * 0:100
+dose3 = 0.00001 * 0:100
+
+df1 = data.frame(d = dose1*100, hg = Calculate.hinC(dose.1 = dose1, L = 185))
+df2 = data.frame(d = dose2*100, hg = Calculate.hinC(dose.1 = dose2, L = 185))
+df3 = data.frame(d = dose3*100, hg = Calculate.hinC(dose.1 = dose3, L = 185))
+p1 = ggplot() + theme_bw() + 
+  geom_line(data = df1, aes(x = d, y = hg), colour = "#6AB490", size = 1) + 
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black")) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm")) +
+  theme(panel.border = border_custom()) +
+  annotate("text", x = 50, y = 0.1, label = "A", fontface = 2, size = 6) +
+  labs(x = "Dose d (cGy)", y = "HG prevalence") 
+p2 = ggplot() + theme_bw() + 
+  geom_line(data = df2, aes(x = d, y = hg), colour = "#6AB490", size = 1) + 
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm")) +
+  theme(panel.border = border_custom()) +
+  annotate("text", x = 0.5, y = 0.012, label = "B", fontface = 2, size = 6) +
+  labs(x = "Dose d (cGy)")
+p3 = ggplot() + theme_bw() + 
+  geom_line(data = df3, aes(x = d, y = hg), colour = "#6AB490", size = 1) + 
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm")) +
+  annotate("text", x = 0.05, y = 0.009, label = "C", fontface = 2, size = 6) +
+  labs(x = "Dose d (cGy)")
+
+multiplot(p1, p2, p3, cols = 3)
+
+d = c()
+nWeight = c()
+hgArr = c()
+
+for (row in 1:nrow(dfr)) {
+  if ((dfr[row, "L"] == 193 || dfr[row, "L"] == 195) && (dfr[row, "dose.1"] != 1.6)) {
+    print(122)
+    d = c(d, dfr[row, "dose.1"])
+    nWeight = c(nWeight, dfr[row, "NWeight"])
+    hgArr = c(hgArr, dfr[row, "HG"])
+  }
+}
+
+dfData = data.frame(x = d*100, hg = hgArr, nw = nWeight)
+
+p1 = p1 + 
+  geom_segment(data = dfData, size = 0.8, aes(x = x, xend = x, y = hg - 1/sqrt(nw), yend = hg + 1/sqrt(nw)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) + 
+  geom_segment(data = dfData, size = 0.8, aes(x = x, xend = x, y = hg, yend = hg - 1/sqrt(nw)), arrow = arrow(angle = 90, length = unit(0.2,"cm"))) +
+  geom_point(data = dfData, aes(x = x, y = hg), size = 2, fill ="black", shape = 21)
+
+multiplot(p1, p2, p3, cols = 3)
+
+
+###################################################
+########### Feb 22 Check lower dose CI ############
+###################################################
+
+# Some parameter initializations
+sampleN = 200
+mod = 1              # 1 if HIN, 0 if HIT
+
+dose <- c(seq(0.0, 1., by = 0.1))
+
+# 5x0.2 Confidence Interval Monte NTE
+lowerDoseCI = CIHelper(sampleNum = sampleN, d = dose, r = c(0.2, 0.2, 0.2, 0.2, 0.2), L = c(25, 70, 100, 180), model = 0, seed = 100)
+
+dose <- c(seq(0, .00001, by = 0.000001), 
+          seq(.00002, .0001, by=.00001),
+          seq(.0002, .001, by=.0001),
+          seq(.002, .01, by=.001),
+          seq(.02, 1., by=.01))
+
+higherDoseCI = CIHelper(sampleNum = sampleN, d = dose, r = c(0.2, 0.2, 0.2, 0.2, 0.2), L = c(25, 70, 100, 180), model = 0, seed = 99)
+
+err1NTE = abs(higherDoseCI[[2]][1, seq(length = 10, from = 47, by = 10)] - lowerDoseCI[[2]][1, seq(length = 10, from = 2, by = 1)])
+
+# 0.05 0.8 Confidence Interval Monte NTE
+dose <- c(seq(0.0, 1., by = 0.1))
+
+lowerDoseCI = CIHelper(sampleNum = sampleN, d = dose, r = c(0.05, 0.05, 0.05, 0.05, 0.8), L = c(25, 70, 100, 180), model = 0, seed = 100)
+
+dose <- c(seq(0, .00001, by = 0.000001), 
+          seq(.00002, .0001, by=.00001),
+          seq(.0002, .001, by=.0001),
+          seq(.002, .01, by=.001),
+          seq(.02, 1., by=.01))
+
+higherDoseCI = CIHelper(sampleNum = sampleN, d = dose, r = c(0.05, 0.05, 0.05, 0.05, 0.8), L = c(25, 70, 100, 180), model = 0, seed = 99)
+
+err2NTE = abs(higherDoseCI[[2]][1, seq(length = 10, from = 47, by = 10)] - lowerDoseCI[[2]][1, seq(length = 10, from = 2, by = 1)])
+
+# Some parameter initializations
+sampleN = 200
+mod = 1              # 1 if HIN, 0 if HIT
+
+dose <- c(seq(0.0, 1., by = 0.1))
+
+# 5x0.2 Confidence Interval Monte TE
+lowerDoseCI = CIHelper(sampleNum = sampleN, d = dose, r = c(0.2, 0.2, 0.2, 0.2, 0.2), L = c(25, 70, 100, 180), model = 1, seed = 100)
+
+dose <- c(seq(0, .00001, by = 0.000001), 
+          seq(.00002, .0001, by=.00001),
+          seq(.0002, .001, by=.0001),
+          seq(.002, .01, by=.001),
+          seq(.02, 1., by=.01))
+
+higherDoseCI = CIHelper(sampleNum = sampleN, d = dose, r = c(0.2, 0.2, 0.2, 0.2, 0.2), L = c(25, 70, 100, 180), model = 1, seed = 99)
+
+err1TE = abs(higherDoseCI[[2]][1, seq(length = 10, from = 47, by = 10)] - lowerDoseCI[[2]][1, seq(length = 10, from = 2, by = 1)])
+
+# 0.05 0.8 Confidence Interval Monte TE
+dose <- c(seq(0.0, 1., by = 0.1))
+
+lowerDoseCI = CIHelper(sampleNum = sampleN, d = dose, r = c(0.05, 0.05, 0.05, 0.05, 0.8), L = c(25, 70, 100, 180), model = 1, seed = 100)
+
+dose <- c(seq(0, .00001, by = 0.000001), 
+          seq(.00002, .0001, by=.00001),
+          seq(.0002, .001, by=.0001),
+          seq(.002, .01, by=.001),
+          seq(.02, 1., by=.01))
+
+higherDoseCI = CIHelper(sampleNum = sampleN, d = dose, r = c(0.05, 0.05, 0.05, 0.05, 0.8), L = c(25, 70, 100, 180), model = 1, seed = 99)
+
+err2TE = abs(higherDoseCI[[2]][1, seq(length = 10, from = 47, by = 10)] - lowerDoseCI[[2]][1, seq(length = 10, from = 2, by = 1)])
+
+print("5x0.2 Confidence Interval Monte NTE Error");
+print(err1NTE);
+print("0.05 0.8 Confidence Interval Monte NTE Error");
+print(err2NTE);
+print("5x0.2 Confidence Interval Monte TE Error");
+print(err1TE);
+print("0.05 0.8 Confidence Interval Monte TE Error");
+print(err2TE)
+
+
+
+########################################################################
+#########################   TE VERSION   ###############################
+########################################################################
+
+
+##############################
+# Different kinds IDER plots #
+##############################
+
+# Some parameter initializations
+save_path =  "~/Desktop/plots/"
+dose <- c(seq(0, .00001, by = 0.000001), 
+          seq(.00002, .0001, by=.00001),
+          seq(.0002, .001, by=.0001),
+          seq(.002, .01, by=.001),
+          seq(.02, 1., by=.01))
+
+# 80% 195, 20% low
+r <- c(0.8, 0.2); L <- c(195)
+incremental = calculateComplexId.te(r, L, d = dose, lowLET = TRUE)
+highVal = Calculate.hitC(dose, 195)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df2 = data.frame(d = dose, hg = highVal)
+df3 = data.frame(d = dose, hg = lowVal)
+p = ggplot() + theme_bw() + 
+  geom_line(data = df2, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df3, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 2) + 
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm"))
+print(p)
+
+
+# 20% 195, 80% low
+r <- c(0.2, 0.8); L <- c(195)
+incremental = calculateComplexId.te(r, L, d = dose, lowLET = TRUE)
+highVal = Calculate.hitC(dose, 195)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df2 = data.frame(d = dose, hg = highVal)
+df3 = data.frame(d = dose, hg = lowVal)
+p = ggplot() + theme_bw() + 
+  geom_line(data = df2, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df3, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 2) + 
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm"))
+
+ggsave(filename = paste(save_path, "IDER 20percent_195, 80percent_LOW", ".eps"), plot = p, device = "eps")
+
+# 80% low, 5% 25,  5% 70,  5% 100,  5% 195
+r <- c(0.05, 0.05, 0.05, 0.05, 0.8); L <- c(25, 70, 100, 195)
+incremental = calculateComplexId.te(r, L, d = dose, lowLET = TRUE)
+Val195 = Calculate.hitC(dose, 195)
+Val25 = Calculate.hitC(dose, 25)
+Val70 = Calculate.hitC(dose, 70)
+Val100 = Calculate.hitC(dose, 100)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df25 = data.frame(d = dose, hg = Val25)
+df70 = data.frame(d = dose, hg = Val70)
+df100 = data.frame(d = dose, hg = Val100)
+df195 = data.frame(d = dose, hg = Val195)
+dflow = data.frame(d = dose, hg = lowVal)
+p = ggplot() + theme_bw() + 
+  geom_line(data = df25, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df70, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df100, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df195, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = dflow, aes(x = d, y = hg), colour = "#55aaff", size = 1) +
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 2) +
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm"))
+
+ggsave(filename = paste(save_path, "IDER 80percent_LOW, 5percent_25,70,100,195 each", ".eps"), plot = p, device = "eps")
+
+# 20% low, 20% 25,  20% 70,  20% 100,  20% 195
+r <- c(0.2, 0.2, 0.2, 0.2, 0.2); L <- c(25, 70, 100, 195)
+incremental = calculateComplexId.te(r, L, d = dose, lowLET = TRUE)
+Val195 = Calculate.hitC(dose, 195)
+Val25 = Calculate.hitC(dose, 25)
+Val70 = Calculate.hitC(dose, 70)
+Val100 = Calculate.hitC(dose, 100)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df25 = data.frame(d = dose, hg = Val25)
+df70 = data.frame(d = dose, hg = Val70)
+df100 = data.frame(d = dose, hg = Val100)
+df195 = data.frame(d = dose, hg = Val195)
+dflow = data.frame(d = dose, hg = lowVal)
+
+p = ggplot() + theme_bw() + 
+  geom_line(data = df25, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df70, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df100, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df195, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = dflow, aes(x = d, y = hg), colour = "#55aaff", size = 1) +
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 2) +
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm"))
+
+ggsave(filename = paste(save_path, "IDER 20percent_LOW,25,70,100,195 each", ".eps"), plot = p, device = "eps")
+
+# 0.1 each
+r <- c(0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1); L <- c(25,50,75,100,150,200,300,500,750,1000)
+incremental = calculateComplexId.te(r, L, d = dose, lowLET = FALSE)
+SEA <- function(dose.1) Calculate.hitC(dose.1/10, 25) + Calculate.hinC(dose.1/10, 50) + Calculate.hinC(dose.1/10, 75) + Calculate.hinC(dose.1/10, 100) + CalculateLOW.C(dose.1/10, 150) + Calculate.hinC(dose.1/10, 200) + CalculateLOW.C(dose.1/10, 300) + Calculate.hinC(dose.1/10, 500) + CalculateLOW.C(dose.1/10, 750)+ CalculateLOW.C(dose.1/10, 1000)
+Val25 = Calculate.hitC(dose, 25)
+Val50 = Calculate.hitC(dose, 50)
+Val75 = Calculate.hitC(dose, 75)
+Val100 = Calculate.hitC(dose, 100)
+Val150 = Calculate.hitC(dose, 150)
+Val200 = Calculate.hitC(dose, 200)
+Val300 = Calculate.hitC(dose, 300)
+Val500 = Calculate.hitC(dose, 500)
+Val750 = Calculate.hitC(dose, 750)
+Val1000 = Calculate.hitC(dose, 1000)
+
+
+dfsea = data.frame(d = dose, hg = SEA(dose))
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df25 = data.frame(d = dose, hg = Val25)
+df50 = data.frame(d = dose, hg = Val50)
+df75 = data.frame(d = dose, hg = Val75)
+df100 = data.frame(d = dose, hg = Val100)
+df150 = data.frame(d = dose, hg = Val150)
+df200 = data.frame(d = dose, hg = Val200)
+df300 = data.frame(d = dose, hg = Val300)
+df500 = data.frame(d = dose, hg = Val500)
+df750 = data.frame(d = dose, hg = Val750)
+df1000 = data.frame(d = dose, hg = Val1000)
+
+p = ggplot() + theme_bw() + 
+  geom_line(data = df25, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df50, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df75, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df100, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df150, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df200, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df300, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df500, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df750, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df1000, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = dfsea, aes(x = d, y = hg), colour = "black", size = 1, linetype = "dashed") +
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 1) +
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm")) +
+  theme(plot.margin=unit(c(1,1,1,1),"cm"))
+ggsave(filename = paste(save_path, "IDER 10percent_LOW,25,50,75,100,150,200,300,500,750,1000 each", ".eps"), plot = p, device = "eps")
+
+#############################################
+# Different kinds confidence interval plots #
+#############################################
+
+# Some parameter initializations
+sampleN = 200
+mod = 1              # 1 if HIN, 0 if HIT
+dose <- c(seq(0, .00001, by = 0.000001), 
+          seq(.00002, .0001, by=.00001),
+          seq(.0002, .001, by=.0001),
+          seq(.002, .01, by=.001),
+          seq(.02, 1., by=.01))
+
+dose <- c(seq(0.0, 1., by = 0.1))
+
+# 5x0.2 Confidence Interval Monte
+confidenceIntervals = CIHelper(sampleNum = sampleN, d = dose, r = c(0.2, 0.2, 0.2, 0.2, 0.2), L = c(25, 70, 100, 180), model = 1)
+naiveCI = confidenceIntervals[[1]]
+monteCarloCI = confidenceIntervals[[2]]
+incremental = calculateComplexId.te(r = c(0.2, 0.2, 0.2, 0.2, 0.2), L = c(25, 70, 100, 180), d = dose, lowLET = TRUE)
+SEA <- function(dose.1) Calculate.hitC(dose.1/5, 25) + Calculate.hitC(dose.1/5, 70) + Calculate.hitC(dose.1/5, 100) + Calculate.hitC(dose.1/5, 180) + CalculateLOW.C(dose.1/5, 1)
+Val195 = Calculate.hitC(dose, 180)
+Val25 = Calculate.hitC(dose, 25)
+Val70 = Calculate.hitC(dose, 70)
+Val100 = Calculate.hitC(dose, 100)
+lowVal = CalculateLOW.C(dose, 1)
+
+dfsea = data.frame(d = dose, hg = SEA(dose))
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df25 = data.frame(d = dose, hg = Val25)
+df70 = data.frame(d = dose, hg = Val70)
+df100 = data.frame(d = dose, hg = Val100)
+df195 = data.frame(d = dose, hg = Val195)
+dflow = data.frame(d = dose, hg = lowVal)
+ciPlot1 = ggplot() + theme_bw() + 
+  geom_ribbon(aes(x = dose, ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), fill = "yellow") +
+  geom_line(data = dfsea, aes(x = d, y = hg), colour = "black", size = 1, linetype = "dashed") +
+  geom_line(data = df25, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df70, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df100, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df195, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = dflow, aes(x = d, y = hg), colour = "#55aaff", size = 1) +
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 1) +
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm")) +
+  theme(plot.margin=unit(c(1,1,1,1),"cm"))
+
+print(ciPlot1)
+
+ggsave(filename = paste(save_path, "ConfidenceIntervalMonteCarlo 20percent_LOW,25,70,100,195 each", ".eps"), plot = ciPlot1, device = "eps")
+
+# 5x0.2 Confidence Interval Naive
+incremental = calculateComplexId.te(r = c(0.2, 0.2, 0.2, 0.2, 0.2), L = c(25, 70, 100, 180), d = dose, lowLET = TRUE)
+Val195 = Calculate.hitC(dose, 180)
+Val25 = Calculate.hitC(dose, 25)
+Val70 = Calculate.hitC(dose, 70)
+Val100 = Calculate.hitC(dose, 100)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df25 = data.frame(d = dose, hg = Val25)
+df70 = data.frame(d = dose, hg = Val70)
+df100 = data.frame(d = dose, hg = Val100)
+df195 = data.frame(d = dose, hg = Val195)
+dflow = data.frame(d = dose, hg = lowVal)
+ciPlot2 = ggplot() + theme_bw() + 
+  geom_ribbon(aes(x = dose, ymin = naiveCI[1, ], ymax = naiveCI[2, ]), fill = "yellow") +
+  geom_line(data = df25, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df70, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df100, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df195, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = dflow, aes(x = d, y = hg), colour = "#55aaff", size = 1) +
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 1) +
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm")) +
+  theme(plot.margin=unit(c(1,1,1,1),"cm"))
+ggsave(filename = paste(save_path, "ConfidenceIntervalNaive 20percent_LOW,25,70,100,195 each", ".eps"), plot = ciPlot2, device = "eps")
+
+twoPanelArr = list(0)
+twoPanelArr[[1]] = ciPlot1
+twoPanelArr[[2]] = ciPlot2
+multiplotHelper(twoPanelArr, "~/Desktop/plots/1*2 ConfidenceInterval 20percent_LOW,25,70,100,195 each.eps", num_col = 2, w = 8, h = 4)
+
+
+# 0.05 0.8 Confidence Interval Monte
+r <- c(0.05, 0.05, 0.05, 0.05, 0.8);
+confidenceIntervals = CIHelper(sampleNum = sampleN, d = dose, r = c(0.05, 0.05, 0.05, 0.05, 0.8), L = c(25, 70, 100, 180), model = 0)
+naiveCI = confidenceIntervals[[1]]
+monteCarloCI = confidenceIntervals[[2]]
+incremental = calculateComplexId.te(r = c(0.05, 0.05, 0.05, 0.05, 0.8), L = c(25, 70, 100, 180), d = dose, lowLET = TRUE)
+SEA <- function(dose.1) Calculate.hitC(dose.1/20, 25) + Calculate.hitC(dose.1/20, 70) + Calculate.hitC(dose.1/20, 100) + Calculate.hitC(dose.1/20, 180) + CalculateLOW.C(4*dose.1/5, 1)
+Val195 = Calculate.hitC(dose, 180)
+Val25 = Calculate.hitC(dose, 25)
+Val70 = Calculate.hitC(dose, 70)
+Val100 = Calculate.hitC(dose, 100)
+lowVal = CalculateLOW.C(dose, 1)
+
+dfsea = data.frame(d = dose, hg = SEA(dose))
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df25 = data.frame(d = dose, hg = Val25)
+df70 = data.frame(d = dose, hg = Val70)
+df100 = data.frame(d = dose, hg = Val100)
+df195 = data.frame(d = dose, hg = Val195)
+dflow = data.frame(d = dose, hg = lowVal)
+ciPlot1 = ggplot() + theme_bw() + 
+  geom_ribbon(aes(x = dose, ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), fill = "yellow") +
+  geom_line(data = dfsea, aes(x = d, y = hg), colour = "black", size = 1, linetype = "dashed") +
+  geom_line(data = df25, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df70, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df100, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df195, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = dflow, aes(x = d, y = hg), colour = "#55aaff", size = 1) +
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 1) +
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm")) +
+  theme(plot.margin=unit(c(1,1,1,1),"cm"))
+ggsave(filename = paste(save_path, "ConfidenceIntervalMonteCarlo 80percent_LOW, 5percent_25,70,100,195 each", ".eps"), plot = ciPlot1, device = "eps")
+
+# 0.05 0.8 Confidence Interval Naive
+incremental = calculateComplexId.te(r = c(0.05, 0.05, 0.05, 0.05, 0.8), L = c(25, 70, 100, 180), d = dose, lowLET = TRUE)
+Val195 = Calculate.hitC(dose, 180)
+Val25 = Calculate.hitC(dose, 25)
+Val70 = Calculate.hitC(dose, 70)
+Val100 = Calculate.hitC(dose, 100)
+lowVal = CalculateLOW.C(dose, 1)
+
+df1 = data.frame(d = dose, hg = incremental[, 2])
+df25 = data.frame(d = dose, hg = Val25)
+df70 = data.frame(d = dose, hg = Val70)
+df100 = data.frame(d = dose, hg = Val100)
+df195 = data.frame(d = dose, hg = Val195)
+dflow = data.frame(d = dose, hg = lowVal)
+ciPlot2 = ggplot() + theme_bw() + 
+  geom_ribbon(aes(x = dose, ymin = naiveCI[1, ], ymax = naiveCI[2, ]), fill = "yellow") +
+  geom_line(data = df25, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df70, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df100, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = df195, aes(x = d, y = hg), colour = "#55aaff", size = 1) + 
+  geom_line(data = dflow, aes(x = d, y = hg), colour = "#55aaff", size = 1) +
+  geom_line(data = df1, aes(x = d, y = hg), colour = "red", size = 1) +
+  theme(panel.grid.major = element_blank(), panel.border = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), axis.title.x=element_blank(), axis.title.y=element_blank()) +
+  theme(axis.ticks.x = element_line(size = 1)) +
+  theme(axis.ticks.y = element_line(size = 1)) +
+  theme(axis.ticks.length=unit(0.4,"cm")) +
+  theme(plot.margin=unit(c(1,1,1,1),"cm"))
+ggsave(filename = paste(save_path, "ConfidenceIntervalNaive 80percent_LOW, 5percent_25,70,100,195 each", ".eps"), plot = ciPlot2, device = "eps")
+
+twoPanelArr[[1]] = ciPlot1
+twoPanelArr[[2]] = ciPlot2
+multiplotHelper(twoPanelArr, "~/Desktop/plots/1*2 ConfidenceInterval 80percent_LOW, 5percent_25,70,100,195 each.eps", num_col = 2, w = 8, h = 4)
+
+# Zoom in Fe
+p1 = plottingHelper(195, TRUE, save_path = save_path, zoom = 1)
+p2 = plottingHelper(195, TRUE, save_path = save_path, zoom = 2)
+twoPanelArr[[1]] = p1
+twoPanelArr[[2]] = p2
+multiplotHelper(twoPanelArr, "~/Desktop/plots/1*2 Fe Zoomed Blackwhite.eps", num_col = 2, w = 8, h = 4)
+
+p1 = plottingHelper(195, FALSE, save_path = save_path, zoom = 1)
+p2 = plottingHelper(195, FALSE, save_path = save_path, zoom = 2)
+twoPanelArr[[1]] = p1
+twoPanelArr[[2]] = p2
+multiplotHelper(twoPanelArr, "~/Desktop/plots/1*2 Fe Zoomed Color.eps", num_col = 2, w = 8, h = 4)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
