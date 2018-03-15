@@ -72,7 +72,7 @@ hg_data[, "Zeff"] <- round(hg_data[, "Z"] * (1 - exp( -125 * hg_data[, "Z"] ^ ( 
 
 hg_data <- within(hg_data, L[L < 200 & ion == 'Fe56'] <- 185) # Set all Fe56 with L < 200 to L = 185 
 clean_hg_data <- hg_data[c(1:19, 21:53), ] # Removes the zero dose case 
-clean_hze_data <- subset(clean_hg_data, Z > 3) #  Look only at HZE not at much lower Z and LET ions. 
+clean_HZE_data <- subset(clean_hg_data, Z > 3) #  Look only at HZE not at much lower Z and LET ions. 
 clean_light_ion_data <- subset(clean_hg_data, Z <= 3) 
 #  NOTE: "Light" refers to ionized atomic nuclei lighter than Beryllium. 
 #  The data published to date has such a big gap between alpha particles (Z=2, LET~1.6) 
@@ -101,7 +101,7 @@ summary(beta_decay_lm, correlation = TRUE)
 # Uses 3 adjustable parameters. 
 hi_nte_model <- nls( #  Calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc. 
   HG ~ .0275 + (1 - exp ( -0.01 * (aa1 * L * dose * exp( - aa2 * L) + (1 - exp( - phi * dose)) * kk1))), 
-  data = clean_hze_data, 
+  data = clean_HZE_data, 
   weights = NWeight,
   start = list(aa1 = .9, aa2 = .01, kk1 = 6)) 
 
@@ -113,7 +113,7 @@ calib_nte_hazard_func <- function(dose, L) { #  Calibrated hazard function
   0.01 * (hi_nte_model_coef[1] * L * dose * exp( - hi_nte_model_coef[2] * L) + (1 - exp( - phi * dose)) * hi_nte_model_coef[3])
 } 
 
-calib_hze_nte_ider <- function(dose, L) { #  Calibrated HZE NTE IDER
+calib_HZE_nte_ider <- function(dose, L) { #  Calibrated HZE NTE IDER
   1 - exp( - calib_nte_hazard_func(dose, L)) 
 }
 
@@ -123,7 +123,7 @@ calib_hze_nte_ider <- function(dose, L) { #  Calibrated HZE NTE IDER
 
 hi_te_model <- nls( #  Calibrating parameters in a TE only model.
   HG ~ .0275 + (1 - exp ( - 0.01 * (aate1 * L * dose * exp( - aate2 * L)))), 
-  data = clean_hze_data,  
+  data = clean_HZE_data,  
   weights = NWeight,
   start = list(aate1 = .9, aate2 = .01)) 
 
@@ -135,27 +135,27 @@ calib_te_hazard_func <- function(dose, L) { #  Calibrated hazard function
   0.01 * (hi_te_model_coef[1] * L * dose * exp( - hi_te_model_coef[2] * L))
 } 
 
-calib_hze_te_ider <- function(dose, L) {
+calib_HZE_te_ider <- function(dose, L) {
   1 - exp( - calib_te_hazard_func(dose, L)) #  Calibrated HZE TE IDER
 }
 
 
 #============= LIGHT ION, LOW Z (<= 3), LOW LET MODEL ==============#
-low_let_model <- nls(
+low_LET_model <- nls(
   HG ~ .0275 + 1 - exp( - bet * dose),
   data = clean_light_ion_data,
   weights = NWeight,
   start = list(bet = .5))
 
-summary(low_let_model)
-low_let_model_coef <- coef(low_let_model)  # Calibrated central values of the parameter
+summary(low_LET_model)
+low_LET_model_coef <- coef(low_LET_model)  # Calibrated central values of the parameter
 
-calib_low_let_ider <- function(dose, L) { # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small 
-  return(1 - exp( - low_let_model_coef[1] * dose))
+calib_low_LET_ider <- function(dose, L) { # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small 
+  return(1 - exp( - low_LET_model_coef[1] * dose))
 }  
 
-low_let_slope <- function(dose, L) { # Slope dE/dd of the low LET, low Z model; looking at the next plot() it seems fine
-  low_let_model_coef * exp( - low_let_model_coef * dose)  
+low_LET_slope <- function(dose, L) { # Slope dE/dd of the low LET, low Z model; looking at the next plot() it seems fine
+  low_LET_model_coef * exp( - low_LET_model_coef * dose)  
 }
 
 
@@ -164,7 +164,7 @@ low_let_slope <- function(dose, L) { # Slope dE/dd of the low LET, low Z model; 
 # and 17Cuc; (ggplot commands are Yinmin's and concern CI)
 # Put various values in our calibrated model to check with numbers and graphs in these references
 plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
-lines(0.01 * 0:700, calib_low_let_ider(0.01 * 0:700, 0) + .0275)  #  calibrated lowLET IDER
+lines(0.01 * 0:700, calib_low_LET_ider(0.01 * 0:700, 0) + .0275)  #  calibrated lowLET IDER
 points(clean_light_ion_data[1:8, "dose"], clean_light_ion_data[1:8, "HG"], pch = 19) #  RKS: Helium data points
 points(clean_light_ion_data[9:12, "dose"], clean_light_ion_data[9:12, "HG"] )  #  proton data points 
 
@@ -173,11 +173,29 @@ points(clean_light_ion_data[9:12, "dose"], clean_light_ion_data[9:12, "HG"] )  #
 info_crit_table <- cbind(AIC(hi_te_model, hi_nte_model), BIC(hi_te_model, hi_nte_model))
 print(info_crit_table)
 
+#======= SEA Calculator ======#
+calculate_SEA <- function(total_dose, r, L) {
+  total = 0
+  i = 1
+  if (length(r) == 1) {
+    while (i < r + 1) {
+      total = total + calib_HZE_nte_ider(total_dose * r, L[i])
+      i = i + 1
+    }
+  } else {
+    while (i < length(r) + 1) {
+      total = total + calib_HZE_nte_ider(total_dose * r[i], L[i])
+      i = i + 1
+    }
+  }
+  return(total)
+}
+
 
 #======= I(d) CALCULATOR; HZE NTE/TE MODELS; OPTIONAL LOW-LET ======#
 calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
-                                 coef = list(NTE = hi_nte_model_coef, TE = hi_te_model_coef, lowLET = low_let_model_coef),
-                                 iders = list(NTE = calib_hze_nte_ider, TE = calib_hze_te_ider, lowLET = calib_low_let_ider),
+                                 coef = list(NTE = hi_nte_model_coef, TE = hi_te_model_coef, lowLET = low_LET_model_coef),
+                                 iders = list(NTE = calib_HZE_nte_ider, TE = calib_HZE_te_ider, lowLET = calib_low_LET_ider),
                                  calculate_dI = c(NTE = .calculate_dI_nte, TE = .calculate_dI_te),
                                  phi = 2000) {
   dE <- function(yini, state, pars) { #  Constructing an ode from the IDERS
@@ -185,25 +203,25 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
       aa <- u <- dI <- vector(length = length(L))
       for (i in 1:length(L)) {
         aa[i] <- pars[1] * L[i] * exp(-pars[2] * L[i])
-        u[i] <- uniroot(function(d) hze_ider(d, L[i]) - I, 
+        u[i] <- uniroot(function(d) HZE_ider(d, L[i]) - I, 
                         interval = c(0, 200), 
                         extendInt = "yes", 
                         tol = 10 ^ - 10)$root
         dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(L) + 1] <- uniroot(function(d) calib_low_let_ider(d, coef["lowLET"]) - I, 
+        u[length(L) + 1] <- uniroot(function(d) calib_low_LET_ider(d, coef["lowLET"]) - I, 
                                     interval = c(0, 200), 
                                     extendInt = "yes", 
                                     tol = 10 ^ - 10)$root
-        dI[length(L) + 1] <- r[length(r)] * low_let_slope(d = u[length(L) + 1], L = 0)
+        dI[length(L) + 1] <- r[length(r)] * low_LET_slope(d = u[length(L) + 1], L = 0)
       }
       return(list(sum(dI)))
     })
   }
   p <- list(pars = coef[[model]], 
-            hze_ider = iders[[model]], 
-            calib_low_let_ider = iders[["lowLET"]], 
+            HZE_ider = iders[[model]], 
+            calib_low_LET_ider = iders[["lowLET"]], 
             calc_dI = calculate_dI[[model]])
   return(ode(c(I = 0), times = d, dE, parms = p))
 }
@@ -224,39 +242,39 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
 d <- .01 * 0:300.
 r1 <- .2
 r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
-plot(x = d, y = calib_hze_nte_ider(dose = d, L = 173), type = "l", xlab = "dose", ylab = "HG", bty = 'l', col = 'green', lwd = 2)
-lines(x = d, y = calib_low_let_ider(d, 0), col = 'green', lwd = 2)
+plot(x = d, y = calib_HZE_nte_ider(dose = d, L = 173), type = "l", xlab = "dose", ylab = "HG", bty = 'l', col = 'green', lwd = 2)
+lines(x = d, y = calib_low_LET_ider(d, 0), col = 'green', lwd = 2)
 lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 
 # Plot 2 : one HZE one low-LET, TE & NTE
 d <- .01 * 0:300
 r1 <- .2
 r <- c(r1, 1 - r1) #Proportions. Next plot IDERs and MIXDER
-plot(x = d, y = calib_hze_te_ider(dose = d, L = 173), type = "l", xlab = "dose", ylab = "HG", bty = 'l', col = 'green', lwd = 2)
-lines(x = d, y = calib_low_let_ider(d, 0), col = 'green', lwd = 2)
+plot(x = d, y = calib_HZE_te_ider(dose = d, L = 173), type = "l", xlab = "dose", ylab = "HG", bty = 'l', col = 'green', lwd = 2)
+lines(x = d, y = calib_low_LET_ider(d, 0), col = 'green', lwd = 2)
 lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, model = "TE", lowLET = TRUE)[, 2], col = "orange", lwd = 2) # I(d)
 lines(x = d, y = calculate_complex_id(r = r, L = 193, d = d, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2)
 
 # Plot 3: four HZE; NTE
 plot(calculate_complex_id(r = rep(0.25, 4), L = c(25, 70, 190, 250), d = dose_vector), type = 'l', col = 'red', bty = 'l', ann = 'F') #  I(d) plot
 SEA <- function(dose) {
-  return(calib_hze_nte_ider(dose / 4, 25) + 
-         calib_hze_nte_ider(dose / 4, 70) + 
-         calib_hze_nte_ider(dose / 4, 190) + 
-         calib_hze_nte_ider(dose / 4, 250))
+  return(calib_HZE_nte_ider(dose / 4, 25) + 
+         calib_HZE_nte_ider(dose / 4, 70) + 
+         calib_HZE_nte_ider(dose / 4, 190) + 
+         calib_HZE_nte_ider(dose / 4, 250))
 }
 lines(dose_vector, SEA(dose_vector), lty = 2)
-lines(dose_vector, calib_hze_nte_ider(dose_vector, 190), col = 'green') # component 4
-lines(dose_vector, calib_hze_nte_ider(dose_vector, 250), col = 'green') # component 3
-lines(dose_vector, calib_hze_nte_ider(dose_vector, 70), col = 'green') # component 2
-lines(dose_vector, calib_hze_nte_ider(dose_vector, 25), col = 'green') # component 1
+lines(dose_vector, calib_HZE_nte_ider(dose_vector, 190), col = 'green') # component 4
+lines(dose_vector, calib_HZE_nte_ider(dose_vector, 250), col = 'green') # component 3
+lines(dose_vector, calib_HZE_nte_ider(dose_vector, 70), col = 'green') # component 2
+lines(dose_vector, calib_HZE_nte_ider(dose_vector, 25), col = 'green') # component 1
 
 
 # Plot 4: two HZE; NTE; one low-LET
 d <- seq(0, .01, .0005)
-plot(x = d, y = calib_hze_nte_ider(dose = d, L = 173), type = "l", xlab = "dose", ylab = "HG", bty = 'l', col = 'green', lwd = 2)
-lines(x = d, y = calib_hze_nte_ider(d, 70), col = 'green', lwd = 2) # component 3
-lines(x = d, y = calib_low_let_ider(d, 0), col = 'green', lwd = 2)
+plot(x = d, y = calib_HZE_nte_ider(dose = d, L = 173), type = "l", xlab = "dose", ylab = "HG", bty = 'l', col = 'green', lwd = 2)
+lines(x = d, y = calib_HZE_nte_ider(d, 70), col = 'green', lwd = 2) # component 3
+lines(x = d, y = calib_low_LET_ider(d, 0), col = 'green', lwd = 2)
 lines(x = d, y = calculate_complex_id(r = c(1/20, 1/20, 9/10), L = c(70, 173), d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
 
 
@@ -344,5 +362,108 @@ print(mixderGraphWithNaiveAndMonteCarloCI)
 #========================================#
 #===================End==================#
 #========================================#
+forty_cGy <- .01 * 0:40
+sixty_cGy <- .01 * 0:60
+seventy_cGy <- .01 * 0:70
+hundred_cGy <- .01 * 0:100
+forty_nine_cGy <- .01 * 0:49
 
+# Fig. 3.2.1.1. - Fe56 (600 MeV/u), Si28, and corresponding IEA and SEA MIXDERS.
+setEPS()
+postscript("fe56_si28_nte.eps")
+plot(x = forty_cGy, y = calculate_SEA(forty_cGy, 2, c(70, 195)), type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, xaxs="i")
+lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 70), col = "cyan", lwd = 2)
+lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 195), col = "darkcyan", lwd = 2)
+lines(x = forty_cGy, y = calculate_complex_id(r = c(0.5 , 0.5), L = c(70, 195), d = forty_cGy, model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
+abline(v = 0.4, lwd = 2)
+legend(x = "bottomright", legend = c("Fe56 (600 MeV/u), NTE NTE-TE IDER", "Si28 HZE NTE-TE IDER", "IEA MIXDER (50% Fe56, 50% Si28)", "SEA MIXDER (50% Fe56, 50% Si28)"),
+       col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), inset = 0.05)
+dev.off()
+
+
+# Fig. for a mixture of 60 cGy H1 (protons) with 40 cGy Si;
+setEPS()
+postscript("h1_si28_nte.eps")
+plot(x = hundred_cGy, y = calculate_SEA(hundred_cGy, c(0.6, .4), c(0.4, 70)), type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, xaxs="i")
+lines(x = hundred_cGy, y = calib_low_LET_ider(dose = hundred_cGy, L = 0.4), col = "cyan", lwd = 2)
+lines(x = hundred_cGy, y = calib_HZE_nte_ider(dose = hundred_cGy, L = 70), col = "darkcyan", lwd = 2)
+lines(x = hundred_cGy, y = calculate_complex_id(r = c(0.6 , 0.4), L = c(0.4, 70), d = hundred_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
+abline(v = 1, lwd = 2)
+legend(x = "topleft", legend = c("Si28 HZE NTE-TE IDER", "H1 Low-LET NTE-TE IDER","IEA MIXDER (60% H1, 40% Si28)", "SEA MIXDER (60% H1, 40% Si28)"),
+       col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), inset = 0.025)
+dev.off()
+
+# Fig. for a mixture of 40 cGy H1 with 30 cGy Fe56 at 600 MeV/u;
+setEPS()
+postscript("h1_fe56_nte.eps")
+plot(x = seventy_cGy, y = calculate_SEA(seventy_cGy, r = c(4/7, 3/7), c(0.4, 195)), type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, xaxs="i")
+lines(x = seventy_cGy, y = calib_low_LET_ider(dose = seventy_cGy, L = 0.4), col = "cyan", lwd = 2)
+lines(x = seventy_cGy, y = calib_HZE_nte_ider(dose = seventy_cGy, L = 195), col = "darkcyan", lwd = 2)
+lines(x = seventy_cGy, y = calculate_complex_id(r = c(4/7 , 3/7), L = c(0.4, 195), d = seventy_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
+abline(v = 0.7, lwd = 2)
+legend(x = "topleft", legend = c("Fe56 (600 MeV/u), HZE NTE-TE IDER", "H1 Low-LET NTE-TE IDER","IEA MIXDER (57% H1, 43% Si28)", "SEA MIXDER (57% H1, 43% Si28)"),
+       col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), inset = 0.005)
+dev.off()
+
+# Fig. for a mixture of all 7 HZE ions; total dose 49 cGy, each ion gets 7 cGy;
+setEPS()
+postscript("all_hze_nte.eps")
+
+# assume Hi HZE implies Z > 3
+plot(x = forty_nine_cGy, y = calculate_SEA(forty_nine_cGy, r = 7, c(25, 70, 100, 195, 250, 464, 953)), 
+     type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, axes=FALSE)
+
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 25), col = "pink", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 70), col = "orange", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 100), col = "yellow", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 195), col = "green", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 250), col = "blue", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 464), col = "purple", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 953), col = "violet", lwd = 2)
+
+lines(x = forty_nine_cGy, y = calculate_complex_id(r = c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7), L = c(25, 70, 100, 195, 250, 464, 953),
+                                                d = forty_nine_cGy, model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
+abline(v = 0.49, lwd = 1)
+axis(2, c(-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7))
+axis(1, c(-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.49), xaxs = "i")
+legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER", 
+                                 "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
+                                 "Fe56 (300 MeV/u) NTE-TE IDER", "Nb93 NTE-TE IDER",
+                                 "La139 NTE-TE IDER",
+                                 "IEA MIXDER (Equally Distributed)", "SEA MIXDER (Equally Distributed)"),
+       col = c("pink", "orange", "yellow", "green", "blue", "purple", "violet", "red", "black"), 
+      lwd = c(2, 2, 2, 2, 2, 2, 2, 2, 2), 
+      lty = c(1, 1, 1, 1, 1, 1, 1, 1, 2), cex = 0.55, inset = 0.0125)
+dev.off()
+
+
+
+# h1, 0.4, 60
+# he4, 1.6, 20
+# o16, 25, 10
+# si28, 70, 2.5
+# ti28, 100, 2.5
+# fe56, 195, 5
+setEPS()
+postscript("big_mix_nte.eps")
+plot(x = forty_nine_cGy, y = calculate_SEA(forty_nine_cGy, r = c(.6, .2, .1, .025, .025, .5), L = c(0.4, 1.6, 25, 70, 100, 195)), 
+     type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, xaxs = "i")
+
+lines(x = forty_nine_cGy, y = calib_low_LET_ider(dose = forty_nine_cGy, L = 0.4), col = "orange", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_low_LET_ider(dose = forty_nine_cGy, L = 1.6), col = "yellow", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 25), col = "green", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 70), col = "blue", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 100), col = "purple", lwd = 2)
+lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 195), col = "violet", lwd = 2)
+
+lines(x = forty_nine_cGy, y = calculate_complex_id(r = c(.6, .2, .1, .025, .025, .5), L =  c(0.4, 1.6, 25, 70, 100, 195),
+                                                   d = forty_nine_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
+abline(v = 1, lwd = 1)
+legend(x = "right", legend = c("H1 Low-LET NTE-TE IDER", "He4 Low-LET NTE-TE IDER", "O16 NTE-TE IDER", 
+                                 "Si28 NTE-TE IDER", "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
+                                 "IEA MIXDER (Equally Distributed)", "SEA MIXDER (Equally Distributed)"),
+       col = c("orange", "yellow", "green", "blue", "purple", "violet", "red", "black"), 
+       lwd = c(2, 2, 2, 2, 2, 2, 2, 2), 
+       lty = c(1, 1, 1, 1, 1, 1, 1, 2), cex = 0.7, inset = 0.0125)
+dev.off()
 
