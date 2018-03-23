@@ -1,8 +1,10 @@
-#   Filename: HGsynergyMain.R 
+#   Filename: synergyTheory.R 
 #   Purpose: Concerns radiogenic mouse HG tumorigenesis. Contains the NTE-TE,
 #            TE, HZE, low-LET, MIXDER, and other relevant synergy theory models.
 
-source("HGsynergyMain.R") # load in the data
+#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs 
+
+source("hgData.R") # load in the data
 
 
 #========================= HZE/NTE MODEL ===========================#
@@ -84,31 +86,35 @@ info_crit_table <- cbind(AIC(hi_te_model, hi_nte_model), BIC(hi_te_model, hi_nte
 print(info_crit_table)
 
 
-#======= SEA Calculator ======#
-#' Applies Simple Effect Additivity 
-#' 
-#' @description 
-#' @param total_dose A number corresponding to the sum dose in cGy.
+#' @description Applies Simple Effect Additivity to a MIXDER.
+#' @param total_dose Numeric vector corresponding to the sum dose in cGy.
 #' @param ratios Numeric vector of all dose ratios, must be length n.
 #' @param LET Numeric vector of all LET values, must be length n.
 #' @param lowLET Boolean of whether an LET IDER should be included in the MIXDER
 #' @param n Number of IDERs, optional argument used to check parameter validity.
-#' @return The estimate Harderian Gland prevalence from a SEA MIXDER constructed
-#'         from the given IDER parameters. 
+#' @details Corresponding elements of ratios, LET should be associated with the
+#'          same IDER.
+#' @return Numeric vector representing the estimated Harderian Gland 
+#'         prevalence from a SEA MIXDER constructed from the given IDER 
+#'         parameters. 
 #' @examples
-#' calculate_SEA(forty_cGy, r = 1/2, c(70, 195))
+#' calculate_SEA(forty_cGy, r = (1/2, 1/2), c(70, 195), n = 2)
 #' calculate_SEA(seventy_cGy, r = c(4/7, 3/7), c(0.4, 195))
 #'
-calculate_SEA <- function(total_dose, ratios, LET, lowLET = NULL, n = NULL) {
-  if (!is.null(n)) {
-    if (n != length(ratios) | n != length(LET)) {
-      error("Length of arguments do not match.") 
-    }
-  }
+calculate_SEA <- function(total_dose, ratios, LET, lowLET = FALSE, n = NULL) {
+  if (!is.null(n) && (n != length(ratios) | n != length(LET))) {
+    stop("Length of arguments do not match.") 
+  } else if (sum(ratios) != 1) {
+    stop("Sum of ratios do not add up to one.")
+  } #  End error handling
   total = 0
   i = 1
-  while (i < length(r) + 1) {
-    total = total + calib_HZE_nte_ider(total_dose * r[i], L[i])
+  if (lowLET == TRUE) { #  First elements of ratos and LET should be the low-LET IDER
+    total = total + calib_low_LET_ider(total_dose * ratios[i], LET[i])
+    i = i + 1
+  } 
+  while (i < length(ratios) + 1) { #  Iterate over HZE ions in MIXDER
+    total = total + calib_HZE_nte_ider(total_dose * ratios[i], LET[i])
     i = i + 1
   }
   return(total)
