@@ -1,12 +1,7 @@
 #   Filename: HGsynergyMain.R 
 #   Purpose: Concerns radiogenic mouse HG tumorigenesis.
 
-#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs #Edward: why do we need this? 
-#   #Ray: The gnu website (https://www.gnu.org/licenses/gpl-howto.html) 
-#         recommends a copyright notice and license notice at the top of our 
-#         files. I do not feel particularly strongly about keeping them but I 
-#         have seen license/copyright notices in other published scripts
-#         and feel that it adds to the professional appearance of ours.
+#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs 
 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License version 3 as published 
@@ -371,12 +366,12 @@ forty_nine_cGy <- .01 * 0:49
 # Fig. 3.2.1.1. - Fe56 (600 MeV/u), Si28, and corresponding IEA and SEA MIXDERS.
 setEPS()
 postscript("fe56_si28_nte.eps")
-plot(x = forty_cGy, y = calculate_SEA(forty_cGy, 2, c(70, 195)), type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, xaxs="i")
+plot(x = forty_cGy, y = calculate_SEA(forty_cGy, 1/2, c(70, 195)), type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, xaxs="i")
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 70), col = "cyan", lwd = 2)
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 195), col = "darkcyan", lwd = 2)
 lines(x = forty_cGy, y = calculate_complex_id(r = c(0.5 , 0.5), L = c(70, 195), d = forty_cGy, model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 0.4, lwd = 2)
-legend(x = "bottomright", legend = c("Fe56 (600 MeV/u), NTE NTE-TE IDER", "Si28 HZE NTE-TE IDER", "IEA MIXDER (50% Fe56, 50% Si28)", "SEA MIXDER (50% Fe56, 50% Si28)"),
+legend(x = "topleft", legend = c("Fe56 (600 MeV/u), NTE NTE-TE IDER", "Si28 HZE NTE-TE IDER", "IEA MIXDER (50% Fe56, 50% Si28)", "SEA MIXDER (50% Fe56, 50% Si28)"),
        col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), inset = 0.05)
 dev.off()
 
@@ -410,7 +405,7 @@ setEPS()
 postscript("all_hze_nte.eps")
 
 # assume Hi HZE implies Z > 3
-plot(x = forty_nine_cGy, y = calculate_SEA(forty_nine_cGy, r = 7, c(25, 70, 100, 195, 250, 464, 953)), 
+plot(x = forty_nine_cGy, y = calculate_SEA(forty_nine_cGy, r =  c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7), c(25, 70, 100, 195, 250, 464, 953)), 
      type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, axes=FALSE)
 
 lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 25), col = "pink", lwd = 2)
@@ -425,7 +420,7 @@ lines(x = forty_nine_cGy, y = calculate_complex_id(r = c(1/7, 1/7, 1/7, 1/7, 1/7
                                                 d = forty_nine_cGy, model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 0.49, lwd = 1)
 axis(2, c(-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7))
-axis(1, c(-0.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.49), xaxs = "i")
+axis(1, c(-.1, 0.0, 0.1, 0.2, 0.3, 0.4, 0.49), xaxs = "i")
 legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER", 
                                  "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
                                  "Fe56 (300 MeV/u) NTE-TE IDER", "Nb93 NTE-TE IDER",
