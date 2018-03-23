@@ -61,15 +61,18 @@ lines(x = d, y = calculate_complex_id(r = c(1/20, 1/20, 9/10), L = c(70, 173), d
 #==================================================================#
 #=========================== PAPER PLOTS ==========================#
 #==================================================================#
+
 # Fig. 3.2.1.1. - Fe56 (600 MeV/u), Si28, and corresponding IEA and SEA MIXDERS.
+# setEPS()
+# postscript("temp_plot.eps")
 plot(x = forty_cGy, y = calculate_SEA(forty_cGy, c(1/2, 1/2), c(70, 195), n = 2), type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, xaxs="i")
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 70), col = "cyan", lwd = 2)
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 195), col = "darkcyan", lwd = 2)
 lines(x = forty_cGy, y = calculate_complex_id(r = c(0.5 , 0.5), L = c(70, 195), d = forty_cGy, model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 0.4, lwd = 2)
 legend(x = "topleft", legend = c("Fe56 (600 MeV/u), NTE NTE-TE IDER", "Si28 HZE NTE-TE IDER", "IEA MIXDER (50% Fe56, 50% Si28)", "SEA MIXDER (50% Fe56, 50% Si28)"),
-       col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), inset = 0.05)
-
+       col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 3), inset = 0.05, cex = 0.35)
+# dev.off()
 
 # Fig. for a mixture of 60 cGy H1 (protons) with 40 cGy Si;
 plot(x = hundred_cGy, y = calib_HZE_nte_ider(dose = hundred_cGy, L = 70), type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "darkcyan", lwd = 2, xaxs="i")
@@ -78,7 +81,7 @@ lines(x = hundred_cGy, y = calculate_SEA(hundred_cGy, c(0.6, 0.4), c(0.4, 70), l
 lines(x = hundred_cGy, y = calculate_complex_id(r = c(0.6 , 0.4), L = c(0.4, 70), d = hundred_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 1, lwd = 2)
 legend(x = "topleft", legend = c("Si28 HZE NTE-TE IDER", "H1 Low-LET NTE-TE IDER","IEA MIXDER (60% H1, 40% Si28)", "SEA MIXDER (60% H1, 40% Si28)"),
-       col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), inset = 0.025)
+       col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), inset = 0.025,  cex = 0.35)
 
 # Fig. for a mixture of 40 cGy H1 with 30 cGy Fe56 at 600 MeV/u;
 plot(x = seventy_cGy, y = calib_HZE_nte_ider(dose = seventy_cGy, L = 195), col = "darkcyan", type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', lwd = 2, lty = 1, xaxs="i")
@@ -87,7 +90,7 @@ lines(x = seventy_cGy, y = calculate_SEA(seventy_cGy, c(4/7, 3/7), c(0.4, 195), 
 lines(x = seventy_cGy, y = calculate_complex_id(r = c(4/7 , 3/7), L = c(0.4, 195), d = seventy_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 0.7, lwd = 2)
 legend(x = "topleft", legend = c("Fe56 (600 MeV/u), HZE NTE-TE IDER", "H1 Low-LET NTE-TE IDER","IEA MIXDER (57% H1, 43% Si28)", "SEA MIXDER (57% H1, 43% Si28)"),
-       col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), inset = 0.005)
+       col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 3), inset = 0.05,  cex = 0.35)
 
 
 # Fig. for a mixture of all 7 HZE ions; total dose 49 cGy, each ion gets 7 cGy;
@@ -115,10 +118,10 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
                                  "IEA MIXDER (Equally Distributed)", "SEA MIXDER (Equally Distributed)"),
        col = c("pink", "orange", "yellow", "green", "blue", "purple", "violet", "red", "black"), 
        lwd = c(2, 2, 2, 2, 2, 2, 2, 2, 2), 
-       lty = c(1, 1, 1, 1, 1, 1, 1, 1, 2), cex = 0.55, inset = 0.0125)
+       lty = c(1, 1, 1, 1, 1, 3, 1, 1, 3), cex = 0.35, inset = 0.0125)
 
 
-
+# Fig with the following:
 # h1, 0.4, 60
 # he4, 1.6, 20
 # o16, 25, 10
@@ -138,16 +141,16 @@ lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 195)
 lines(x = forty_nine_cGy, y = calculate_complex_id(r = c(.6, .2, .1, .025, .025, .5), L =  c(0.4, 1.6, 25, 70, 100, 195),
                                                    d = forty_nine_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 1, lwd = 1)
-legend(x = "right", legend = c("H1 Low-LET NTE-TE IDER", "He4 Low-LET NTE-TE IDER", "O16 NTE-TE IDER", 
+legend(x = "topleft", legend = c("H1 Low-LET NTE-TE IDER", "He4 Low-LET NTE-TE IDER", "O16 NTE-TE IDER", 
                                "Si28 NTE-TE IDER", "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
                                "IEA MIXDER (Equally Distributed)", "SEA MIXDER (Equally Distributed)"),
        col = c("orange", "yellow", "green", "blue", "purple", "violet", "red", "black"), 
        lwd = c(2, 2, 2, 2, 2, 2, 2, 2), 
-       lty = c(1, 1, 1, 1, 1, 1, 1, 2), cex = 0.7, inset = 0.0125)
+       lty = c(1, 1, 1, 1, 1, 1, 1, 3), cex = 0.2, inset = 0.0125)
 
 
 
-# 8-panel plot: 7 HZE IDERS, one low-LET HZE IDER in bottom right
+# 8-panel web supplement  plot: 7 HZE IDERS, one low-LET HZE IDER in bottom right
 par(mfrow = c(2, 4))
 par(cex = 0.6)
 par(mar = c(0, 0, 0, 0), oma = c(4, 4, 0.5, 0.5))
