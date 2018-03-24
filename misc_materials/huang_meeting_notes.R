@@ -31,4 +31,55 @@
 ## 7 High LET and HZE plots (4 top 3 bottom) and one low HZE plot bottom right (single ion beams)
 ## Lori Chappelle (Cucinotta's former statistician) wants to collaborate (She'll meet with Ray on Wednesday)
 ## I will hold off on edits until after Yimin's latest updates are live on GitHub
-## Change HZE and LET acronyms in cript to upper-case
+## Change HZE and LET acronyms in cript to upper-case - DONE
+
+## SACHS & HUANG @ EVANS 03.02.18
+## Will submit to REB instead of LSSR
+## Next batch of mice will be irradiated with "representative beams"
+## Try to get close to the millimeter figure guidelines
+## Won't need new LETs for the minor paper
+## Take the path of least resistance when making figures (either use existing code or overhaul first)
+## We're not worrying about TE only models
+## We're not worrying about older models
+## 
+
+## Need to rewrite calculate I(d) for clarity
+## 
+
+## 03.15.18 SACHS & HUANG 918 EVANS
+## Last night Bragg peaks calculations 
+## i. May trump biophysical reactions
+## ii. As ions slow down nuclear collisions become more important
+## iii. LET increases exponentially as ion slows
+## iv. Current radiation studies may be misguided
+## v. Correlation if points near the end of their path show abnormally large tumorgenesis
+
+## How did the meetings go?
+
+## Discuss new materials
+
+## Will need to fix calculate_i(d) later to take arbitrary number of low-LET ions and dose
+## Need to also fix calculate_SEA to take low-LET IDERs - DONE
+## This current paper excuses us from having to do MIXDERs with over two low-LET IDERS
+## Communicate through master file (i.e. comments on .plottingYimin) - NOTED
+## Stick to .R and base plot - NOTED
+## Commit more often - NOTED
+## Make some IDER lines dashed to show IDERs covered underneath
+## Fix calculate_SEA to be correct - DONE
+## Plots will change over time - NOTED
+## Hold off on editing Bragg script for now - NOTED
+## No more emailing .eps - stick with having a coding block. - NOTED
+
+## 4-panel - NOTED
+## 
+
+## SACHS & HUANG 918 EVANS 032318
+## size all legends to native plot viewer - DONE
+## make sure to keep repo permissions clear at the organizaton level
+## write Ray an email reminder to ask Yimin to refactor his Monte Carlo code from Feb. - DONE
+## ask Yimin to refactor his Monte Carlo code 
+## error bars for the 8panel, 2 * standard deviation or 95% confidence intervals - NOTED
+## a. maybe try using a binomial or poisson model on the data
+## get n x n normalized correlation matrix from vcov() matrix
+## potential big project: refactor Andy's CA code with Peter
+
