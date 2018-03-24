@@ -57,7 +57,7 @@ GeVu <- 0.001 * dfr[, "MeVperu"] #  convert to GeV/u for convenience in a calcul
 dfr[, "Katz"] <- round(dfr[, "Z"] ^2 * (2.57 * GeVu ^2 + 4.781 * GeVu + 2.233) / (2.57 * GeVu ^2 + 4.781 * GeVu), 2) #  special relativistic calculation of Z^2/beta^2. The numerics include conversion from GeV to joules and from u to kg.
 dfr[, "beta"] <- round(dfr[, "Z"] * sqrt(1 / dfr[, "Katz"]), 3) #  i.e. Z*sqrt(beta^2/Z^2) 
 dfr[, "Zeff"] <- round(dfr[, "Z"] * (1 - exp( -125 * dfr[, "Z"] ^ (-2.0 / 3))), 2) #  Barkas formula for Zeff; for us Zeff is almost Z
-
+dfr <- within(dfr, L[L < 200 & ion == 'Fe56'] <- 195) # Set all Fe56 with L < 200 to L = 185 
 dfra <- dfr[c(1:19, 26:53), ] #  removes the zero dose case and the no isograft data
 #=========================== DATA END ===========================#
 
@@ -304,7 +304,6 @@ Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L,
       valueArr = c(valueArr, sampleCurves[[i]][, 2][doseIndex])
     }
     valueArr = sort(valueArr)
-    
     # Returning resulting CI
     return (c(valueArr[(1-intervalLength)/2*N], valueArr[(intervalLength + (1-intervalLength)/2)*N]))
   } else {
