@@ -31,15 +31,14 @@
 #=========================== DEPENDENCIES ==========================#
 rm(list=ls()) #   To be removed when script is finalized
 library(deSolve) #  Solving differential equations
-library(ggplot2) #   Plotting
 library(mvtnorm) #   Monte Carlo simulation
-
+library(ggplot2) #   Plotting
 
 #=============================== DATA ==============================#
 hg_data <- data.frame( #  Data used in 16Chang; includes data analyzed in .93Alp and .94Alp  
   dose = c(0.2,0.4,0.6,1.2,2.4,3.2,5.1,7,0.05,0.1,0.15,0.2,0.4,0.8,1.6,0.05,0.1,0.2,0.4,0,0.1,0.2,0.4,0.8,1.6,0.4,0.8,1.6,3.2,0.05,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.8,0.1,0.2,0.4,0.04,0.08,0.16,0.32,0.033,0.066,0.13,0.26,0.52,.2, .4, .6),
   HG = c(0.091,0.045,0.101,0.169,0.347,0.431,0.667,0.623,0.156,0.215,0.232,0.307,0.325,0.554,0.649,0.123,0.145,0.207,0.31,0.026,0.083,0.25,0.39,0.438,0.424,0.093,0.195,0.302,0.292,0.109,0.054,0.066,0.128,0.286,0.183,0.167,0.396,0.536,0.192,0.234,0.317,0.092,0.131,0.124,0.297,0.082,0.088,0.146,0.236,0.371,.154,.132,.333), #  HG prevalence as defined in 16Chang
-  NWeight = 0.01 * c(520,2048,1145,584,313,232,293,221,1162,877,455,409,374,223,320,742,661,347,131,6081,1091,251,244,191,131,645,255,199,111,649,378,973,833,201,468,381,197,109,496,257,185,1902,1063,884,350,1767,1408,874,299,261,322,206,67), #  nominal weight for weighted least squaresregression; see .93Alp. The Lanthanum entries were obtained by measuring the main graph in 17Cuc 
+  NWeight = c(520,2048,1145,584,313,232,293,221,1162,877,455,409,374,223,320,742,661,347,131,6081,1091,251,244,191,131,645,255,199,111,649,378,973,833,201,468,381,197,109,496,257,185,1902,1063,884,350,1767,1408,874,299,261,322,206,67), #  nominal weight for weighted least squaresregression; see .93Alp. The Lanthanum entries were obtained by measuring the main graph in 17Cuc 
   index = c(rep(1, 8),rep(0,17), rep(1, 4),  rep(0, 24)), #  Index = 0 for Z > 3 ions, 1 otherwise. Not needed in some models
   L = c(rep(1.6,8), rep(193, 7), rep(250, 4), rep(195, 6), rep(0.4, 4), rep(25, 5), rep(464, 4), rep(193, 3),rep(70, 4), rep(100, 5), rep(953, 3)), #  L = LET = LET_infinity = stopping power (keV/micron)
   Z = c(rep(2, 8), rep(26, 17), rep(1, 4), rep(10, 5), rep(43, 4), rep(26, 3), rep(14, 4), rep(22, 5), rep(57, 3)), #  Atomic number, charge in units of proton charge on fully ionized atomic nucleus, e.g. 2 for 2He4
@@ -65,27 +64,10 @@ hg_data[, "Katz"] <- round(hg_data[, "Z"] ^ 2 * (2.57 * GeVu ^2 + 4.781 * GeVu +
 hg_data[, "beta"] <- round(hg_data[, "Z"] * sqrt(1 / hg_data[, "Katz"]), 3) #  i.e. Z * sqrt(beta ^ 2 / Z ^ 2) 
 hg_data[, "Zeff"] <- round(hg_data[, "Z"] * (1 - exp( -125 * hg_data[, "Z"] ^ ( - 2.0 / 3))), 2) #  Barkas formula for Zeff; for us Zeff is almost Z
 
-hg_data <- within(hg_data, L[L < 200 & ion == 'Fe56'] <- 185) # Set all Fe56 with L < 200 to L = 185 
+hg_data <- within(hg_data, L[L < 200 & ion == 'Fe56'] <- 195) # Set all Fe56 with L < 200 to L = 195 
 clean_hg_data <- hg_data[c(1:19, 21:53), ] # Removes the zero dose case 
 clean_HZE_data <- subset(clean_hg_data, Z > 3) #  Look only at HZE not at much lower Z and LET ions. 
 clean_light_ion_data <- subset(clean_hg_data, Z <= 3) 
 #  NOTE: "Light" refers to ionized atomic nuclei lighter than Beryllium. 
 #  The data published to date has such a big gap between alpha particles (Z=2, LET~1.6) 
 #  and Neon (Z=10, LET~25) that we will here use independent models for Z<3 and Z>3 
-
-
-#===================== MISC. OBJECTS & VARIABLES ===================#
-# RKS to EH: the next lines up to photon model should be moved to synergyTheory.R; even the photon model chunk probably belongs in synergyTheory.R
-# In next line phi controls how fast NTE build up from zero; not really needed during calibration since phi * Dose >> 1 at every observed Dose !=0. phi needed for later synergy calculations.
-phi <- 2000 #  even larger phi should give the same final results, but might cause extra problems with R. 
-
-dose_vector <- c(
-  seq(0, .00001, by = 0.000001), #  Look carefully near zero, but go out to 0.5 Gy
-  seq(.00002, .0001, by = .00001),
-  seq(.0002, .001, by = .0001),
-  seq(.002, .01, by = .001),
-  seq(.02, .5, by = .01))
-
-#####  photon model #####
-beta_decay_lm <- lm(HG ~ dose , data = beta_decay_data) #  Linear model fit on beta_decay_data dataset 
-summary(beta_decay_lm, correlation = TRUE)
