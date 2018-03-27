@@ -134,7 +134,7 @@ calculate_SEA <- function(total_dose, ratios, LET, lowLET = FALSE, n = NULL) {
 #' 
 #' 
 calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
-                                 coef = list(NTE = hi_nte_model_coef,
+                                 coef = list(NTE = hi_nte_model_coef, # [1] = aa1, [2] = aa2, [3] == kk1
                                              TE = hi_te_model_coef, 
                                              lowLET = low_LET_model_coef),
                                  iders = list(NTE = calib_HZE_nte_ider, 
@@ -155,7 +155,8 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
         dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(L) + 1] <- uniroot(function(d) calib_low_LET_ider(d, coef["lowLET"]) - I, 
+        u[length(L) + 1] <- uniroot(function(d) calib_low_LET_ider(d, 
+                                    coef["lowLET"]) - I, 
                                     interval = c(0, 200), 
                                     extendInt = "yes", 
                                     tol = 10 ^ - 10)$root
@@ -168,7 +169,7 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
             HZE_ider = iders[[model]], 
             calib_low_LET_ider = iders[["lowLET"]], 
             calc_dI = calculate_dI[[model]])
-  return(ode(c(I = 0), times = d, dE, parms = p))
+  return(ode(c(I = 0), times = d, dE, parms = p, method = "radau"))
 }
 
 #=================== dI HIDDEN FUNCTIONS =====================#

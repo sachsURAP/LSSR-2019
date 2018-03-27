@@ -66,7 +66,7 @@ hg_data[, "beta"] <- round(hg_data[, "Z"] * sqrt(1 / hg_data[, "Katz"]), 3) #  i
 hg_data[, "Zeff"] <- round(hg_data[, "Z"] * (1 - exp( -125 * hg_data[, "Z"] ^ ( - 2.0 / 3))), 2) #  Barkas formula for Zeff; for us Zeff is almost Z
 
 hg_data <- within(hg_data, L[L < 200 & ion == 'Fe56'] <- 195) # Set all Fe56 with L < 200 to L = 195 
-clean_hg_data <- hg_data[c(1:19, 21:53), ] # Removes the zero dose case 
+clean_hg_data <- hg_data[c(1:19, 26:53), ] #  removes the zero dose case and the no isograft data
 clean_HZE_data <- subset(clean_hg_data, Z > 3) #  Look only at HZE not at much lower Z and LET ions. 
 clean_light_ion_data <- subset(clean_hg_data, Z <= 3) 
 #  NOTE: "Light" refers to ionized atomic nuclei lighter than Beryllium. 
