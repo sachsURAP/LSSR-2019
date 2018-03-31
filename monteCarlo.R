@@ -1,94 +1,100 @@
-#   Filename: HGsynergyMain.R 
+#   Filename: monteCarlo.R 
 #   Purpose: Concerns radiogenic mouse HG tumorigenesis. Contains the code to 
 #            run Monte Carlo and generate confidence intervals for our models.
 
-source("HGsynergyMain.R") # load in the data
-source("synergytheory.R") # load in models
+source("hgData.R") # load in the data
+source("synergyTheory.R") # load in models
 
 #==============================================#
 #==========Confidence Interval Part============#
 #==============================================#
 
-# Set the pseudorandom seed
+# # Set the pseudorandom seed
+# 
+# set.seed(1)
+# #
+# Generate_CI <- function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = hi_nte_model, method = 0) {
+#   # Function to generate CI for the input dose.
+#   # @params:   N              - numbers of sample
+#   #            intervalLength - size of confidence interval
+#   #            d              - input dose
+#   #            r              - proportion of ion
+#   #            L              - LTE
+#   #            HZEmodel       - the input HZE model
+#   #            method         - select Naive or Monte Carlo Approach
+#   #                             0 - Naive
+#   #                             1 - Monte Carlo
+#   if (method) {
+#     #========= Monte Carlo =========#
+#     valueArr = vector(length = 0)
+#     # Generate N randomly generated samples of parameters of HZE model.
+#     monteCarloSamples = rmvnorm(n = N, mean = coef(HZEmodel), sigma = vcov(HZEmodel))
+#     
+#     # For each sample curve, evalute them at input dose, and sort.
+#     for (i in 1:500) {
+#       # print(calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i]))[1]
+#       # browser()
+#       #   valueArr = c(valueArr, calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
+#       valueArr = c(valueArr, calculate_complex_id(r = r, L = L, d = c(0, d), coef = list(NTE = c(aa1 = monteCarloSamples[, 1][i],
+#                                                                                                  aa2 = monteCarloSamples[, 2][i],
+#                                                                                                  kk1 = monteCarloSamples[, 3][i])))[, 2][2])
+#     }
+#     valueArr = sort(valueArr)
+#     
+#     # Returning resulting CI
+#     return (c(valueArr[(1-intervalLength)/2*500], valueArr[(intervalLength + (1-intervalLength)/2)*500]))
+#   } else {
+#     #========= Naive =========#
+#     stdErrArr = summary(HZEmodel)$coefficients[, "Std. Error"]
+#     meanArr = summary(HZEmodel)$coefficients[, "Estimate"]
+#     # upper = calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])[, 2][2]
+#     # lower = calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])[, 2][2]
+#     upper = calculate_complex_id(r = r, L = L, d = c(0, d),
+#                                  coef = list(NTE = c(aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"],
+#                                                      aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"],
+#                                                      kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])))[, 2][2]
+#     lower = calculate_complex_id(r = r, L = L, d = c(0, d),
+#                                  coef = list(NTE = c(aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"],
+#                                                      aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"],
+#                                                      kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])))[, 2][2]
+#     return (c(lower, upper))
+#   }
+# }
+# 
+# # Parameter initialization
+# r <- c(1/3, 1/3, 1/3)
+# L <- c(25, 70, 250)
+# mixderCurve = calculate_complex_id(r, L, d = dose_vector)
+# threeIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
+# numDosePoints = length(threeIonMIXDER$d)
+# naiveCI = matrix(nrow = 2, ncol = numDosePoints)
+# monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
+# 
+# # Calculate CI for each dose point
+# for (i in 1 : numDosePoints) {
+#   naiveCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L)
+#   monteCarloCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L, method = 1)
+#   print(paste("Currently at step:", toString(i)))
+# }
+# 
+# # Plot
+# mixderGraphWithNaiveCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
+# mixderGraphWithMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4)
+# print(mixderGraphWithNaiveCI)
+# print(mixderGraphWithMonteCarloCI)
+# 
+# mixderGraphWithNaiveAndMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
+# print(mixderGraphWithNaiveAndMonteCarloCI)
+# 
+# #========================================#
+# #===================End==================#
+# #========================================#
 
-set.seed(1)
-#
-Generate_CI <- function(N = 500, intervalLength = 0.95, d, r, L, HZEmodel = hi_nte_model, method = 0) {
-  # Function to generate CI for the input dose.
-  # @params:   N              - numbers of sample
-  #            intervalLength - size of confidence interval
-  #            d              - input dose
-  #            r              - proportion of ion
-  #            L              - LTE
-  #            HZEmodel       - the input HZE model
-  #            method         - select Naive or Monte Carlo Approach
-  #                             0 - Naive
-  #                             1 - Monte Carlo
-  if (method) {
-    #========= Monte Carlo =========#
-    valueArr = vector(length = 0)
-    # Generate N randomly generated samples of parameters of HZE model.
-    monteCarloSamples = rmvnorm(n = N, mean = coef(HZEmodel), sigma = vcov(HZEmodel))
-    
-    # For each sample curve, evalute them at input dose, and sort.
-    for (i in 1:500) {
-      # print(calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i]))[1]
-      # browser()
-      #   valueArr = c(valueArr, calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = monteCarloSamples[, 1][i], aa2 = monteCarloSamples[, 2][i], kk1 = monteCarloSamples[, 3][i])[, 2][2])
-      valueArr = c(valueArr, calculate_complex_id(r = r, L = L, d = c(0, d), coef = list(NTE = c(aa1 = monteCarloSamples[, 1][i],
-                                                                                                 aa2 = monteCarloSamples[, 2][i],
-                                                                                                 kk1 = monteCarloSamples[, 3][i])))[, 2][2])
-    }
-    valueArr = sort(valueArr)
-    
-    # Returning resulting CI
-    return (c(valueArr[(1-intervalLength)/2*500], valueArr[(intervalLength + (1-intervalLength)/2)*500]))
-  } else {
-    #========= Naive =========#
-    stdErrArr = summary(HZEmodel)$coefficients[, "Std. Error"]
-    meanArr = summary(HZEmodel)$coefficients[, "Estimate"]
-    # upper = calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])[, 2][2]
-    # lower = calculate_complex_id(r = r, L = L, d = c(0, d), aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"], aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"], kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])[, 2][2]
-    upper = calculate_complex_id(r = r, L = L, d = c(0, d),
-                                 coef = list(NTE = c(aa1 = meanArr["aa1"] + 2*stdErrArr["aa1"],
-                                                     aa2 = meanArr["aa2"] + 2*stdErrArr["aa2"],
-                                                     kk1 = meanArr["kk1"] + 2*stdErrArr["kk1"])))[, 2][2]
-    lower = calculate_complex_id(r = r, L = L, d = c(0, d),
-                                 coef = list(NTE = c(aa1 = meanArr["aa1"] - 2*stdErrArr["aa1"],
-                                                     aa2 = meanArr["aa2"] - 2*stdErrArr["aa2"],
-                                                     kk1 = meanArr["kk1"] - 2*stdErrArr["kk1"])))[, 2][2]
-    return (c(lower, upper))
-  }
-}
 
-# Parameter initialization
-r <- c(1/3, 1/3, 1/3)
-L <- c(25, 70, 250)
-mixderCurve = calculate_complex_id(r, L, d = dose_vector)
-threeIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
-numDosePoints = length(threeIonMIXDER$d)
-naiveCI = matrix(nrow = 2, ncol = numDosePoints)
-monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
 
-# Calculate CI for each dose point
-for (i in 1 : numDosePoints) {
-  naiveCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L)
-  monteCarloCI[, i] = Generate_CI(d = threeIonMIXDER$d[i], r = r,  L = L, method = 1)
-  print(paste("Currently at step:", toString(i)))
-}
 
-# Plot
-mixderGraphWithNaiveCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
-mixderGraphWithMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4)
-print(mixderGraphWithNaiveCI)
-print(mixderGraphWithMonteCarloCI)
 
-mixderGraphWithNaiveAndMonteCarloCI = ggplot(data = threeIonMIXDER, aes(x = d, y = CA)) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), alpha = .4) + geom_line(aes(y = CA), col = "red", size = 1) + geom_ribbon(aes(ymin = naiveCI[1, ], ymax = naiveCI[2, ]), alpha = .2)
-print(mixderGraphWithNaiveAndMonteCarloCI)
 
-#========================================#
-#===================End==================#
-#========================================#
 
 #==============================================#
 #==========Confidence Interval Part============#
@@ -109,7 +115,7 @@ d <- c(seq(0, .00001, by = 0.000001),
 set.seed(100)
 
 # helper function to generate samples
-Generate_samples = function(N = sampleNum, model = mod, HINmodel = hinm, HITmodel = hitm, LOWmodel = LOW.m, r, L, d) {
+Generate_samples = function(N = sampleNum, model = mod, HINmodel = hi_nte_model, HITmodel = hi_nte_model, LOWmodel = low_LET_model, r, L, d) {
   # Function to generate Monte Carlo samples for calculating CI
   # @params:   N              - numbers of sample
   #            model          - select HIN or HIT model
@@ -126,12 +132,19 @@ Generate_samples = function(N = sampleNum, model = mod, HINmodel = hinm, HITmode
     monteCarloSamplesHit = rmvnorm(n = N, mean = coef(HITmodel), sigma = vcov(HITmodel))
   }
   for (i in 1:N) {
-    if (model) {
-      curveList[[i]] = calculateComplexId(r = r, L = L, d = d, aa1 = monteCarloSamplesHin[, 1][i], aa2 = monteCarloSamplesHin[, 2][i], kk1 = monteCarloSamplesHin[, 3][i], beta = monteCarloSamplesLow[, 1][i], lowLET = TRUE)
+    if (model) { # problem in Monte Carlo can be traced to this block
+      # browser()
+      # curveList[[i]] = calculateComplexId(r = r, L = L, d = d, aa1 = monteCarloSamplesHin[, 1][i], aa2 = monteCarloSamplesHin[, 2][i], kk1 = monteCarloSamplesHin[, 3][i], beta = monteCarloSamplesLow[, 1][i], lowLET = TRUE)
+      curveList[[i]] <- calculate_complex_id(r = r, L = L, d = d, coef = list(NTE = monteCarloSamplesHin[i, ],
+                                                                             lowLET = monteCarloSamplesLow[i]),
+                                            model = "NTE", lowLET = TRUE)
     } else {
-      curveList[[i]] = calculateComplexId.te(r = r, L = L, d = d, aate1 = monteCarloSamplesHit[, 1][i], aate2 = monteCarloSamplesHit[, 2][i], beta = monteCarloSamplesLow[, 1][i], lowLET = TRUE)
+      # curveList[[i]] = calculateComplexId.te(r = r, L = L, d = d, aate1 = monteCarloSamplesHit[, 1][i], aate2 = monteCarloSamplesHit[, 2][i], beta = monteCarloSamplesLow[, 1][i], lowLET = TRUE)
+      curveList[[i]] <- calculate_complex_id(r = r, L = L, d = d, coef = list(TE = monteCarloSamplesHit[i, ],
+                                                                             lowLET = monteCarloSamplesLow[i]),
+                                            model = "TE", lowLET = TRUE)
     }
-    print(paste("Currently at Monte Carlo step:", toString(i), "Total of", toString(N), "steps"))
+    message(paste("Currently at Monte Carlo step:", toString(i), "of", toString(N), "steps"))
   }
   return (curveList)
 }
@@ -139,7 +152,7 @@ Generate_samples = function(N = sampleNum, model = mod, HINmodel = hinm, HITmode
 # Generate N randomly generated samples of parameters of HZE model.
 curveList = Generate_samples(N = sampleNum, r = r, L = L, d = d)
 
-Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L, HINmodel = hinm, HITmodel = hitm, LOWmodel = LOW.m, method = 0, sampleCurves, model = mod) {
+Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L, HINmodel = hi_nte_model, HITmodel = hi_te_model, LOWmodel = low_LET_model, method = 0, sampleCurves, model = mod) {
   # Function to generate CI for the input dose.
   # @params:   N              - numbers of sample
   #            intervalLength - size of confidence interval
@@ -159,9 +172,8 @@ Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L,
       valueArr = c(valueArr, sampleCurves[[i]][, 2][doseIndex])
     }
     valueArr = sort(valueArr)
-    
     # Returning resulting CI
-    return (c(valueArr[(1-intervalLength)/2*N], valueArr[(intervalLength + (1-intervalLength)/2)*N]))
+    return (c(valueArr[(1 - intervalLength) / 2 * N], valueArr[(intervalLength + (1 - intervalLength) / 2) * N]))
   } else {
     #========= Naive =========#
     stdErrArrLow = summary(LOWmodel)$coefficients[, "Std. Error"]
@@ -169,13 +181,52 @@ Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L,
     if (model) {
       stdErrArrHin = summary(HINmodel)$coefficients[, "Std. Error"]
       meanArrHin = summary(HINmodel)$coefficients[, "Estimate"]
-      upper = calculateComplexId(r = r, L = L, d = c(0, d), aa1 = meanArrHin["aa1"] + 2*stdErrArrHin["aa1"], aa2 = meanArrHin["aa2"] + 2*stdErrArrHin["aa2"], kk1 = meanArrHin["kk1"] + 2*stdErrArrHin["kk1"], beta = meanArrLow + 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
-      lower = calculateComplexId(r = r, L = L, d = c(0, d), aa1 = meanArrHin["aa1"] - 2*stdErrArrHin["aa1"], aa2 = meanArrHin["aa2"] - 2*stdErrArrHin["aa2"], kk1 = meanArrHin["kk1"] - 2*stdErrArrHin["kk1"], beta = meanArrLow - 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
+      # upper = calculateComplexId(r = r, L = L, d = c(0, d),
+      #                            aa1 = meanArrHin["aa1"] + 2*stdErrArrHin["aa1"],
+      #                            aa2 = meanArrHin["aa2"] + 2*stdErrArrHin["aa2"],
+      #                            kk1 = meanArrHin["kk1"] + 2*stdErrArrHin["kk1"],
+      #                            beta = meanArrLow + 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
+      # lower = calculateComplexId(r = r, L = L, d = c(0, d),
+      #                            aa1 = meanArrHin["aa1"] - 2*stdErrArrHin["aa1"],
+      #                            aa2 = meanArrHin["aa2"] - 2*stdErrArrHin["aa2"],
+      #                            kk1 = meanArrHin["kk1"] - 2*stdErrArrHin["kk1"],
+      #                            beta = meanArrLow - 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
+      # browser()
+      upper = calculate_complex_id(r = r, L = L, d = c(0, d),
+                                   coef = list(NTE = c(
+                                   meanArrHin["aa1"] + 2*stdErrArrHin["aa1"],
+                                   meanArrHin["aa2"] + 2*stdErrArrHin["aa2"],
+                                   meanArrHin["kk1"] + 2*stdErrArrHin["kk1"]),
+                                   lowLET = meanArrLow + 2*stdErrArrLow),
+                                   lowLET = TRUE)[, 2][2]
+      lower = calculate_complex_id(r = r, L = L, d = c(0, d),
+                                   coef = list(NTE = c(
+                                   meanArrHin["aa1"] - 2*stdErrArrHin["aa1"],
+                                   meanArrHin["aa2"] - 2*stdErrArrHin["aa2"],
+                                   meanArrHin["kk1"] - 2*stdErrArrHin["kk1"]),
+                                   lowLET = meanArrLow - 2*stdErrArrLow),
+                                   lowLET = TRUE)[, 2][2]
     } else {
       stdErrArrHit = summary(HITmodel)$coefficients[, "Std. Error"]
       meanArrHit = summary(HITmodel)$coefficients[, "Estimate"]
-      upper = calculateComplexId.te(r = r, L = L, d = c(0, d), aate1 = meanArrHit["aate1"] + 2*stdErrArrHit["aate1"], aate2 = meanArrHit["aate2"] + 2*stdErrArrHit["aate2"], beta = meanArrLow + 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
-      lower = calculateComplexId.te(r = r, L = L, d = c(0, d), aate1 = meanArrHit["aate1"] - 2*stdErrArrHit["aate1"], aate2 = meanArrHit["aate2"] - 2*stdErrArrHit["aate2"], beta = meanArrLow - 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
+      # upper = calculateComplexId.te(r = r, L = L, d = c(0, d), aate1 = meanArrHit["aate1"] + 2*stdErrArrHit["aate1"],
+      #                               aate2 = meanArrHit["aate2"] + 2*stdErrArrHit["aate2"],
+      #                               beta = meanArrLow + 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
+      # lower = calculateComplexId.te(r = r, L = L, d = c(0, d), aate1 = meanArrHit["aate1"] - 2*stdErrArrHit["aate1"],
+      #                               aate2 = meanArrHit["aate2"] - 2*stdErrArrHit["aate2"],
+      #                               beta = meanArrLow - 2*stdErrArrLow, lowLET = TRUE)[, 2][2]
+      ###############################
+      upper = calculate_complex_id(r = r, L = L, d = c(0, d),
+                                   coef = list(TE = c(meanArrHit["aate1"] + 2*stdErrArrHit["aate1"],
+                                                      meanArrHit["aate2"] + 2*stdErrArrHit["aate2"]),
+                                               lowLET = meanArrLow + 2*stdErrArrLow),
+                                   model = "TE", lowLET = TRUE)[, 2][2]
+      lower = calculate_complex_id(r = r, L = L, d = c(0, d),
+                                   coef = list(TE = c(meanArrHit["aate1"] - 2*stdErrArrHit["aate1"],
+                                                      meanArrHit["aate2"] - 2*stdErrArrHit["aate2"]),
+                                               lowLET = meanArrLow - 2*stdErrArrLow),
+                                   model = "TE", lowLET = TRUE)[, 2][2]
+      ################################
     }
     return (c(lower, upper))
   }
@@ -183,9 +234,11 @@ Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L,
 
 # Parameter initialization
 if (mod) {
-  mixderCurve = calculateComplexId(r, L, d = d, lowLET = TRUE)
+  # mixderCurve = calculateComplexId(r, L, d = d, lowLET = TRUE)
+  mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE)
 } else {
-  mixderCurve = calculateComplexId.te(r, L, d = d, lowLET = TRUE)
+  # mixderCurve = calculateComplexId.te(r, L, d = d, lowLET = TRUE)
+  mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE, model = "TE")
 }
 fourIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
 numDosePoints = length(fourIonMIXDER$d)
@@ -196,13 +249,13 @@ monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
 for (i in 1 : numDosePoints) {
   naiveCI[, i] = Generate_CI(d = fourIonMIXDER$d[i], r = r,  L = L, sampleCurves = curveList)
   monteCarloCI[, i] = Generate_CI(doseIndex = i, r = r,  L = L, method = 1, sampleCurves = curveList)
-  print(paste("Iterating on dose points. Currently at step:", toString(i), "Total of", toString(numDosePoints), "steps."))
+  message(paste("Iterating on dose points. Currently at step:", toString(i), "of", toString(numDosePoints), "steps."))
 }
 
 #############
 # CI Helper #
 #############
-CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hinm, HITmodel = hitm, LOWmodel = LOW.m, model = mod, seed = 100) {
+CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hi_nte_model, HITmodel = hi_te_model, LOWmodel = low_LET_model, model = mod, seed = 100) {
   # Set the pseudorandom seed
   set.seed(seed)
   
@@ -211,9 +264,11 @@ CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hinm, 
   
   # Parameter initialization
   if (mod) {
-    mixderCurve = calculateComplexId(r, L, d = d, lowLET = TRUE)
+    # mixderCurve = calculateComplexId(r, L, d = d, lowLET = TRUE)
+    mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE)
   } else {
-    mixderCurve = calculateComplexId.te(r, L, d = d, lowLET = TRUE)
+    # mixderCurve = calculateComplexId.te(r, L, d = d, lowLET = TRUE)
+    mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE, model = "TE")
   }
   fourIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
   numDosePoints = length(fourIonMIXDER$d)
@@ -232,3 +287,18 @@ CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hinm, 
 #==============================================#
 #==========Confidence Interval End=============#
 #==============================================#
+
+plot(y = .01, x = 0.1, xlim = c(0, 140), ylim = c(0, 0.40))
+lines(1:137, refNaive[1, ], col = "blue") #all ref CIs are made from calls to Yimin's CI code with the latest data
+lines(1:137, refNaive[2, ], col = "blue")
+lines(1:137, refCI[1, ])
+lines(1:137, refCI[2, ])
+lines(1:137, naiveCI[1, ], col = "red")
+lines(1:137, naiveCI[2, ], col = "red")
+lines(1:137, monteCarloCI[1, ], col = "cyan")
+lines(1:137, monteCarloCI[2, ], col = "cyan")
+
+# ciPlot <- ggplot() + theme_bw() + 
+#   geom_ribbon(aes(x = 1:137, ymin = monteCarloCI[1, ], ymax = monteCarloCI[2, ]), fill = "yellow") +
+#   geom_ribbon(aes(x = 1:137, ymin = naiveCI[1, ], ymax = naiveCI[2, ]), fill = "red")
+# print(ciPlot)
