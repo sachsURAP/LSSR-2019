@@ -168,7 +168,7 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
                         interval = c(0, 200), 
                         extendInt = "yes", 
                         tol = 10 ^ - 10)$root
-        dI[i] <- r[i] * calc_dI(aa[i], u[i], i)
+        dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
         u[length(L) + 1] <- uniroot(function(d) calib_low_LET_ider(d, 
@@ -198,6 +198,6 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
   return(0.01 * (aa + exp( - phi * u) * kk1 * phi) * exp( - 0.01 * (aa * u + (1 -exp( - phi * u)) * kk1)))
 }
 
-.calculate_dI_te <- function(aa, u, i) {
-  return(0.01 * aa[i] * exp(-0.01 * aa[1] * u[i]))
+.calculate_dI_te <- function(aa, u, pars = NULL) {
+  return(0.01 * aa * exp(-0.01 * aa * u))
 }
