@@ -64,7 +64,7 @@
 ## Communicate through master file (i.e. comments on .plottingYimin) - NOTED
 ## Stick to .R and base plot - NOTED
 ## Commit more often - NOTED
-## Make some IDER lines dashed to show IDERs covered underneath
+## Make some IDER lines dashed to show IDERs covered underneath - DONE
 ## Fix calculate_SEA to be correct - DONE
 ## Plots will change over time - NOTED
 ## Hold off on editing Bragg script for now - NOTED
@@ -75,11 +75,15 @@
 
 ## SACHS & HUANG 918 EVANS 032318
 ## size all legends to native plot viewer - DONE
-## make sure to keep repo permissions clear at the organizaton level
+## make sure to keep repo permissions clear at the organizaton level - NOTED
 ## write Ray an email reminder to ask Yimin to refactor his Monte Carlo code from Feb. - DONE
-## ask Yimin to refactor his Monte Carlo code 
+## ask Yimin to refactor his Monte Carlo code  - NOTED
 ## error bars for the 8panel, 2 * standard deviation or 95% confidence intervals - NOTED
-## a. maybe try using a binomial or poisson model on the data
-## get n x n normalized correlation matrix from vcov() matrix
-## potential big project: refactor Andy's CA code with Peter
+## a. maybe try using a binomial or poisson model on the data - NOTEDs
+## get n x n normalized correlation matrix from vcov() matrix  
+## potential big project: refactor Andy's CA code with Peter 
+## error bars for plots - NOTED
+## launch github organization - IN PROGRESS
+
+## 
 
