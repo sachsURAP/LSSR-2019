@@ -6,6 +6,22 @@
 
 source("hgData.R") # load in the data
 
+#===================== MISC. OBJECTS & VARIABLES ===================#
+# In next line phi controls how fast NTE build up from zero; not really needed 
+# during calibration since phi * Dose >> 1 at every observed Dose !=0. 
+# phi needed for later synergy calculations.
+phi <- 2000 #  even larger phi should give the same final results, but might cause extra problems with R. 
+
+dose_vector <- c(
+  seq(0, .00001, by = 0.000001), #  Look carefully near zero, but go out to 0.5 Gy
+  seq(.00002, .0001, by = .00001),
+  seq(.0002, .001, by = .0001),
+  seq(.002, .01, by = .001),
+  seq(.02, .5, by = .01))
+
+#========================  PHOTON MODEL ============================#
+beta_decay_lm <- lm(HG ~ dose + I(dose ^ 2), data = beta_decay_data) #  Linear model fit on beta_decay_data dataset 
+summary(beta_decay_lm, correlation = TRUE)
 
 #========================= HZE/NTE MODEL ===========================#
 # (HZE = high charge and energy; NTE = non-targeted effects are included)
@@ -21,12 +37,12 @@ summary(hi_nte_model, correlation = T) #  Parameter values & accuracy
 vcov(hi_nte_model) #  Variance-covariance matrix RKSB
 hi_nte_model_coef <- coef(hi_nte_model) #  Calibrated central values of the 3 parameters. Next is the IDER, = 0 at dose 0
 
-calib_nte_hazard_func <- function(dose, L) { #  Calibrated hazard function 
-  0.01 * (hi_nte_model_coef[1] * L * dose * exp( - hi_nte_model_coef[2] * L) + (1 - exp( - phi * dose)) * hi_nte_model_coef[3])
+calib_nte_hazard_func <- function(dose, coef, L) { #  Calibrated hazard function 
+  0.01 * (coef[1] * L * dose * exp( - coef[2] * L) + (1 - exp( - phi * dose)) * coef[3])
 } 
 
-calib_HZE_nte_ider <- function(dose, L) { #  Calibrated HZE NTE IDER
-  1 - exp( - calib_nte_hazard_func(dose, L)) 
+calib_HZE_nte_ider <- function(dose, coef = hi_nte_model_coef, L) { #  Calibrated HZE NTE IDER
+  1 - exp( - calib_nte_hazard_func(dose, coef, L)) 
 }
 
 
@@ -43,12 +59,12 @@ summary(hi_te_model, correlation = T) #  Parameter values & accuracy
 vcov(hi_te_model) #  Variance-covariance matrix RKSB
 hi_te_model_coef <- coef(hi_te_model) #  Calibrated central values of the 2 parameters. Next is the IDER, = 0 at dose 0
 
-calib_te_hazard_func <- function(dose, L) { #  Calibrated hazard function
-  0.01 * (hi_te_model_coef[1] * L * dose * exp( - hi_te_model_coef[2] * L))
+calib_te_hazard_func <- function(dose, coef, L) { #  Calibrated hazard function
+  0.01 * (coef[1] * L * dose * exp( - coef[2] * L))
 } 
 
-calib_HZE_te_ider <- function(dose, L) {
-  1 - exp( - calib_te_hazard_func(dose, L)) #  Calibrated HZE TE IDER
+calib_HZE_te_ider <- function(dose, coef = hi_te_model_coef, L) {
+  1 - exp( - calib_te_hazard_func(dose, coef, L)) #  Calibrated HZE TE IDER
 }
 
 
@@ -62,8 +78,8 @@ low_LET_model <- nls(
 summary(low_LET_model)
 low_LET_model_coef <- coef(low_LET_model)  # Calibrated central values of the parameter
 
-calib_low_LET_ider <- function(dose, L) { # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small 
-  return(1 - exp( - low_LET_model_coef[1] * dose))
+calib_low_LET_ider <- function(dose, beta = low_LET_model_coef[1], L) { # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small 
+  return(1 - exp( - beta * dose))
 }  
 
 low_LET_slope <- function(dose, L) { # Slope dE/dd of the low LET, low Z model; looking at the next plot() it seems fine
@@ -147,20 +163,25 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
     with(as.list(c(state, pars)), {
       aa <- u <- dI <- vector(length = length(L))
       for (i in 1:length(L)) {
-        aa[i] <- pars[1] * L[i] * exp(-pars[2] * L[i])
-        u[i] <- uniroot(function(d) HZE_ider(d, L[i]) - I, 
+        aa[i] <- pars[1] * L[i] * exp( - pars[2] * L[i])
+        u[i] <- uniroot(function(d) HZE_ider(d, pars, L[i]) - I, 
                         interval = c(0, 200), 
                         extendInt = "yes", 
                         tol = 10 ^ - 10)$root
-        dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
+        dI[i] <- r[i] * calc_dI(aa[i], u[i], i)
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
         u[length(L) + 1] <- uniroot(function(d) calib_low_LET_ider(d, 
-                                    coef["lowLET"]) - I, 
+                                    beta = coef[["lowLET"]], L) - I, 
                                     interval = c(0, 200), 
                                     extendInt = "yes", 
                                     tol = 10 ^ - 10)$root
         dI[length(L) + 1] <- r[length(r)] * low_LET_slope(d = u[length(L) + 1], L = 0)
+        # u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta*d) - I, 
+        #                             lower = 0, 
+        #                             upper = 200, 
+        #                             extendInt = "yes", tol = 10^-10)$root
+        # dI[length(L) + 1] <- r[length(r)] * dE_2(d = u[length(L) + 1], L = 0)
       }
       return(list(sum(dI)))
     })
@@ -177,6 +198,6 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
   return(0.01 * (aa + exp( - phi * u) * kk1 * phi) * exp( - 0.01 * (aa * u + (1 -exp( - phi * u)) * kk1)))
 }
 
-.calculate_dI_te <- function(aa, u, pars = NULL) {
-  return(0.01 * aa * exp(-0.01 * aa * u))
+.calculate_dI_te <- function(aa, u, i) {
+  return(0.01 * aa[i] * exp(-0.01 * aa[1] * u[i]))
 }
