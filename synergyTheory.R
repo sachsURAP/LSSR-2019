@@ -10,6 +10,7 @@ source("hgData.R") # load in the data
 # In next line phi controls how fast NTE build up from zero; not really needed 
 # during calibration since phi * Dose >> 1 at every observed Dose !=0. 
 # phi needed for later synergy calculations.
+
 phi <- 2000 #  even larger phi should give the same final results, but might cause extra problems with R. 
 
 dose_vector <- c(
@@ -33,16 +34,16 @@ hi_nte_model <- nls( #  Calibrating parameters in a model that modifies the haza
   weights = NWeight,
   start = list(aa1 = .9, aa2 = .01, kk1 = 6)) 
 
-summary(hi_nte_model, correlation = T) #  Parameter values & accuracy
+summary(hi_nte_model, correlation = TRUE) #  Parameter values & accuracy
 vcov(hi_nte_model) #  Variance-covariance matrix RKSB
 hi_nte_model_coef <- coef(hi_nte_model) #  Calibrated central values of the 3 parameters. Next is the IDER, = 0 at dose 0
 
-calib_nte_hazard_func <- function(dose, coef, L) { #  Calibrated hazard function 
+calib_nte_hazard_func <- function(dose, L, coef) { #  Calibrated hazard function 
   0.01 * (coef[1] * L * dose * exp( - coef[2] * L) + (1 - exp( - phi * dose)) * coef[3])
 } 
 
-calib_HZE_nte_ider <- function(dose, coef = hi_nte_model_coef, L) { #  Calibrated HZE NTE IDER
-  1 - exp( - calib_nte_hazard_func(dose, coef, L)) 
+calib_HZE_nte_ider <- function(dose, L, coef = hi_nte_model_coef) { #  Calibrated HZE NTE IDER
+  1 - exp( - calib_nte_hazard_func(dose, L, coef)) 
 }
 
 
@@ -55,16 +56,16 @@ hi_te_model <- nls( #  Calibrating parameters in a TE only model.
   weights = NWeight,
   start = list(aate1 = .9, aate2 = .01)) 
 
-summary(hi_te_model, correlation = T) #  Parameter values & accuracy
+summary(hi_te_model, correlation = TRUE) #  Parameter values & accuracy
 vcov(hi_te_model) #  Variance-covariance matrix RKSB
 hi_te_model_coef <- coef(hi_te_model) #  Calibrated central values of the 2 parameters. Next is the IDER, = 0 at dose 0
 
-calib_te_hazard_func <- function(dose, coef, L) { #  Calibrated hazard function
+calib_te_hazard_func <- function(dose, L, coef) { #  Calibrated hazard function
   0.01 * (coef[1] * L * dose * exp( - coef[2] * L))
 } 
 
-calib_HZE_te_ider <- function(dose, coef = hi_te_model_coef, L) {
-  1 - exp( - calib_te_hazard_func(dose, coef, L)) #  Calibrated HZE TE IDER
+calib_HZE_te_ider <- function(dose, L, coef = hi_te_model_coef) {
+  1 - exp( - calib_te_hazard_func(dose, L, coef)) #  Calibrated HZE TE IDER
 }
 
 
@@ -75,10 +76,10 @@ low_LET_model <- nls(
   weights = NWeight,
   start = list(bet = .5))
 
-summary(low_LET_model)
+summary(low_LET_model, correlation = TRUE)
 low_LET_model_coef <- coef(low_LET_model)  # Calibrated central values of the parameter
 
-calib_low_LET_ider <- function(dose, beta = low_LET_model_coef[1], L) { # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small 
+calib_low_LET_ider <- function(dose, L, beta = low_LET_model_coef[1]) { # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small 
   return(1 - exp( - beta * dose))
 }  
 
@@ -88,9 +89,11 @@ low_LET_slope <- function(dose, L) { # Slope dE/dd of the low LET, low Z model; 
 
 
 #========================== VISUAL CHECKS ==========================#
-# plot () chunks such as the following are visual check to see if our calibration is consistent with 16Chang, .93Alp, .94Alp
+# plot () chunks such as the following are visual check to see if our 
+# calibration is consistent with 16Chang, .93Alp, .94Alp
 # and 17Cuc; (ggplot commands are Yinmin's and concern CI)
-# Put various values in our calibrated model to check with numbers and graphs in these references
+# Put various values in our calibrated model to check with numbers and 
+# graphs in these references
 plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
 lines(0.01 * 0:700, calib_low_LET_ider(0.01 * 0:700, 0) + .0275)  #  calibrated lowLET IDER
 points(clean_light_ion_data[1:8, "dose"], clean_light_ion_data[1:8, "HG"], pch = 19) #  RKS: Helium data points
@@ -114,8 +117,8 @@ print(info_crit_table)
 #'         prevalence from a SEA MIXDER constructed from the given IDER 
 #'         parameters. 
 #' @examples
-#' calculate_SEA(forty_cGy, r = (1/2, 1/2), c(70, 195), n = 2)
-#' calculate_SEA(seventy_cGy, r = c(4/7, 3/7), c(0.4, 195))
+#' calculate_SEA(.01 * 0:40, r = c(1/2, 1/2), c(70, 195), n = 2)
+#' calculate_SEA(.01 * 0:70, r = c(4/7, 3/7), c(0.4, 195))
 #'
 calculate_SEA <- function(total_dose, ratios, LET, lowLET = FALSE, n = NULL) {
   if (!is.null(n) && (n != length(ratios) | n != length(LET))) {
@@ -137,18 +140,28 @@ calculate_SEA <- function(total_dose, ratios, LET, lowLET = FALSE, n = NULL) {
 }
 
 
-#======= I(d) CALCULATOR; HZE NTE/TE MODELS; OPTIONAL LOW-LET ======#
-#' Applies Incremental Effect Additivity 
-#' 
-#' @description 
-#' @param d number corresponding to the sum dose in cGy.
-#' @param r Vector of dose ratios, must be length n.
-#' @param L Vector of LET values, must be length n.
-#' @return The estimate Harderian Gland prevalence from a SEA MIXDER constructed
-#'         from the given IDER parameters. 
+#' @description Applies Incremental Effect Additivity to a MIXDER.
+#' @param r Numeric vector of all dose ratios, must be length n.
+#' @param L Numeric vector of all LET values, must be length n.
+#' @param d Numeric vector corresponding to the sum dose in cGy.
+#' @param lowLET Boolean of whether an LET IDER should be included in the MIXDER.
+#' @param model String value corresponding to the model to be used, either 
+#'              "NTE" or "TE". 
+#' @param coef Named list of numeric vectors containing coefficients for IDERs.
+#' @param iders Named list of functions containing relevant IDER models.
+#' @param calculate_dI Named vector of functions to calculate dI depending on 
+#'                     the selected model.
+#' @param phi Numeric value, used in NTE models.
+#' @details Corresponding elements of ratios, LET should be associated with the
+#'          same IDER.
+#' @return Numeric vector representing the estimated Harderian Gland 
+#'         prevalence from an IEA MIXDER constructed from the given IDER 
+#'         parameters. 
 #' @examples
-#' 
-#' 
+#' calculate_complex_id(d = .01 * 0:40, r = c(1/2, 1/2), L = c(70, 195))
+#' calculate_complex_id(d = .01 * 0:70, r = c(4/7, 3/7), L = c(0.4, 195), 
+#'                      lowLET = TRUE, model = "TE")
+#'
 calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
                                  coef = list(NTE = hi_nte_model_coef, # [1] = aa1, [2] = aa2, [3] == kk1
                                              TE = hi_te_model_coef, 
@@ -164,7 +177,7 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
       aa <- u <- dI <- vector(length = length(L))
       for (i in 1:length(L)) {
         aa[i] <- pars[1] * L[i] * exp( - pars[2] * L[i])
-        u[i] <- uniroot(function(d) HZE_ider(d, pars, L[i]) - I, 
+        u[i] <- uniroot(function(d) HZE_ider(d, L[i], pars) - I, 
                         interval = c(0, 200), 
                         extendInt = "yes", 
                         tol = 10 ^ - 10)$root
@@ -177,11 +190,6 @@ calculate_complex_id <- function(r, L, d, lowLET = FALSE, model = "NTE",
                                     extendInt = "yes", 
                                     tol = 10 ^ - 10)$root
         dI[length(L) + 1] <- r[length(r)] * low_LET_slope(d = u[length(L) + 1], L = 0)
-        # u[length(L) + 1] <- uniroot(function(d) 1-exp(-beta*d) - I, 
-        #                             lower = 0, 
-        #                             upper = 200, 
-        #                             extendInt = "yes", tol = 10^-10)$root
-        # dI[length(L) + 1] <- r[length(r)] * dE_2(d = u[length(L) + 1], L = 0)
       }
       return(list(sum(dI)))
     })
