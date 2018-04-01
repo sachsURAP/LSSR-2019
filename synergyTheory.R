@@ -94,9 +94,9 @@ low_LET_slope <- function(dose, L) { # Slope dE/dd of the low LET, low Z model; 
 # and 17Cuc; (ggplot commands are Yinmin's and concern CI)
 # Put various values in our calibrated model to check with numbers and 
 # graphs in these references
-plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
+plot(c(0, 7), c(0, 1), ann = FALSE, type = "n") 
 lines(0.01 * 0:700, calib_low_LET_ider(0.01 * 0:700, 0) + .0275)  #  calibrated lowLET IDER
-points(clean_light_ion_data[1:8, "dose"], clean_light_ion_data[1:8, "HG"], pch = 19) #  RKS: Helium data points
+points(clean_light_ion_data[1:8, "dose"], clean_light_ion_data[1:8, "HG"], pch = 19, col = alpha("black", 0.6)) #  RKS: Helium data points
 points(clean_light_ion_data[9:12, "dose"], clean_light_ion_data[9:12, "HG"] )  #  proton data points 
 
 
