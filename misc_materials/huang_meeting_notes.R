@@ -41,10 +41,7 @@
 ## Take the path of least resistance when making figures (either use existing code or overhaul first)
 ## We're not worrying about TE only models
 ## We're not worrying about older models
-## 
-
 ## Need to rewrite calculate I(d) for clarity
-## 
 
 ## 03.15.18 SACHS & HUANG 918 EVANS
 ## Last night Bragg peaks calculations 
@@ -53,11 +50,8 @@
 ## iii. LET increases exponentially as ion slows
 ## iv. Current radiation studies may be misguided
 ## v. Correlation if points near the end of their path show abnormally large tumorgenesis
-
 ## How did the meetings go?
-
 ## Discuss new materials
-
 ## Will need to fix calculate_i(d) later to take arbitrary number of low-LET ions and dose
 ## Need to also fix calculate_SEA to take low-LET IDERs - DONE
 ## This current paper excuses us from having to do MIXDERs with over two low-LET IDERS
@@ -69,9 +63,8 @@
 ## Plots will change over time - NOTED
 ## Hold off on editing Bragg script for now - NOTED
 ## No more emailing .eps - stick with having a coding block. - NOTED
-
 ## 4-panel - NOTED
-## 
+
 
 ## SACHS & HUANG 918 EVANS 032318
 ## size all legends to native plot viewer - DONE
@@ -80,10 +73,32 @@
 ## ask Yimin to refactor his Monte Carlo code  - NOTED
 ## error bars for the 8panel, 2 * standard deviation or 95% confidence intervals - NOTED
 ## a. maybe try using a binomial or poisson model on the data - NOTEDs
-## get n x n normalized correlation matrix from vcov() matrix  
+## get n x n normalized correlation matrix from vcov() matrix  - DONE
 ## potential big project: refactor Andy's CA code with Peter 
 ## error bars for plots - NOTED
 ## launch github organization - IN PROGRESS
 
-## 
+## SACHS & HUANG @ THE STRADA 040118
+## Sachs checked NWEIGHT, values are all wrong, Sachs has to change
+## If possible maybe make monteCarlo.R more efficient
+## Produce ribbon plots (with ggplot2) of Monte Carlo in plots.R
+## May have to eventually write special script or add to current HG script
+## Look into finding out how to make data points translucent
+## Sachs will figure out if photon model is correct
+## Long run should use Bayesian or Maximum-likelihood instead of nls()
+## NOTES ON LET AND EFFECTIVENESS:
+## i. Must take into account stochastic energy deposition of ions
+## ii. For example low-LET ions can be described with a simple Poisson model
+##     while li-LET ions are more similar to a complex Poisson model which 
+##     results in more effectiveness
+
+## Foreseeable long run tasks:
+## a. Have more than one lowLET IDER (possibly characterized by LET, maybe other parameter)
+## b. Need TE-only models and figures
+## c. Compare NTE-TE and TE-only models, use some kind of metric (IC, machine 
+##    learning, goodness of fit, etc.)
+## d. Have to allow for advanced Incremental-Effect Additivity using autonomous 
+##    differential equations and one-ion models characterized by their slopes as
+##    functions of effect.
+
 
