@@ -6,7 +6,9 @@
 
 source("hgData.R") #  load data
 source("synergyTheory.R") #  load models
-# source("monteCarlo.R") #  load Monte Carlo
+source("monteCarlo.R") #  load Monte Carlo
+
+library(ggplot2) # ribbon plot functionality
 library(grid)  # plot grids
 library(Hmisc) #  error bars
 
@@ -220,3 +222,21 @@ mtext("HG Prevalence (%)", side = 2, outer = TRUE, cex = 0.7, line = 2.2,
 # ?errbar()
 # plot(1:3,2:4,type='l')
 # errbar(1:3,2:4,yminus=.5*1:3,yplus=c(2:4)+.5,cap=.05, add=TRUE)
+
+
+##==================== Confidence Interval Ribbon Plots ======================#
+ci_data <- data.frame(dose = 1:137,
+                      monteCarloBottom = monteCarloCI[1, ],
+                      monteCarloTop = monteCarloCI[2, ],
+                      naiveBottom = naiveCI[1, ],
+                      naiveTop = naiveCI[2, ])
+ci_plot <- ggplot(data = ci_data, aes = fill) +
+      theme_bw() + 
+      theme(plot.title = element_text(hjust = 0.5), legend.position="right") + 
+      labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") + 
+      geom_ribbon(aes(dose, ymin = naiveBottom, ymax = naiveTop, fill = "blue")) +
+      geom_ribbon(aes(dose, ymin = monteCarloBottom, ymax = monteCarloTop, fill = "pink")) + 
+      scale_fill_discrete(name="Type",
+                          breaks=c("blue", "pink"),
+                          labels=c("Naive", "Monte Carlo")) 
+ci_plot
