@@ -4,6 +4,7 @@
 
 source("synergyTheory.R") # load in data and models
 
+library(mvtnorm)
 #==============================================#
 #==========Confidence Interval Part============#
 #==============================================#
@@ -41,12 +42,12 @@ Generate_samples = function(N = sampleNum, model = mod, HINmodel = hi_nte_model,
   }
   for (i in 1:N) {
     if (model) { 
-      curveList[[i]] <- calculate_complex_id(r = r, L = L, d = d, coef = list(NTE = monteCarloSamplesHin[i, ],
-                                                                             lowLET = monteCarloSamplesLow[i]),
+      curveList[[i]] <- calculate_complex_id(r, L,d, coef = list(NTE = monteCarloSamplesHin[i, ],
+                                                                 lowLET = monteCarloSamplesLow[i]),
                                             model = "NTE", lowLET = TRUE)
     } else {
-      curveList[[i]] <- calculate_complex_id(r = r, L = L, d = d, coef = list(TE = monteCarloSamplesHit[i, ],
-                                                                             lowLET = monteCarloSamplesLow[i]),
+      curveList[[i]] <- calculate_complex_id(r, L, d, coef = list(TE = monteCarloSamplesHit[i, ],
+                                                                  lowLET = monteCarloSamplesLow[i]),
                                             model = "TE", lowLET = TRUE)
     }
     message(paste("Currently at Monte Carlo step:", toString(i), "of", toString(N), "steps"))
@@ -86,14 +87,14 @@ Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L,
     if (model) {
       stdErrArrHin = summary(HINmodel)$coefficients[, "Std. Error"]
       meanArrHin = summary(HINmodel)$coefficients[, "Estimate"]
-      upper = calculate_complex_id(r = r, L = L, d = c(0, d),
+      upper = calculate_complex_id(r, L, d = c(0, d),
                                    coef = list(NTE = c(
                                    meanArrHin["aa1"] + 2*stdErrArrHin["aa1"],
                                    meanArrHin["aa2"] + 2*stdErrArrHin["aa2"],
                                    meanArrHin["kk1"] + 2*stdErrArrHin["kk1"]),
                                    lowLET = meanArrLow + 2*stdErrArrLow),
                                    lowLET = TRUE)[, 2][2]
-      lower = calculate_complex_id(r = r, L = L, d = c(0, d),
+      lower = calculate_complex_id(r, L, d = c(0, d),
                                    coef = list(NTE = c(
                                    meanArrHin["aa1"] - 2*stdErrArrHin["aa1"],
                                    meanArrHin["aa2"] - 2*stdErrArrHin["aa2"],
@@ -103,12 +104,12 @@ Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L,
     } else {
       stdErrArrHit = summary(HITmodel)$coefficients[, "Std. Error"]
       meanArrHit = summary(HITmodel)$coefficients[, "Estimate"]
-      upper = calculate_complex_id(r = r, L = L, d = c(0, d),
+      upper = calculate_complex_id(r, L, d = c(0, d),
                                    coef = list(TE = c(meanArrHit["aate1"] + 2*stdErrArrHit["aate1"],
                                                       meanArrHit["aate2"] + 2*stdErrArrHit["aate2"]),
                                                lowLET = meanArrLow + 2*stdErrArrLow),
                                    model = "TE", lowLET = TRUE)[, 2][2]
-      lower = calculate_complex_id(r = r, L = L, d = c(0, d),
+      lower = calculate_complex_id(r, L, d = c(0, d),
                                    coef = list(TE = c(meanArrHit["aate1"] - 2*stdErrArrHit["aate1"],
                                                       meanArrHit["aate2"] - 2*stdErrArrHit["aate2"]),
                                                lowLET = meanArrLow - 2*stdErrArrLow),
@@ -171,7 +172,7 @@ CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hi_nte
 #==============================================#
 
 # Plotting checks
-plot(y = .01, x = 0.1, xlim = c(0, 140), ylim = c(0, 0.40))
+plot(y = .01, x = 0.1, xlim = c(0, 137), ylim = c(0, 0.003))
 lines(1:137, naiveCI[1, ], col = "red")
 lines(1:137, naiveCI[2, ], col = "red")
 lines(1:137, monteCarloCI[1, ], col = "blue")

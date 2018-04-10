@@ -4,7 +4,6 @@
 
 #   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs 
 
-source("hgData.R") #  load data
 source("synergyTheory.R") #  load models
 source("monteCarlo.R") #  load Monte Carlo
 
@@ -234,9 +233,9 @@ ci_plot <- ggplot(data = ci_data, aes = fill) +
       theme_bw() + 
       theme(plot.title = element_text(hjust = 0.5), legend.position="right") + 
       labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") + 
-      geom_ribbon(aes(dose, ymin = naiveBottom, ymax = naiveTop, fill = "blue")) +
-      geom_ribbon(aes(dose, ymin = monteCarloBottom, ymax = monteCarloTop, fill = "pink")) + 
+      geom_ribbon(aes(dose, ymin = naiveBottom, ymax = naiveTop, fill = "blue"), alpha = 0.5) +
+      geom_ribbon(aes(dose, ymin = monteCarloBottom, ymax = monteCarloTop, fill = "pink"), alpha = 0.5) +
       scale_fill_discrete(name="Type",
                           breaks=c("blue", "pink"),
-                          labels=c("Naive", "Monte Carlo")) 
+                          labels=c("Naive", "Monte Carlo"))
 ci_plot

@@ -23,8 +23,11 @@
 #   "16Chang" = Chang et al. "Harderian Gland Tumorigenesis: Low-Dose and LET Response." Radiat Res 185(5): 449-460. (2016).  
 #   "16Srn" = Siranart et al."Mixed Beam Murine Harderian Gland Tumorigenesis: Predicted Dose-Effect Relationships if neither Synergism nor Antagonism Occurs." Radiat Res 186(6): 577-591 (2016).  
 #   "17Cuc" = Cucinotta & Cacao. "Non-Targeted Effects Models Predict Significantly Higher Mars Mission Cancer Risk than Targeted Effects Models." Sci Rep 7(1): 1832. (2017). PMC5431989
-rm(list=ls())
-ion_data=data.frame(read.csv("hg_raw_data_ordered.csv", sep=",",header=TRUE)) ## Data used in 16Chang; includes data analyzed in .93Alp and .94Alp. Does not include gamma-ray data or ion background (i.e. control) data.
+
+#=========================== DEPENDENCIES ==========================#
+rm(list=ls()) #   To be removed when script is finalized
+
+ion_data <- data.frame(read.csv("Data_files/raw_data_ordered.csv", sep=",", header=TRUE)) ## Data used in 16Chang; includes data analyzed in .93Alp and .94Alp. Does not include gamma-ray data or ion background (i.e. control) data.
 #These two lines of script plus the .csv file (which will need work as additions and perhaps corrections come up) should be all we need.
 # However the following, which shows how to compute ion speed and the Katz track structure parameter, may be useful later. The following data.frame itself is obsolete.
 # hg_data <- data.frame 
