@@ -79,14 +79,14 @@
 ## launch github organization - IN PROGRESS
 
 ## SACHS & HUANG @ THE STRADA 040118
-## Sachs checked NWEIGHT, values are all wrong, Sachs has to change
-## If possible maybe make monteCarlo.R more efficient
-## Produce ribbon plots (with ggplot2) of Monte Carlo in plots.R
+## Sachs checked NWEIGHT, values are all wrong, Sachs has to change - NOTED
+## If possible maybe make monteCarlo.R more efficient 
+## Produce ribbon plots (with ggplot2) of Monte Carlo in plots.R - DONE
 ## May have to eventually write special script or add to current HG script
-## Look into finding out how to make data points translucent
-## Sachs will figure out if photon model is correct
+## Look into finding out how to make data points translucent - DONE
+## Sachs will figure out if photon model is correct - NOTED
 ## Long run should use Bayesian or Maximum-likelihood instead of nls()
-## NOTES ON LET AND EFFECTIVENESS:
+## NOTES ON LET AND EFFECTIVENESS: - NOTED
 ## i. Must take into account stochastic energy deposition of ions
 ## ii. For example low-LET ions can be described with a simple Poisson model
 ##     while li-LET ions are more similar to a complex Poisson model which 
@@ -101,4 +101,11 @@
 ##    differential equations and one-ion models characterized by their slopes as
 ##    functions of effect.
 
-
+## 040618 SACHS & HUANG 918 EVANS
+## Ignore Beta Decay and Control (dose = 0) data
+## From now on data will be organized into ion_data, beta_decay, and control
+## Ray will send his latest local copy synergyTheory.R 
+## i. Incorporate changes to GitHub master branch
+## Script approaching final versions
+## Main bottleneck now is paper draft
+## Ray will send Web Supplement, writing is optional
