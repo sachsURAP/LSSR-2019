@@ -2,7 +2,8 @@
 #   Purpose: Concerns radiogenic mouse HG tumorigenesis. Contains the NTE-TE,
 #            TE, HZE, low-LET, MIXDER, and other relevant synergy theory models.
 
-#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, and Ray Sachs 
+#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, 
+#                       Yunzhi Zhang, and Ray Sachs 
 
 source("hgData.R") # load in the data. Dose in Gy (RKS: ASAP we should convert all cGy items to Gy); LET usually in keV/micron; prevalence Prev always < 1 (i.e. not in %, which would mean prevalence < 100 but is strongly deprecated).
 
@@ -41,11 +42,11 @@ vcov(hi_nte_model) #  Variance-covariance matrix RKSB
 hi_nte_model_coef <- coef(hi_nte_model) #  Calibrated central values of the 3 parameters. Next is the IDER, = 0 at dose 0
 
 calib_nte_hazard_func <- function(dose, LET, coef) { #  Calibrated hazard function 
-  0.01 * (coef[1] * LET * dose * exp( - coef[2] * LET) + (1 - exp( - phi * dose)) * coef[3])
+ return(coef[1] * LET * dose * exp( - coef[2] * LET) + (1 - exp( - phi * dose)) * coef[3])
 } 
 
 calib_HZE_nte_ider <- function(dose, LET, coef = hi_nte_model_coef) { #  Calibrated HZE NTE IDER
-  1 - exp( - calib_nte_hazard_func(dose, LET, coef)) 
+  return(1 - exp( - calib_nte_hazard_func(dose, LET, coef)))
 }
 
 
@@ -63,11 +64,11 @@ vcov(hi_te_model) #  Variance-covariance matrix RKSB
 hi_te_model_coef <- coef(hi_te_model) #  Calibrated central values of the 2 parameters. Next is the IDER, = 0 at dose 0
 
 calib_te_hazard_func <- function(dose, LET, coef) { #  Calibrated hazard function
-  0.01 * (coef[1] * LET * dose * exp( - coef[2] * LET))
+  return(coef[1] * LET * dose * exp( - coef[2] * LET))
 }
 
 calib_HZE_te_ider <- function(dose, LET, coef = hi_te_model_coef) {
-  1 - exp( - calib_te_hazard_func(dose, LET, coef)) #  Calibrated HZE TE IDER
+  return(1 - exp( - calib_te_hazard_func(dose, LET, coef))) #  Calibrated HZE TE IDER
 }
 
 
@@ -182,7 +183,7 @@ calculate_complex_id <- function(r, LET, d, lowLET = FALSE, model = "NTE",
         aa[i] <- pars[1] * LET[i] * exp( - pars[2] * LET[i])
         u[i] <- uniroot(function(d) HZE_ider(d, LET[i], pars) - I, 
                         interval = c(0, 200), 
-                        extendInt = "yes", 
+                        extendInt = "yes",
                         tol = 10 ^ - 10)$root
         dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
       }
@@ -206,9 +207,9 @@ calculate_complex_id <- function(r, LET, d, lowLET = FALSE, model = "NTE",
 
 #=================== dI HIDDEN FUNCTIONS =====================#
 .calculate_dI_nte <- function(aa, u, kk1) {
-  return(0.01 * (aa + exp( - phi * u) * kk1 * phi) * exp( - 0.01 * (aa * u + (1 -exp( - phi * u)) * kk1)))
+  return((aa + exp( - phi * u) * kk1 * phi) * exp( - (aa * u + (1 -exp( - phi * u)) * kk1)))
 }
 
 .calculate_dI_te <- function(aa, u, pars = NULL) {
-  return(0.01 * aa * exp(-0.01 * aa * u))
+  return(aa * exp(- aa * u))
 }
