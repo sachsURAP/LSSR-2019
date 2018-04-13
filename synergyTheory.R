@@ -15,13 +15,6 @@ library(deSolve) #  Solving differential equations
 
 phi <- 2000 #  even larger phi should give the same final results, but might cause extra problems with R. 
 
-dose_vector <- c(
-  seq(0, .00001, by = 0.000001), #  Look carefully near zero, but go out to 0.5 Gy
-  seq(.00002, .0001, by = .00001),
-  seq(.0002, .001, by = .0001),
-  seq(.002, .01, by = .001),
-  seq(.02, .5, by = .01)) # RKS: this could be mde neater with tensor product operations.
-
 #======= PHOTON MODEL ===========#
 #  Linear model fit on beta_decay_data dataset. We will never recalculate this unless new data comes in but here it is just in case.
 #beta_decay_lm <- lm(HG ~ dose + I(dose ^ 2), data = beta_decay_data) 
@@ -182,15 +175,15 @@ calculate_complex_id <- function(r, LET, d, lowLET = FALSE, model = "NTE",
       for (i in 1:length(LET)) {
         aa[i] <- pars[1] * LET[i] * exp( - pars[2] * LET[i])
         u[i] <- uniroot(function(d) HZE_ider(d, LET[i], pars) - I, 
-                        interval = c(0, 200), 
+                        interval = c(0, 20000), 
                         extendInt = "yes",
                         tol = 10 ^ - 10)$root
         dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
       }
       if (lowLET == TRUE) { # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(LET) + 1] <- uniroot(function(d) calib_low_LET_ider(d, 
-                                                                     beta = coef[["lowLET"]], LET) - I, 
-                                      interval = c(0, 200), 
+        u[length(LET) + 1] <- uniroot(function(d) calib_low_LET_ider(dose = d, LET = LET, 
+                                      beta = coef[["lowLET"]]) - I, 
+                                      interval = c(0, 20000), 
                                       extendInt = "yes", 
                                       tol = 10 ^ - 10)$root
         dI[length(LET) + 1] <- r[length(r)] * low_LET_slope(d = u[length(LET) + 1], LET = 0)

@@ -14,11 +14,10 @@ r <- c(0.05, 0.05, 0.05, 0.05, 0.8); L <- c(25, 70, 100, 195)
 sampleNum = 200
 mod = 1              # 1 if HIN, 0 if HIT
 
-d <- c(seq(0, .00001, by = 0.000001), 
-       seq(.00002, .0001, by=.00001),
-       seq(.0002, .001, by=.0001),
-       seq(.002, .01, by=.001),
-       seq(.02, 1., by=.01))
+d <- c(seq(0, .01, by = 0.001), 
+       seq(.02, .1, by=.01),
+       seq(.2, 1, by=.1),
+       seq(2, 100, by=1))
 
 # Set the pseudorandom seed
 set.seed(100)
@@ -172,9 +171,9 @@ CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hi_nte
 #==============================================#
 
 # Plotting checks
-plot(y = .01, x = 0.1, xlim = c(0, 137), ylim = c(0, 0.003))
-lines(1:137, naiveCI[1, ], col = "red")
-lines(1:137, naiveCI[2, ], col = "red")
-lines(1:137, monteCarloCI[1, ], col = "blue")
-lines(1:137, monteCarloCI[2, ], col = "blue")
+plot(y = .01, x = 0.1, xlim = c(0, 128), ylim = c(0, 0.3))
+lines(1:128, naiveCI[1, ], col = "red")
+lines(1:128, naiveCI[2, ], col = "red")
+lines(1:128, monteCarloCI[1, ], col = "blue")
+lines(1:128, monteCarloCI[2, ], col = "blue")
 
