@@ -24,21 +24,21 @@ phi <- 2000 #  even larger phi should give the same final results, but might cau
 # (HZE = high charge and energy; NTE = non-targeted effects are included)
 HZE_data <- ion_data[13:47,] # Includes 1-ion data iff Z > 3
 # Uses 3 adjustable parameters. 
-hi_nte_model <- nls( #  Calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc. 
+HZE_nte_model <- nls( #  Calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc. 
   Prev ~ .0275 + (1 - exp ( - (aa1 * LET * dose * exp( - aa2 * LET) + (1 - exp( - phi * dose)) * kk1))), 
   data = HZE_data, 
   weights = NWeight,
   start = list(aa1 = .00009, aa2 = .001, kk1 = .06)) # use extra argument trace=TRUE if you want to watch convergence. 
 
-summary(hi_nte_model, correlation = TRUE) #  Parameter values & accuracy
-vcov(hi_nte_model) #  Variance-covariance matrix RKSB
-hi_nte_model_coef <- coef(hi_nte_model) #  Calibrated central values of the 3 parameters. Next is the IDER, = 0 at dose 0
+summary(HZE_nte_model, correlation = TRUE) #  Parameter values & accuracy
+vcov(HZE_nte_model) #  Variance-covariance matrix RKSB
+HZE_nte_model_coef <- coef(HZE_nte_model) #  Calibrated central values of the 3 parameters. Next is the IDER, = 0 at dose 0
 
 calib_nte_hazard_func <- function(dose, LET, coef) { #  Calibrated hazard function 
  return(coef[1] * LET * dose * exp( - coef[2] * LET) + (1 - exp( - phi * dose)) * coef[3])
 } 
 
-calib_HZE_nte_ider <- function(dose, LET, coef = hi_nte_model_coef) { #  Calibrated HZE NTE IDER
+calib_HZE_nte_ider <- function(dose, LET, coef = HZE_nte_model_coef) { #  Calibrated HZE NTE IDER
   return(1 - exp( - calib_nte_hazard_func(dose, LET, coef)))
 }
 
@@ -46,21 +46,21 @@ calib_HZE_nte_ider <- function(dose, LET, coef = hi_nte_model_coef) { #  Calibra
 #=================== HZE/TE MODEL  ====================#
 #  (TE = targeted effects only). RKS. This chunk runs and gives good results. We will not use it in the minor paper, only for later papers.
 
-hi_te_model <- nls( #  Calibrating parameters in a TE only model.
+HZE_te_model <- nls( #  Calibrating parameters in a TE only model.
   Prev ~ .0275 + (1 - exp ( - (aate1 * LET * dose * exp( - aate2 * LET)))),
   data = HZE_data,
   weights = NWeight,
   start = list(aate1 = .00009, aate2 = .01))
 
-summary(hi_te_model, correlation = TRUE) #  Parameter values & accuracy
-vcov(hi_te_model) #  Variance-covariance matrix RKSB
-hi_te_model_coef <- coef(hi_te_model) #  Calibrated central values of the 2 parameters. Next is the IDER, = 0 at dose 0
+summary(HZE_te_model, correlation = TRUE) #  Parameter values & accuracy
+vcov(HZE_te_model) #  Variance-covariance matrix RKSB
+HZE_te_model_coef <- coef(HZE_te_model) #  Calibrated central values of the 2 parameters. Next is the IDER, = 0 at dose 0
 
 calib_te_hazard_func <- function(dose, LET, coef) { #  Calibrated hazard function
   return(coef[1] * LET * dose * exp( - coef[2] * LET))
 }
 
-calib_HZE_te_ider <- function(dose, LET, coef = hi_te_model_coef) {
+calib_HZE_te_ider <- function(dose, LET, coef = HZE_te_model_coef) {
   return(1 - exp( - calib_te_hazard_func(dose, LET, coef))) #  Calibrated HZE TE IDER
 }
 
@@ -98,7 +98,7 @@ points(low_LET_data[9:12, "dose"]/100, low_LET_data[9:12, "Prev"] )  #  proton d
 
 
 #======================= INFORMATION CRITERION =====================#
-info_crit_table <- cbind(AIC(hi_te_model, hi_nte_model), BIC(hi_te_model, hi_nte_model))
+info_crit_table <- cbind(AIC(HZE_te_model, HZE_nte_model), BIC(HZE_te_model, HZE_nte_model))
 print(info_crit_table)
 
 
@@ -160,8 +160,8 @@ calculate_SEA <- function(total_dose, ratios, LET, lowLET = FALSE, n = NULL) {
 #'                      lowLET = TRUE, model = "TE")
 #'
 calculate_complex_id <- function(r, LET, d, lowLET = FALSE, model = "NTE",
-                                 coef = list(NTE = hi_nte_model_coef, # [1] = aa1, [2] = aa2, [3] == kk1
-                                             TE = hi_te_model_coef, 
+                                 coef = list(NTE = HZE_nte_model_coef, # [1] = aa1, [2] = aa2, [3] == kk1
+                                             TE = HZE_te_model_coef, 
                                              lowLET = low_LET_model_coef),
                                  iders = list(NTE = calib_HZE_nte_ider, 
                                               TE = calib_HZE_te_ider, 
