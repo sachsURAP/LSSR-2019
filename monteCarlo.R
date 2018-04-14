@@ -10,20 +10,20 @@ library(mvtnorm)
 #==============================================#
 
 # Parameter initialization
-r <- c(0.05, 0.05, 0.05, 0.05, 0.8); L <- c(25, 70, 100, 195)
-sampleNum = 200
+# r <- c(0.05, 0.05, 0.05, 0.05, 0.8); L <- c(25, 70, 100, 195)
+sample_num = 200
 mod = 1              # 1 if HIN, 0 if HIT
 
-d <- c(seq(0, .01, by = 0.001), 
-       seq(.02, .1, by=.01),
-       seq(.2, 1, by=.1),
-       seq(2, 100, by=1))
+# d <- c(seq(0, .01, by = 0.001),
+       # seq(.02, .1, by=.01),
+       # seq(.2, 1, by=.1),
+       # seq(2, 100, by=1))
 
 # Set the pseudorandom seed
 set.seed(100)
 
 # helper function to generate samples
-Generate_samples = function(N = sampleNum, model = mod, HINmodel = hi_nte_model, HITmodel = hi_nte_model, LOWmodel = low_LET_model, r, L, d) {
+generate_samples <- function(N = sample_num, model = mod, HINmodel = HZE_nte_model, HITmodel = HZE_te_model, LOWmodel = low_LET_model, r, L, d) {
   # Function to generate Monte Carlo samples for calculating CI
   # @params:   N              - numbers of sample
   #            model          - select HIN or HIT model
@@ -33,7 +33,7 @@ Generate_samples = function(N = sampleNum, model = mod, HINmodel = hi_nte_model,
   #            HITmodel       - the input HIN model
   #            LOWmodel       - the input LOW model
   monteCarloSamplesLow = rmvnorm(n = N, mean = coef(LOWmodel), sigma = vcov(LOWmodel))
-  curveList = list(0)
+  curve_list = list(0)
   if (model) {
     monteCarloSamplesHin = rmvnorm(n = N, mean = coef(HINmodel), sigma = vcov(HINmodel))
   } else {
@@ -41,23 +41,24 @@ Generate_samples = function(N = sampleNum, model = mod, HINmodel = hi_nte_model,
   }
   for (i in 1:N) {
     if (model) { 
-      curveList[[i]] <- calculate_complex_id(r, L,d, coef = list(NTE = monteCarloSamplesHin[i, ],
+      curve_list[[i]] <- calculate_complex_id(r, L,d, coef = list(NTE = monteCarloSamplesHin[i, ],
                                                                  lowLET = monteCarloSamplesLow[i]),
                                             model = "NTE", lowLET = TRUE)
     } else {
-      curveList[[i]] <- calculate_complex_id(r, L, d, coef = list(TE = monteCarloSamplesHit[i, ],
+      curve_list[[i]] <- calculate_complex_id(r, L, d, coef = list(TE = monteCarloSamplesHit[i, ],
                                                                   lowLET = monteCarloSamplesLow[i]),
                                             model = "TE", lowLET = TRUE)
     }
-    message(paste("Currently at Monte Carlo step:", toString(i), "of", toString(N), "steps"))
+    cat(paste("Currently at Monte Carlo step:", toString(i), "of", toString(N)), sprintf('\r'))
+    cat(sprintf('\r'))
   }
-  return (curveList)
+  return (curve_list)
 }
 
 # Generate N randomly generated samples of parameters of HZE model.
-curveList = Generate_samples(N = sampleNum, r = r, L = L, d = d)
+# curve_list <- generate_samples(N = sample_num, r = r, L = L, d = d)
 
-Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L, HINmodel = hi_nte_model, HITmodel = hi_te_model, LOWmodel = low_LET_model, method = 0, sampleCurves, model = mod) {
+generate_ci <- function(N = sample_num, intervalLength = 0.95, d, doseIndex, r, L, HINmodel = HZE_nte_model, HITmodel = HZE_te_model, LOWmodel = low_LET_model, method = 0, sampleCurves, model = mod) {
   # Function to generate CI for the input dose.
   # @params:   N              - numbers of sample
   #            intervalLength - size of confidence interval
@@ -119,51 +120,52 @@ Generate_CI = function(N = sampleNum, intervalLength = 0.95, d, doseIndex, r, L,
 }
 
 # Parameter initialization
-if (mod) {
-  mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE)
-} else {
-  mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE, model = "TE")
-}
-fourIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
-numDosePoints = length(fourIonMIXDER$d)
-naiveCI = matrix(nrow = 2, ncol = numDosePoints)
-monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
+# if (mod) {
+#   mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE)
+# } else {
+#   mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE, model = "TE")
+# }
+# fourIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
+# numDosePoints = length(fourIonMIXDER$d)
+# naive_ci = matrix(nrow = 2, ncol = numDosePoints)
+# monte_carlo_ci = matrix(nrow = 2, ncol = numDosePoints)
 
 # Calculate CI for each dose point
-for (i in 1 : numDosePoints) {
-  naiveCI[, i] = Generate_CI(d = fourIonMIXDER$d[i], r = r,  L = L, sampleCurves = curveList)
-  monteCarloCI[, i] = Generate_CI(doseIndex = i, r = r,  L = L, method = 1, sampleCurves = curveList)
-  message(paste("Iterating on dose points. Currently at step:", toString(i), "of", toString(numDosePoints), "steps."))
-}
+# for (i in 1 : numDosePoints) {
+#   naive_ci[, i] = generate_ci(d = fourIonMIXDER$d[i], r = r,  L = L, sampleCurves = curve_list)
+#   monte_carlo_ci[, i] = generate_ci(doseIndex = i, r = r,  L = L, method = 1, sampleCurves = curve_list)
+#   cat(paste("Iterating on dose points. Currently at step:", toString(i), "of", toString(numDosePoints)), sprintf('\r'))
+#   
+# }
 
 #############
 # CI Helper #
 #############
-CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hi_nte_model, HITmodel = hi_te_model, LOWmodel = low_LET_model, model = mod, seed = 100) {
+ci_helper = function(sample_num, intervalLength = 0.95, d, r, L, HINmodel = HZE_nte_model, HITmodel = HZE_te_model, LOWmodel = low_LET_model, model = mod, seed = 100) {
   # Set the pseudorandom seed
   set.seed(seed)
   
   # Generate N randomly generated samples of parameters of HZE model.
-  curveList = Generate_samples(N = sampleNum, r = r, L = L, d = d)
+  curve_list <- generate_samples(N = sample_num, r = r, L = L, d = d)
   
   # Parameter initialization
   if (mod) {
-    mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE)
+    mixderCurve <- calculate_complex_id(r, L, d = d, lowLET = TRUE)
   } else {
-    mixderCurve = calculate_complex_id(r, L, d = d, lowLET = TRUE, model = "TE")
+    mixderCurve <- calculate_complex_id(r, L, d = d, lowLET = TRUE, model = "TE")
   }
   fourIonMIXDER = data.frame(d = mixderCurve[, 1], CA = mixderCurve[, 2])
   numDosePoints = length(fourIonMIXDER$d)
-  naiveCI = matrix(nrow = 2, ncol = numDosePoints)
-  monteCarloCI = matrix(nrow = 2, ncol = numDosePoints)
+  naive_ci = matrix(nrow = 2, ncol = numDosePoints)
+  monte_carlo_ci = matrix(nrow = 2, ncol = numDosePoints)
   
   # Calculate CI for each dose point
   for (i in 1 : numDosePoints) {
-    naiveCI[, i] = Generate_CI(d = fourIonMIXDER$d[i], r = r,  L = L, sampleCurves = curveList)
-    monteCarloCI[, i] = Generate_CI(doseIndex = i, r = r,  L = L, method = 1, sampleCurves = curveList)
-    print(paste("Iterating on dose points. Currently at step:", toString(i), "Total of", toString(numDosePoints), "steps."))
+    naive_ci[, i] = generate_ci(d = fourIonMIXDER$d[i], r = r,  L = L, sampleCurves = curve_list)
+    monte_carlo_ci[, i] = generate_ci(doseIndex = i, r = r,  L = L, method = 1, sampleCurves = curve_list)
+    cat(paste("Iterating on dose points. Currently at step:", toString(i), "of", toString(numDosePoints)), sprintf('\r'))
   }
-  return (list(naiveCI, monteCarloCI))
+  return (list(naive = naive_ci, monte_carlo = monte_carlo_ci))
 }
 
 #==============================================#
@@ -171,9 +173,9 @@ CIHelper = function(sampleNum, intervalLength = 0.95, d, r, L, HINmodel = hi_nte
 #==============================================#
 
 # Plotting checks
-plot(y = .01, x = 0.1, xlim = c(0, 128), ylim = c(0, 0.3))
-lines(1:128, naiveCI[1, ], col = "red")
-lines(1:128, naiveCI[2, ], col = "red")
-lines(1:128, monteCarloCI[1, ], col = "blue")
-lines(1:128, monteCarloCI[2, ], col = "blue")
+# plot(y = .01, x = 0.1, xlim = c(0, 128), ylim = c(0, 0.3))
+# lines(1:128, naive_ci[1, ], col = "red")
+# lines(1:128, naive_ci[2, ], col = "red")
+# lines(1:128, monte_carlo_ci[1, ], col = "blue")
+# lines(1:128, monte_carlo_ci[2, ], col = "blue")
 
