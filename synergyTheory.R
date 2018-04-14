@@ -206,3 +206,11 @@ calculate_complex_id <- function(r, LET, d, lowLET = FALSE, model = "NTE",
 .calculate_dI_te <- function(aa, u, pars = NULL) {
   return(aa * exp(- aa * u))
 }
+
+#=================== DEVELOPER FUNCTIONS =====================#
+test_runtime <- function(f, ...) {
+  start_time <- Sys.time()
+  f(...)
+  end_time <- Sys.time()
+  message(paste("Function Runtime:", end_time - start_time, "seconds"))
+}
