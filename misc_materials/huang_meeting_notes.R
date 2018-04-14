@@ -109,3 +109,13 @@
 ## Script approaching final versions
 ## Main bottleneck now is paper draft
 ## Ray will send Web Supplement, writing is optional
+
+## 041318 SACHS & HUANG 918 EVANS / YALIS
+## a. Move MS06 to paper, check Ray's permissions b/c 
+##     he can't upload to subdirectories
+## b. Ray will move virtual pod to sachsURAP
+## c. Make the 3.2.4 CI overlay plot
+## d. Plot CI overlay without calibrated coefficients
+## e. If need help -> Yimin -> Peter -> Andy in that order
+## f. Downsize plot legends, assume audience will view only in IDE
+## 
