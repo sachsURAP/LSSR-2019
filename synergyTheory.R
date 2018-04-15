@@ -211,6 +211,5 @@ calculate_complex_id <- function(r, LET, d, lowLET = FALSE, model = "NTE",
 test_runtime <- function(f, ...) {
   start_time <- Sys.time()
   f(...)
-  end_time <- Sys.time()
-  message(paste("Function Runtime:", end_time - start_time, "seconds"))
+  Sys.time() - start_time
 }
