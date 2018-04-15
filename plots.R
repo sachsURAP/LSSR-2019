@@ -5,7 +5,6 @@
 #   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, 
 #                       Yunzhi Zhang, and Ray Sachs 
 
-source("synergyTheory.R") #  load models
 source("monteCarlo.R") #  load Monte Carlo
 
 library(ggplot2) #  ribbon plot functionality
@@ -215,20 +214,17 @@ par(mfrow = c(1, 1))
 r <- c(0.05, 0.05, 0.05, 0.05, 0.8)
 L <- c(25, 70, 100, 195)
 confidence_intervals <- ci_helper(200, d = hundred_cGy, r = r, L = L, mod = 1)
-ci_data <- data.frame(dose = 1:128,
+ci_data <- data.frame(dose = hundred_cGy,
                       monteCarloBottom = confidence_intervals$monte_carlo[1, ],
-                      monteCarloTop = confidence_intervals$monte_carlo[2, ],
-                      naiveBottom = confidence_intervals$naive[1, ],
-                      naiveTop = confidence_intervals$naive[2, ])
+                      monteCarloTop = confidence_intervals$monte_carlo[2, ])
 ci_plot <- ggplot(data = ci_data, aes = fill) +
       theme_bw() +
       theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
       labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
-      geom_ribbon(aes(dose, ymin = naiveBottom, ymax = naiveTop, fill = "blue"), alpha = 1) +
       geom_ribbon(aes(dose, ymin = monteCarloBottom, ymax = monteCarloTop, fill = "pink"), alpha = 0.8) +
       scale_fill_discrete(name="Type",
-                          breaks=c("blue", "pink"),
-                          labels=c("Naive", "Monte Carlo"))
+                          breaks=c("pink"),
+                          labels=c("Monte Carlo"))
 ci_plot
 
 #=============== Calibrated vs Noncalibrated CI Overlay Plot ==================#
@@ -238,31 +234,35 @@ ci_plot
 # We begin with the calibrated plot
 ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
 LET_vals <- c(25, 70, 100, 195, 250, 464, 953)
-confidence_intervals <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, mod = 1)
-
+calib_ci <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1)
+uncorr_ci <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1, calib = FALSE)
+# Time difference of 4.161111 mins, last checked 04/13/2018
 ci_data <- data.frame(dose = hundred_cGy,
-                      monteCarloBottom = confidence_intervals$monte_carlo[1, ],
-                      monteCarloTop = confidence_intervals$monte_carlo[2, ],
-                      naiveBottom = confidence_intervals$naive[1, ],
-                      naiveTop = confidence_intervals$naive[2, ],
-                      # ne = calib_HZE_nte_ider(dose = hundred_cGy, L = 25),
-                      # si = calib_HZE_nte_ider(dose = hundred_cGy, L = 70),
-                      # ti = calib_HZE_nte_ider(dose = hundred_cGy, L = 100),
-                      # fe_six = calib_HZE_nte_ider(dose = hundred_cGy, L = 195),
-                      # fe_three = calib_HZE_nte_ider(dose = hundred_cGy, L = 250),
-                      # nb = calib_HZE_nte_ider(dose = hundred_cGy, L = 464),
-                      # la = calib_HZE_nte_ider(dose = hundred_cGy, L = 953),
+                      corrBottom = calib_ci$monte_carlo[1, ],
+                      corrTop = calib_ci$monte_carlo[2, ],
+                      uncorrTop = uncorr_ci$monte_carlo[1, ],
+                      uncorrBottom = uncorr_ci$monte_carlo[2, ],
+                      
+                      ne = calib_HZE_nte_ider(dose = hundred_cGy, L = 25),
+                      si = calib_HZE_nte_ider(dose = hundred_cGy, L = 70),
+                      ti = calib_HZE_nte_ider(dose = hundred_cGy, L = 100),
+                      fe_six = calib_HZE_nte_ider(dose = hundred_cGy, L = 195),
+                      fe_three = calib_HZE_nte_ider(dose = hundred_cGy, L = 250),
+                      nb = calib_HZE_nte_ider(dose = hundred_cGy, L = 464),
+                      la = calib_HZE_nte_ider(dose = hundred_cGy, L = 953),
                       i = calculate_complex_id(r = ratios, LET = LET_vals,
                                                d = 0:101, model = "NTE", lowLET = FALSE)[, 2])
+
 ci_plot <- ggplot(data = ci_data, aes = fill) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
   labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
-  geom_ribbon(aes(dose, ymin = monteCarloBottom, ymax = monteCarloTop, fill = "pink"), alpha = 1) +
-  geom_ribbon(aes(dose, ymin = naiveBottom, ymax = naiveTop, fill = "blue"), alpha = 0.8) +
+  geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop, fill = "blue"), alpha = 1) +
+  geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop, fill = "pink"), alpha = .7) +
+  
   scale_fill_discrete(name="Type",
-                      breaks=c("blue", "pink"),
-                      labels=c("Naive", "Monte Carlo")) +
+                      breaks=c("pink", "blue"),
+                      labels=c("Correlated Monte Carlo", "Uncorrelated Monte Carlo")) +
   
   # geom_line(aes(dose, y = ne)) +
   # geom_line(aes(dose, y = si)) +
@@ -274,6 +274,5 @@ ci_plot <- ggplot(data = ci_data, aes = fill) +
   
   geom_line(aes(dose, y = i))
 ci_plot
-
 
 
