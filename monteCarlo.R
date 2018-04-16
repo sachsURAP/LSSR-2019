@@ -1,13 +1,23 @@
-#   Filename: monteCarlo.R 
-#   Purpose: Concerns radiogenic mouse HG tumorigenesis. Contains the code to 
-#            run Monte Carlo and generate confidence intervals for our models.
+# Copyright:    (C) 2017-2018 Sachs Undergraduate Research Apprentice Program
+#               This program and its accompanying materials are distributed 
+#               under the terms of the GNU General Public License v3.
+# Filename:     monteCarlo.R
+# Purpose:      Concerns radiogenic mouse Harderian gland tumorigenesis. 
+#               Contains the code to run Monte Carlo sampling and generate 
+#               confidence intervals for dose-effect relationship models. It is 
+#               part of the source code for the NASAmouseHG project.
+# Contact:      Rainer K. Sachs 
+# Website:      https://github.com/sachsURAP/NASAmouseHG
+# Mod history:  16 Apr 2018
+# Details:      See hgData.R for further licensing, attribution, references, 
+#               and abbreviation information.
 
 source("synergyTheory.R") # load in data and models
 
 library(mvtnorm) #  Sampling
 
 # helper function to generate samples
-generate_samples <- function(N = 200, r, L, d, model, HINmodel = HZE_nte_model, 
+.generate_samples <- function(N = 200, r, L, d, model, HINmodel = HZE_nte_model, 
                              HITmodel = HZE_te_model, LOWmodel = low_LET_model, 
                              calib = TRUE) {
   # Function to generate Monte Carlo samples for calculating CI
@@ -52,7 +62,7 @@ generate_samples <- function(N = 200, r, L, d, model, HINmodel = HZE_nte_model,
   return(curve_list)
 }
 
-generate_ci <- function(N = 200, intervalLength = 0.95, doseIndex, r, 
+.generate_ci <- function(N = 200, intervalLength = 0.95, doseIndex, r, 
                         L, HINmodel = HZE_nte_model, HITmodel = HZE_te_model, 
                         LOWmodel = low_LET_model, sampleCurves, model = mod) {
   # Function to generate CI for the input dose.
@@ -87,14 +97,14 @@ ci_helper <- function(sample_num = 200, d, r, L,
   # Set the pseudorandom seed
   set.seed(seed)
   # Generate N randomly generated samples of parameters of HZE model.
-  curve_list <- generate_samples(N = sample_num, r = r, L = L, d = d, 
+  curve_list <- .generate_samples(N = sample_num, r = r, L = L, d = d, 
                                  model = model, calib = calib)
   numDosePoints <- length(d)
   monte_carlo_ci <- matrix(nrow = 2, ncol = numDosePoints)
   
   # Calculate CI for each dose point
   for (i in 1 : numDosePoints) {
-    monte_carlo_ci[, i] <- generate_ci(N = sample_num, doseIndex = i, r = r, L = L, 
+    monte_carlo_ci[, i] <- .generate_ci(N = sample_num, doseIndex = i, r = r, L = L, 
                                        model = model, sampleCurves = curve_list)
     cat(paste("Iterating on dose points. Currently at step:", toString(i), "of", 
               toString(numDosePoints)), sprintf('\r'))
