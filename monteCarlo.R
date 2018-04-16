@@ -16,13 +16,17 @@ generate_samples <- function(N = 200, r, L, d, model, HINmodel = HZE_nte_model,
   #                             0 - HIT model
   #                             1 - HIN model
   #            HINmodel       - the input HIN model
-  #            HITmodel       - the input HIN model
+  #            HITmodel       - the input HIT model # RKS to EGH. Corrected misprint.
   #            LOWmodel       - the input LOW model
-  monteCarloSamplesLow <- rmvnorm(n = N, mean = coef(LOWmodel), sigma = vcov(LOWmodel))
+  #            calib          - TRUE iff correlations are being taken into account. #RKS to EGH. Is this correct?
+  monteCarloSamplesLow <- rmvnorm(n = N, mean = coef(LOWmodel), sigma = vcov(LOWmodel)) # RKS to RKS and EGH. Is vcov a 1x1 matrix here?
+  # RKS to EGH. I worried that your Monte Carlo was fast whereas that of Dae and the CA pod is much slower.
+  # So I tried to understand the next chunk that defines curve_list, but got lost. 
+  # How should we handle this kind of situation to not lose information but not clutter up the script?
   curve_list <- list(0)
   if (model) {
     if (calib) {
-      monteCarloSamplesHin <- rmvnorm(n = N, mean = coef(HINmodel), sigma = vcov(HINmodel))
+      monteCarloSamplesHin <- rmvnorm(n = N, mean = coef(HINmodel), sigma = vcov(HINmodel)) # RKS to RKS and EGH. Here 3x3?
     } else {
       monteCarloSamplesHin <- mapply(rnorm, rep(N, 3), coef(HINmodel), 
                                      summary(HINmodel)$coefficients[, "Std. Error"])
