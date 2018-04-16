@@ -1,9 +1,15 @@
-#Filename: plots.R 
-#   Purpose: Concerns radiogenic mouse HG tumorigenesis. Contains code to 
-#            generate figures.
-
-#   Copyright: (C) 2017 Mark Ebert, Edward Huang, Dae Woong Ham, Yimin Lin, 
-#                       Yunzhi Zhang, and Ray Sachs 
+# Copyright:    (C) 2017-2018 Sachs Undergraduate Research Apprentice Program
+#               This program and its accompanying materials are distributed 
+#               under the terms of the GNU General Public License v3.
+# Filename:     plots.R 
+# Purpose:      Concerns radiogenic mouse Harderian gland tumorigenesis. 
+#               Contains code to generate figures. It is part of the 
+#               source code for the NASAmouseHG project.
+# Contact:      Rainer K. Sachs 
+# Website:      https://github.com/sachsURAP/NASAmouseHG
+# Mod history:  16 Apr 2018
+# Details:      See hgData.R for further licensing, attribution, references, 
+#               and abbreviation information.
 
 source("monteCarlo.R") #  load Monte Carlo
 
@@ -216,10 +222,13 @@ par(mfrow = c(1, 1))
 #  Yimin's original test confidence interval plot
 r <- c(0.05, 0.05, 0.05, 0.05, 0.8)
 L <- c(25, 70, 100, 195)
-calib_ci_test <- ci_helper(200, d = hundred_cGy, r = r, L = L, mod = 1)
+calib_ci_test <- simulate_monte_carlo(200, d = hundred_cGy, r = r, L = L, model = "NTE")
 ci_data <- data.frame(dose = hundred_cGy,
                       monteCarloBottom = calib_ci_test$monte_carlo[1, ],
-                      monteCarloTop = calib_ci_test$monte_carlo[2, ])
+                      monteCarloTop = calib_ci_test$monte_carlo[2, ], 
+                      i = calculate_complex_id(r = r, LET = L,
+                                               d = hundred_cGy, model = "NTE", 
+                                               lowLET = TRUE)[, 2])
 ci_plot <- ggplot(data = ci_data, aes = fill) +
       theme_bw() +
       theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
@@ -227,7 +236,9 @@ ci_plot <- ggplot(data = ci_data, aes = fill) +
       geom_ribbon(aes(dose, ymin = monteCarloBottom, ymax = monteCarloTop, fill = "pink"), alpha = 0.8) +
       scale_fill_discrete(name="Type",
                           breaks=c("pink"),
-                          labels=c("Monte Carlo"))
+                          labels=c("Monte Carlo")) +
+      geom_line(aes(dose, y = i), col = "red", size = 1) #  I(d) in red
+      
 ci_plot
 
 #=============== Correlated vs Uncorrelated CI Overlay Plots ==================#
@@ -241,10 +252,10 @@ ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
 LET_vals <- c(25, 70, 100, 195, 250, 464, 953)
 
 #  We begin with the calibrated plot
-calib_ci_3.2.4 <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1)
+calib_ci_3.2.4 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE")
 
 #  We now calculate the uncalibrated Monte Carlo
-uncorr_ci_3.2.4 <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1, calib = FALSE)
+uncorr_ci_3.2.4 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE", corr = FALSE)
 
 #  Construct a data.frame for ease of use with ggplot2
 ci_data <- data.frame(dose = hundred_cGy,
@@ -304,10 +315,10 @@ ratios <- c(1/2, 1/2)
 LET_vals <- c(195, 70)
   
 #  We begin with the calibrated plot
-calib_ci_3.2.3 <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1)
+calib_ci_3.2.3 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE")
 
 #  We now calculate the uncalibrated Monte Carlo
-uncorr_ci_3.2.3 <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1, calib = FALSE)
+uncorr_ci_3.2.3 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE", corr = FALSE)
 
 ci_data <- data.frame(dose = hundred_cGy,
                       #  Monte Carlo values
