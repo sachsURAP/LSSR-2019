@@ -66,7 +66,7 @@ lines(x = d, y = calculate_complex_id(r = c(1/20, 1/20, 9/10), L = c(70, 195), d
 #=========================== PAPER PLOTS ==========================#
 #==================================================================#
 # Fig. 3.2.3 - Fe56 (600 MeV/u), Si28, and corresponding IEA and SEA MIXDERS. 
-plot(x = forty_cGy, y = calculate_SEA(forty_cGy, c(1/2, 1/2), c(70, 195), n = 2),bty='l', type = "l",  xlab = "Dose (Gy)", ylab = "HG Prevalence (%)", col = "black", lwd = 2, lty = 2) #RKS->EH removed "i", made boundary open at left
+plot(x = forty_cGy, y = calculate_SEA(forty_cGy, c(1/2, 1/2), c(70, 195), n = 2), bty='l', type = "l",  xlab = "Dose (Gy)", ylab = "HG Prevalence (%)", col = "black", lwd = 2, lty = 2) 
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 70), col = "cyan", lwd = 2)
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 195), col = "orange", lwd = 2) #RKS->EH changed color
 lines(x = forty_cGy, y = calculate_complex_id(r = c(0.5 , 0.5), L = c(70, 195), d = forty_cGy, model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
@@ -163,7 +163,7 @@ abline(v = 49, lwd = 1)
 legend(x = "topleft", legend = c("H1 Low-LET NTE-TE IDER", "He4 Low-LET NTE-TE IDER", "O16 NTE-TE IDER", 
                                "Si28 NTE-TE IDER", "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
                                "IEA MIXDER (Equally Distributed)", "SEA MIXDER (Equally Distributed)"),
-       col = c("orange", "yellow", "blue", "blue", "purple", "violet", "red", "black"), 
+       col = c("orange", "yellow", "green", "blue", "purple", "violet", "red", "black"), 
        lwd = c(2, 2, 2, 2, 2, 2, 2, 2), 
        lty = c(1, 1, 1, 1, 1, 1, 1, 2), cex = 0.2, inset = 0.025)
 
@@ -209,14 +209,17 @@ mtext("HG Prevalence (%)", side = 2, outer = TRUE, cex = 0.7, line = 2.2,
       col = "black")
 par(mfrow = c(1, 1))
 
-
+#==============================================================================#
 #====================== Confidence Interval Ribbon Plots ======================#
+#==============================================================================#
+
+#  Yimin's original test confidence interval plot
 r <- c(0.05, 0.05, 0.05, 0.05, 0.8)
 L <- c(25, 70, 100, 195)
-confidence_intervals <- ci_helper(200, d = hundred_cGy, r = r, L = L, mod = 1)
+calib_ci_test <- ci_helper(200, d = hundred_cGy, r = r, L = L, mod = 1)
 ci_data <- data.frame(dose = hundred_cGy,
-                      monteCarloBottom = confidence_intervals$monte_carlo[1, ],
-                      monteCarloTop = confidence_intervals$monte_carlo[2, ])
+                      monteCarloBottom = calib_ci_test$monte_carlo[1, ],
+                      monteCarloTop = calib_ci_test$monte_carlo[2, ])
 ci_plot <- ggplot(data = ci_data, aes = fill) +
       theme_bw() +
       theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
@@ -227,22 +230,31 @@ ci_plot <- ggplot(data = ci_data, aes = fill) +
                           labels=c("Monte Carlo"))
 ci_plot
 
-#=============== Calibrated vs Noncalibrated CI Overlay Plot ==================#
+#=============== Correlated vs Uncorrelated CI Overlay Plots ==================#
+
+############### FIGURE 3.2.4 ############# 
 # We use the MIXDER shown as Figure 3.2.4 in MS06. This consists of all seven
 # HZE ions in our dataset, with equally distributed dosage.
 
-# We begin with the calibrated plot
+#  Declare ratios and LET values for plot
 ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
 LET_vals <- c(25, 70, 100, 195, 250, 464, 953)
-calib_ci <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1)
-uncorr_ci <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1, calib = FALSE)
-# Time difference of 4.161111 mins, last checked 04/13/2018
+
+#  We begin with the calibrated plot
+calib_ci_3.2.4 <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1)
+
+#  We now calculate the uncalibrated Monte Carlo
+uncorr_ci_3.2.4 <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1, calib = FALSE)
+
+#  Construct a data.frame for ease of use with ggplot2
 ci_data <- data.frame(dose = hundred_cGy,
-                      corrBottom = calib_ci$monte_carlo[1, ],
-                      corrTop = calib_ci$monte_carlo[2, ],
-                      uncorrTop = uncorr_ci$monte_carlo[1, ],
-                      uncorrBottom = uncorr_ci$monte_carlo[2, ],
+                      #  Monte Carlo values
+                      corrBottom = calib_ci_3.2.4$monte_carlo[1, ],
+                      corrTop = calib_ci_3.2.4$monte_carlo[2, ],
+                      uncorrTop = uncorr_ci_3.2.4$monte_carlo[1, ],
+                      uncorrBottom = uncorr_ci_3.2.4$monte_carlo[2, ],
                       
+                      #  DER values
                       ne = calib_HZE_nte_ider(dose = hundred_cGy, L = 25),
                       si = calib_HZE_nte_ider(dose = hundred_cGy, L = 70),
                       ti = calib_HZE_nte_ider(dose = hundred_cGy, L = 100),
@@ -250,29 +262,88 @@ ci_data <- data.frame(dose = hundred_cGy,
                       fe_three = calib_HZE_nte_ider(dose = hundred_cGy, L = 250),
                       nb = calib_HZE_nte_ider(dose = hundred_cGy, L = 464),
                       la = calib_HZE_nte_ider(dose = hundred_cGy, L = 953),
+                      
+                      #  I(d)
                       i = calculate_complex_id(r = ratios, LET = LET_vals,
-                                               d = 0:101, model = "NTE", lowLET = FALSE)[, 2])
-
+                                               d = hundred_cGy, model = "NTE", 
+                                               lowLET = TRUE)[, 2])
+#  Plotting call
 ci_plot <- ggplot(data = ci_data, aes = fill) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
   labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
-  geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop, fill = "blue"), alpha = 1) +
-  geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop, fill = "pink"), alpha = .7) +
   
-  scale_fill_discrete(name="Type",
-                      breaks=c("pink", "blue"),
-                      labels=c("Correlated Monte Carlo", "Uncorrelated Monte Carlo")) +
+  #  Ribbon plot of both confidence intervals
+  geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop, fill = "blue"), alpha = 1) + #  Uncorrelated in pink
+  geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop, fill = "pink"), alpha = .7) + #  Correlated in dull blue
   
-  # geom_line(aes(dose, y = ne)) +
-  # geom_line(aes(dose, y = si)) +
-  # geom_line(aes(dose, y = ti)) +
-  # geom_line(aes(dose, y = fe_six)) +
-  # geom_line(aes(dose, y = fe_three)) +
-  # geom_line(aes(dose, y = nb)) +
-  # geom_line(aes(dose, y = la)) +
+  # scale_fill_discrete(name="Type",
+                      # breaks=c("pink", "blue"),
+                      # labels=c("Correlated Monte Carlo", "Uncorrelated Monte Carlo")) +
   
-  geom_line(aes(dose, y = i))
-ci_plot
+  #  DER plots
+  geom_line(aes(dose, y = ne), col = "yellow", size = 1) + #  neon in yellow
+  geom_line(aes(dose, y = si),  col = "orange", size = 1) + #  silicon in orange
+  geom_line(aes(dose, y = ti),  col = "green", size = 2) + # titanium in green
+  geom_line(aes(dose, y = fe_six),  col = "purple", size = 1) + #  iron 600 in purple
+  geom_line(aes(dose, y = fe_three),  col = "violet", size = 1) + #  iron 300 in violet
+  geom_line(aes(dose, y = nb),  col = "darkcyan", size = 1) + #  niobium in dark cyan 
+  geom_line(aes(dose, y = la),  col = "black", size = 1) + #  lanthanum in black 
+  
+  # I(d) plot
+  geom_line(aes(dose, y = i), col = "red", size = 1) #  I(d) in red
+
+ci_plot # Print figure
 
 
+############### FIGURE 3.2.3 #############  
+# Fe56 (600 MeV/u) and Si28 in equal proportions
+
+#  Declare ratios and LET values for plot
+ratios <- c(1/2, 1/2)
+LET_vals <- c(195, 70)
+  
+#  We begin with the calibrated plot
+calib_ci_3.2.3 <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1)
+
+#  We now calculate the uncalibrated Monte Carlo
+uncorr_ci_3.2.3 <- ci_helper(200, d = hundred_cGy, r = ratios, L = LET_vals, model = 1, calib = FALSE)
+
+ci_data <- data.frame(dose = hundred_cGy,
+                      #  Monte Carlo values
+                      corrBottom = calib_ci_3.2.3$monte_carlo[1, ],
+                      corrTop = calib_ci_3.2.3$monte_carlo[2, ],
+                      uncorrTop = uncorr_ci_3.2.3$monte_carlo[1, ],
+                      uncorrBottom = uncorr_ci_3.2.3$monte_carlo[2, ],
+                      
+                      #  DER values
+                      si = calib_HZE_nte_ider(dose = hundred_cGy, L = 70),
+                      fe_six = calib_HZE_nte_ider(dose = hundred_cGy, L = 195),
+                      
+                      #  I(d)
+                      i = calculate_complex_id(r = ratios, LET = LET_vals,
+                                               d = hundred_cGy, model = "NTE", 
+                                               lowLET = TRUE)[, 2])
+
+#  Plotting call
+ci_plot <- ggplot(data = ci_data, aes = fill) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
+  labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
+  
+  #  Ribbon plot of both confidence intervals
+  geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop, fill = "blue"), alpha = 1) +  #  Uncorrelated in pink
+  geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop, fill = "pink"), alpha = .7) + #  Correlated in dull blue
+  
+  # scale_fill_discrete(name="Type",
+  # breaks=c("pink", "blue"),
+  # labels=c("Correlated Monte Carlo", "Uncorrelated Monte Carlo")) +
+  
+  #  DER plots
+  geom_line(aes(dose, y = si),  col = "green", size = 1) + #  iron in green
+  geom_line(aes(dose, y = fe_six),  col = "darkgreen", size = 1) + #  silicon in dark green
+  
+  # I(d) plot
+  geom_line(aes(dose, y = i), col = "red", size = 1) #  I(d) in red
+  
+ci_plot # Print figure
