@@ -1,6 +1,7 @@
-![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)
-
 # NASAmouseHG  
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)  
+
+Data and script for analyzing ionizing radiation tumorigenesis outside low-earth orbit.
 
 ## Repository Contents
 
@@ -30,25 +31,25 @@ Meeting minutes, example scripts for various procedures, past agendas, and past 
     #               high-energy, atomic nuclei. 
     # Contact:      Rainer K. Sachs 
     # Website:      https://github.com/sachsURAP/NASAmouseHG
-    # Mod history:  15 Apr 2018
+    # Mod history:  19 Apr 2018
     # Attribution:  This R script was developed at UC Berkeley. Written by Dae Woong 
     #               Ham Summer 2017. Additions, corrections, changes, quality 
     #               control, reorganization by Edward Huang, Yimin Lin, Mark Ebert,
     #               Yunzhi Zhang and Ray Sachs UCB 2017-2018 academic year.  
 
 ## License Notice
-    # NASAmouseHG is free software: you can redistribute it and/or modify
-    # it under the terms of the GNU General Public License as published by
-    # the Free Software Foundation, either version 3 of the License, or
-    # (at your option) any later version.
+    #  NASAmouseHG is free software: you can redistribute it and/or modify
+    #  it under the terms of the GNU General Public License as published by
+    #  the Free Software Foundation, either version 3 of the License, or
+    #  (at your option) any later version.
     # 
-    # NASAmouseHG is distributed in the hope that it will be useful,
-    # but WITHOUT ANY WARRANTY; without even the implied warranty of
-    # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    # GNU General Public License for more details.
+    #  NASAmouseHG is distributed in the hope that it will be useful,
+    #  but WITHOUT ANY WARRANTY; without even the implied warranty of
+    #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    #  GNU General Public License for more details.
     # 
-    # You should have received a copy of the GNU General Public License
-    # along with NASAmouseHG. If not, see <http://www.gnu.org/licenses/>.
+    #  You should have received a copy of the GNU General Public License
+    #  along with NASAmouseHG. If not, see <http://www.gnu.org/licenses/>.
 
 ## Relevant References and Abbreviations:
     
