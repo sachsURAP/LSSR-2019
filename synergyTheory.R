@@ -114,10 +114,12 @@ low_LET_slope <- function(dose, LET) {
 # calibration is consistent with 16Chang, .93Alp, .94Alp
 # and 17Cuc; (ggplot commands are Yinmin's and concern CI)
 # Put various values in our calibrated model to check with numbers and 
-# graphs in these references
-plot(c(0, 7), c(0, 1), col = 'red', ann = 'F') 
+# graphs in these references. Exceptionally this graph has dose axis in Gy, not cGy.
+#The whole graph is obsolete 4.21.18 because error bars are missing
+plot(c(0, 7), c(0, 1), col = 'red', ann = 'F')  
 lines(0.01 * 0:700, calib_low_LET_ider(0:700, 0) + .0275)  # calibrated lowLET IDER
-points(low_LET_data[1:8, "dose"]/100, low_LET_data[1:8, "Prev"], pch = 19) # RKS: Helium data points
+# Next are Helium data points. Factor 100 converts cGy to Gy
+points(low_LET_data[1:8, "dose"]/100, low_LET_data[1:8, "Prev"], pch = 19) 
 points(low_LET_data[9:12, "dose"]/100, low_LET_data[9:12, "Prev"] )  # proton data points 
 
 
