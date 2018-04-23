@@ -23,6 +23,19 @@ seventy_cGy <- 0:71
 hundred_cGy <- 0:101
 forty_nine_cGy <- 0:50
 
+#=================================================================================
+#=== Low LET data, error bars, and DER. Paper Fig. 5 (was Fig. 3.1.1)  4/22/18 ===
+#=================================================================================
+# RKS to EGH. The following plot needs to be relocated further down but I'm not yet sure exactly where
+errbar(ion_data[9:12, "dose"], ion_data[9:12, "Prev"],yplus=ion_data[9:12, "Prev"]+1.96*ion_data[9:12, "SD"], 
+  yminus=ion_data[9:12, "Prev"]-1.96*ion_data[9:12, "SD"], pch=19,cap=0.02,xlim=c(0,700), 
+  ylim=c(0,1), bty='l',col='red', errbar.col = 'red', ann=FALSE) #  RKS: proton data points
+errbar(ion_data[1:8, "dose"], ion_data[1:8, "Prev"],yplus=ion_data[1:8, "Prev"]+1.96*ion_data[1:8, "SD"],yminus=ion_data[1:8, "Prev"]-1.96*ion_data[1:8, "SD"], pch = 19,cap=0.02, add=TRUE) #  RKS: Helium data points
+ddose=0:700 # RKS to EGH: This line and the next need work but do function
+lines(ddose, 1-exp(-0.00153*ddose)) # RKS to EGH of course 0.00153 is actually from a summary()
+legend(x = "topleft", legend = c("protons","4He"), col = c("red", "black"), pch = c(19,19), cex = 1, inset = 0.025)
+# RKS to EGH. Please let me know if editing just by insert a chunk as above + comments is OK.
+
 #======================== PLOTS (2017) ==========================#
 # Plot 1 : one HZE one low-LET; RKS->EH: always NTE & TE rather than TE-only in 
 # minor paper. For plots 1 and 2 I can and will do the key box specifying which 
