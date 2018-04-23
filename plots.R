@@ -23,6 +23,25 @@ seventy_cGy <- 0:71
 hundred_cGy <- 0:101
 forty_nine_cGy <- 0:50
 
+#===============================================================================
+#=== Shape of DER for Fe 600 MeV/u. Paper Fig. 3 (was Fig. 2.2.4.1)  4/23/18 ===
+#===============================================================================
+d =0.01*0:16000 # RKD to EGH. dose notation inconsistent with the above forty_cGy etc.
+# RKS to EGH. Ideally, the next three plots would align horizontally as panels A,B, and C,
+#about 4" total width with room for ~12 point annotations. However, I will in any
+# case do a lot of fine tuning in Illustrator so even just the right curve shapes
+# panels of almost equal height, and the legend shown are about good enough.
+prevalence = calib_HZE_nte_ider(d,193) # RKS to EGH. I suggest changing the name
+#of this function to "calibrated_HZE_nte_der and similarly for other functions.
+plot(d,prevalence,type='l', bty='u')
+legend(x = "bottomright", legend = "dose in centiGy; Fe 193 zoom in twice", cex = 0.6, inset = 0.025)
+d=2*10^-6*0:16000
+prevalence=calib_HZE_nte_ider(d,193)
+plot(d,prevalence,type='l', bty='u')
+d=10^-7*0:16000
+prevalence=calib_HZE_nte_ider(d,193)
+plot(d,prevalence,type='l', bty='u')
+
 #=================================================================================
 #=== Low LET data, error bars, and DER. Paper Fig. 5 (was Fig. 3.1.1)  4/22/18 ===
 #=================================================================================
@@ -36,7 +55,7 @@ lines(ddose, 1-exp(-0.00153*ddose)) # RKS to EGH of course 0.00153 is actually f
 legend(x = "topleft", legend = c("protons","4He"), col = c("red", "black"), pch = c(19,19), cex = 1, inset = 0.025)
 # RKS to EGH. Please let me know if editing just by insert a chunk as above + comments is OK.
 
-#======================== PLOTS (2017) ==========================#
+#======================== PLOTS  ==========================#
 # Plot 1 : one HZE one low-LET; RKS->EH: always NTE & TE rather than TE-only in 
 # minor paper. For plots 1 and 2 I can and will do the key box specifying which 
 # curve is which by hand. When more than 2 ions are involved the key should be 
