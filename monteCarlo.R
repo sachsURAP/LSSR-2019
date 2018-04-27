@@ -102,15 +102,13 @@ simulate_monte_carlo <- function(sample_num = 200, d, r, L,
   
   for (i in 1:N) { #EGH: Possible vectorization opportunity. Next block constitutes the bulk of the Monte Carlo runtime.
     if (model == "NTE") {
-      curve_list[[i]] <- calculate_id(r = r, LET = L, d = d, 
-                                              coef = list(NTE = samples[i, ],
-                                              lowLET = low_LET_samples[i]),
-                                              model = "NTE", lowLET = TRUE)
+      curve_list[[i]] <- calculate_id(d, L, r, coef = list(NTE = samples[i, ],
+                                               lowLET = low_LET_samples[i]),
+                                               model = "NTE", lowLET = TRUE)
     } else if (model == "TE") {
-      curve_list[[i]] <- calculate_id(r = r, LET = L, d = d, 
-                                              coef = list(TE = samples[i, ],
-                                              lowLET = low_LET_samples[i]),
-                                              model = "TE", lowLET = TRUE)
+      curve_list[[i]] <- calculate_id(d, L, r, coef = list(TE = samples[i, ],
+                                               lowLET = low_LET_samples[i]),
+                                               model = "TE", lowLET = TRUE)
     }
     cat(paste("  Currently at Monte Carlo step:", toString(i), 
               "of", toString(N)), sprintf('\r'))

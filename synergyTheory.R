@@ -13,7 +13,8 @@
 #               and abbreviation information.
 
 source("hgData.R") # Load in the data. Remark: dose is in units of cGy 
-# RKS: ASAP we should convert all cGy items to Gy); LET usually in keV/micron; 
+# RKS: ASAP we should convert all cGy items to Gy) #EGH: Converted everything to cGy, ADDRESSED.
+# LET usually in keV/micron; 
 # prevalence Prev always < 1 (i.e. not in %, which would mean prevalence < 100 
 # but is strongly deprecated).
 
@@ -30,7 +31,7 @@ phi <- 2000 # even larger phi should give the same final results,
 #=============================== IDER MODELS ==================================#
 
 #================ PHOTON MODEL =================#
-#  Linear model fit on beta_decay_data dataset. 
+# Linear model fit on beta_decay_data dataset. 
 # We will never recalculate this unless new data 
 # comes in but here it is just in case.
 
@@ -135,9 +136,9 @@ print(info_crit_table)
 
 #' @description Applies Simple Effect Additivity to a MIXDER.
 #' 
-#' @param total_dose Numeric vector corresponding to the sum dose in cGy.
-#' @param ratios Numeric vector of all dose ratios, must be length n.
+#' @param dose Numeric vector corresponding to the sum dose in cGy.
 #' @param LET Numeric vector of all LET values, must be length n.
+#' @param ratios Numeric vector of all dose ratios, must be length n.
 #' @param lowLET Boolean of whether an LET IDER should be included in the MIXDER
 #' @param n Number of IDERs, optional argument used to check parameter validity.
 #' 
@@ -149,10 +150,10 @@ print(info_crit_table)
 #'         parameters. 
 #'         
 #' @examples
-#' calculate_SEA(.01 * 0:40, r = c(1/2, 1/2), c(70, 195), n = 2)
-#' calculate_SEA(.01 * 0:70, r = c(4/7, 3/7), c(0.4, 195))
+#' calculate_SEA(.01 * 0:40, c(70, 195), c(1/2, 1/2), n = 2)
+#' calculate_SEA(.01 * 0:70, c(0.4, 195), c(4/7, 3/7))
 
-calculate_SEA <- function(total_dose, ratios, LET, lowLET = FALSE, n = NULL) {
+calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
   if (!is.null(n) && (n != length(ratios) | n != length(LET))) {
     stop("Length of arguments do not match.") 
   } else if (sum(ratios) != 1) {
@@ -162,11 +163,11 @@ calculate_SEA <- function(total_dose, ratios, LET, lowLET = FALSE, n = NULL) {
   i = 1
   if (lowLET == TRUE) { 
     # First elements of ratios and LET should be the low-LET IDER
-    total = total + calib_low_LET_ider(total_dose * ratios[i], LET[i])
+    total = total + calib_low_LET_ider(dose * ratios[i], LET[i])
     i = i + 1
   } 
   while (i < length(ratios) + 1) { # Iterate over HZE ions in MIXDER
-    total = total + calib_HZE_nte_ider(total_dose * ratios[i], LET[i])
+    total = total + calib_HZE_nte_ider(dose * ratios[i], LET[i])
     i = i + 1
   }
   return(total)
@@ -177,9 +178,9 @@ calculate_SEA <- function(total_dose, ratios, LET, lowLET = FALSE, n = NULL) {
 
 #' @description Applies Incremental Effect Additivity to a MIXDER.
 #' 
-#' @param r Numeric vector of all dose ratios, must be length n.
+#' @param dose Numeric vector corresponding to the sum dose in cGy.
 #' @param LET Numeric vector of all LET values, must be length n.
-#' @param d Numeric vector corresponding to the sum dose in cGy.
+#' @param ratios Numeric vector of all dose ratios, must be length n.
 #' @param lowLET Boolean of whether an LET IDER should be included in the MIXDER.
 #' @param model String value corresponding to the model to be used, either 
 #'              "NTE" or "TE". 
@@ -197,11 +198,10 @@ calculate_SEA <- function(total_dose, ratios, LET, lowLET = FALSE, n = NULL) {
 #'         parameters. 
 #'         
 #' @examples
-#' calculate_complex_id(d = .01 * 0:40, r = c(1/2, 1/2), L = c(70, 195))
-#' calculate_complex_id(d = .01 * 0:70, r = c(4/7, 3/7), L = c(0.4, 195), 
-#'                      lowLET = TRUE, model = "TE")
+#' calculate_id(.01 * 0:40, c(70, 195), c(1/2, 1/2))
+#' calculate_id(.01 * 0:70, c(0.4, 195), c(4/7, 3/7), lowLET = TRUE, model = "TE")
 
-calculate_complex_id <- function(r, LET, d, lowLET = FALSE, model = "NTE",
+calculate_id <- function(dose, LET, ratios, lowLET = FALSE, model = "NTE",
                                  coef = list(NTE = HZE_nte_model_coef, 
                                              TE = HZE_te_model_coef, 
                                              lowLET = low_LET_model_coef),
@@ -216,22 +216,22 @@ calculate_complex_id <- function(r, LET, d, lowLET = FALSE, model = "NTE",
       aa <- u <- dI <- vector(length = length(LET))
       for (i in 1:length(LET)) {
         aa[i] <- pars[1] * LET[i] * exp( - pars[2] * LET[i])
-        u[i] <- uniroot(function(d) HZE_ider(d, LET[i], pars) - I, 
+        u[i] <- uniroot(function(dose) HZE_ider(dose, LET[i], pars) - I, 
                         interval = c(0, 20000), 
                         extendInt = "yes",
                         tol = 10 ^ - 10)$root
-        dI[i] <- r[i] * calc_dI(aa[i], u[i], pars[3])
+        dI[i] <- ratios[i] * calc_dI(aa[i], u[i], pars[3])
       }
       if (lowLET == TRUE) { 
         # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(LET) + 1] <- uniroot(function(d) calib_low_LET_ider(dose = d, 
+        u[length(LET) + 1] <- uniroot(function(dose) calib_low_LET_ider(dose, 
                                       LET = LET, 
                                       beta = coef[["lowLET"]]) - I, 
                                       interval = c(0, 20000), 
                                       extendInt = "yes", 
                                       tol = 10 ^ - 10)$root
-        dI[length(LET) + 1] <- r[length(r)] * 
-                               low_LET_slope(d = u[length(LET) + 1], LET = 0)
+        dI[length(LET) + 1] <- ratios[length(ratios)] * 
+                               low_LET_slope(u[length(LET) + 1], LET = 0)
       }
       return(list(sum(dI)))
     })
@@ -240,7 +240,7 @@ calculate_complex_id <- function(r, LET, d, lowLET = FALSE, model = "NTE",
             HZE_ider = iders[[model]], 
             calib_low_LET_ider = iders[["lowLET"]], 
             calc_dI = calculate_dI[[model]])
-  return(ode(c(I = 0), times = d, dE, parms = p, method = "radau"))
+  return(ode(c(I = 0), times = dose, dE, parms = p, method = "radau"))
 }
 
 #============= dI HIDDEN FUNCTIONS =============#

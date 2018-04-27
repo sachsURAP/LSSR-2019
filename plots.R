@@ -64,21 +64,21 @@ d <- 1 * 0:302. # RKS->EH use 0:302 to be safe in getting rightmost tick
 r <- c(.2, .8) #Proportions. Next plot IDERs and MIXDER. 
 plot(x = d, y = calib_HZE_nte_ider(dose = d, L = 195), type = "l", xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) 
 lines(x = d, y = calib_low_LET_ider(d, 0), col = 'orange', lwd = 2) 
-lines(x = d, y = calculate_id(r = r, 195, d = d, lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
+lines(x = d, y = calculate_id(d, 195, r, lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 lines(x=d, y=calib_HZE_nte_ider(dose = .2 * d, L = 195) + calib_low_LET_ider(.8 * d, 0), lty= 3) # SEA S(d)
 
 
 # Plot 2 : one HZE one low-LET; NTE & TE rather than TE-only always in minor paper
-d <- 1 * 0:302. 
+d <- 1 * 0:302 
 r <- c(.8, .2) # Proportions. Next plot IDERs and MIXDER. 
 plot(x = d, y = calib_HZE_nte_ider(dose = d, L = 195), type = "l", xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) 
 lines(x = d, y = calib_low_LET_ider(d, 0), col = 'orange', lwd = 2) #RKS->EH changed color
-lines(x = d, y = calculate_id(r = r, L = 195, d = d, lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
+lines(x = d, y = calculate_id(d, 195, r, lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 lines(x=d, y=calib_HZE_nte_ider(dose = .8 * d, L = 195)+calib_low_LET_ider(.2 *d, 0), lty= 3) # SEA S(d)
 
 # Plot 3: four HZE; NTE
 dose_vector <- c(0:100)
-plot(calculate_id(r = rep(0.25, 4), L = c(25, 70, 190, 250), d = dose_vector), type = 'l', col = 'red', bty = 'l', ann = 'F') #  I(d) plot
+plot(calculate_id(dose_vector, c(25, 70, 190, 250), rep(0.25, 4)), type = 'l', col = 'red', bty = 'l', ann = 'F') #  I(d) plot
 SEA <- function(dose) {
   return(calib_HZE_nte_ider(dose / 4, 25) + 
            calib_HZE_nte_ider(dose / 4, 70) + 
@@ -97,17 +97,17 @@ d <- seq(0, 100, 1)
 plot(x = d, y = calib_HZE_nte_ider(dose = d, L = 195), type = "l", xlab = "dose", ylab = "HG", bty = 'l', col = 'green', lwd = 2)
 lines(x = d, y = calib_HZE_nte_ider(d, 70), col = 'green', lwd = 2) # component 3
 lines(x = d, y = calib_low_LET_ider(d, 0), col = 'green', lwd = 2)
-lines(x = d, y = calculate_id(r = c(1/20, 1/20, 9/10), L = c(70, 195), d = d, lowLET = TRUE)[, 2], col = 'red', lwd = 2)
+lines(x = d, y = calculate_id(d, c(70, 195), c(1/20, 1/20, 9/10), lowLET = TRUE)[, 2], col = 'red', lwd = 2)
 
 
 #==================================================================#
 #=========================== PAPER PLOTS ==========================#
 #==================================================================#
 # Fig. 3.2.3 - Fe56 (600 MeV/u), Si28, and corresponding IEA and SEA MIXDERS. 
-plot(x = forty_cGy, y = calculate_SEA(forty_cGy, c(1/2, 1/2), c(70, 195), n = 2), bty='l', type = "l",  xlab = "Dose (Gy)", ylab = "HG Prevalence (%)", col = "black", lwd = 2, lty = 2) 
+plot(x = forty_cGy, y = calculate_SEA(forty_cGy, c(70, 195), c(1/2, 1/2), n = 2), bty='l', type = "l",  xlab = "Dose (Gy)", ylab = "HG Prevalence (%)", col = "black", lwd = 2, lty = 2) 
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 70), col = "cyan", lwd = 2)
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 195), col = "orange", lwd = 2) #RKS->EH changed color
-lines(x = forty_cGy, y = calculate_id(r = c(0.5 , 0.5), L = c(70, 195), d = forty_cGy, model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
+lines(x = forty_cGy, y = calculate_id(forty_cGy, c(70, 195), c(0.5 , 0.5), model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
 legend(x = "topleft", legend = c("Fe56 (600 MeV/u), NTE NTE-TE IDER", "Si28 HZE NTE-TE IDER", "IEA MIXDER (50% Fe56, 50% Si28)", "SEA MIXDER (50% Fe56, 50% Si28)"),
        col = c("orange", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), cex = 0.4, inset = 0.05)
 
@@ -115,8 +115,8 @@ legend(x = "topleft", legend = c("Fe56 (600 MeV/u), NTE NTE-TE IDER", "Si28 HZE 
 # Fig. for a mixture of 60 cGy H1 (protons) with 40 cGy Si;
 plot(x = hundred_cGy, y = calib_HZE_nte_ider(dose = hundred_cGy, L = 70), type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "darkcyan", lwd = 2, xaxs="i")
 lines(x = hundred_cGy, y = calib_low_LET_ider(dose = hundred_cGy, L = 0.4), col = "cyan", lwd = 2)
-lines(x = hundred_cGy, y = calculate_SEA(hundred_cGy, c(0.6, 0.4), c(0.4, 70), lowLET = TRUE, n = 2), col = "black", lwd = 2, lty = 2)
-lines(x = hundred_cGy, y = calculate_id(r = c(0.6 , 0.4), L = c(0.4, 70), d = hundred_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
+lines(x = hundred_cGy, y = calculate_SEA(hundred_cGy, c(0.4, 70), c(0.6, 0.4), lowLET = TRUE, n = 2), col = "black", lwd = 2, lty = 2)
+lines(x = hundred_cGy, y = calculate_id(hundred_cGy, c(0.4, 70), c(0.6 , 0.4), model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 100, lwd = 2)
 legend(x = "topleft", legend = c("Si28 HZE NTE-TE IDER", "H1 Low-LET NTE-TE IDER","IEA MIXDER (60% H1, 40% Si28)", "SEA MIXDER (60% H1, 40% Si28)"),
        col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), cex = 0.5, inset = 0.025)
@@ -124,8 +124,8 @@ legend(x = "topleft", legend = c("Si28 HZE NTE-TE IDER", "H1 Low-LET NTE-TE IDER
 # Fig. for a mixture of 40 cGy H1 with 30 cGy Fe56 at 600 MeV/u;
 plot(x = seventy_cGy, y = calib_HZE_nte_ider(dose = seventy_cGy, L = 195), col = "darkcyan", type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', lwd = 2, lty = 1, xaxs="i")
 lines(x = seventy_cGy, y = calib_low_LET_ider(dose = seventy_cGy, L = 0.4), col = "cyan", lwd = 2)
-lines(x = seventy_cGy, y = calculate_SEA(seventy_cGy, c(4/7, 3/7), c(0.4, 195), lowLET = TRUE, n = 2), col = "black", lty = 2, lwd = 2)
-lines(x = seventy_cGy, y = calculate_id(r = c(4/7 , 3/7), L = c(0.4, 195), d = seventy_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
+lines(x = seventy_cGy, y = calculate_SEA(seventy_cGy, c(0.4, 195), c(4/7, 3/7), lowLET = TRUE, n = 2), col = "black", lty = 2, lwd = 2)
+lines(x = seventy_cGy, y = calculate_id(seventy_cGy, c(0.4, 195), c(4/7 , 3/7), model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 70, lwd = 2)
 legend(x = "topleft", legend = c("Fe56 (600 MeV/u), HZE NTE-TE IDER", "H1 Low-LET NTE-TE IDER","IEA MIXDER (57% H1, 43% Si28)", "SEA MIXDER (57% H1, 43% Si28)"),
        col = c("darkcyan", "cyan", "red", "black"), lwd = c(2, 2, 2, 2), lty = c(1, 1, 1, 2), cex = 0.5, inset = 0.025)
@@ -133,7 +133,7 @@ legend(x = "topleft", legend = c("Fe56 (600 MeV/u), HZE NTE-TE IDER", "H1 Low-LE
 
 # Fig. for a mixture of all 7 HZE ions; total dose 49 cGy, each ion gets 7 cGy;
 # assume Hi HZE implies Z > 3
-plot(x = forty_nine_cGy, y = calculate_SEA(forty_nine_cGy, c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7), c(25, 70, 100, 195, 250, 464, 953)), 
+plot(x = forty_nine_cGy, y = calculate_SEA(forty_nine_cGy, c(25, 70, 100, 195, 250, 464, 953), c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)), 
      type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, axes = FALSE)
 
 lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 25), col = "pink", lwd = 2)
@@ -144,8 +144,8 @@ lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 250)
 lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 464), col = "purple", lwd = 2, lty = 2)
 lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 953), col = "violet", lwd = 2)
 
-lines(x = forty_nine_cGy, y = calculate_id(r = c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7), L = c(25, 70, 100, 195, 250, 464, 953),
-                                                   d = forty_nine_cGy, model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
+lines(x = forty_nine_cGy, y = calculate_id(forty_nine_cGy, c(25, 70, 100, 195, 250, 464, 953),
+                                           c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7), model = "NTE", lowLET = FALSE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 49, lwd = 1)
 axis(2, c(-1, 0, 1, 2, 3, 4, 5, 6, 7))
 axis(1, c(0, 10, 20, 30, 40, 49), xaxs = "i")
@@ -162,7 +162,7 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 # Fig. 3.2.2 
 # h1, 0.4, 80%
 # L=c(40, 110, 180, 250), proportions (5,5,5,5)%
-plot(x = forty_cGy, y = calculate_SEA(forty_cGy, c(.8, rep(.05,4)), c(0.4, 40,110, 180, 250), lowLET = TRUE), 
+plot(x = forty_cGy, y = calculate_SEA(forty_cGy, c(0.4, 40, 110, 180, 250), c(.8, rep(.05,4)), lowLET = TRUE), 
      type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2)
 
 lines(x = forty_cGy, y = calib_low_LET_ider(dose = forty_cGy, L = 0.4), col = "orange", lwd = 2)
@@ -171,7 +171,7 @@ lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 110), col = "p
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 180), col = "blue", lwd = 2)
 lines(x = forty_cGy, y = calib_HZE_nte_ider(dose = forty_cGy, L = 250), col = "aquamarine2", lwd = 2)
 
-lines(x = forty_cGy, y = calculate_id(r = c(.8, rep(.05,4)), L =  c(0.4, 40,110, 180, 250),d = forty_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
+lines(x = forty_cGy, y = calculate_id(forty_cGy, c(0.4, 40,110, 180, 250), c(.8, rep(.05,4)), model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 legend(x = "topleft", legend = c("Low-LET","L=40", "L=110", "L=180", "L=250", 
                                "I(d)", "S(d)"),
        col = c("orange", "green","purple","blue", "aquamarine2", "red", "black"), 
@@ -185,7 +185,7 @@ legend(x = "topleft", legend = c("Low-LET","L=40", "L=110", "L=180", "L=250",
 # si28, 70, 2.5
 # ti28, 100, 2.5
 # fe56, 195, 5
-plot(x = forty_nine_cGy, y = calculate_SEA(forty_nine_cGy, c(.6, .2, .1, .025, .025, .05), c(0.4, 1.6, 25, 70, 100, 195), lowLET = TRUE), 
+plot(x = forty_nine_cGy, y = calculate_SEA(forty_nine_cGy, c(0.4, 1.6, 25, 70, 100, 195), c(.6, .2, .1, .025, .025, .05), lowLET = TRUE), 
      type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, xaxs = "i")
 
 lines(x = forty_nine_cGy, y = calib_low_LET_ider(dose = forty_nine_cGy, L = 0.4), col = "orange", lwd = 2)
@@ -195,8 +195,8 @@ lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 70),
 lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 100), col = "purple", lwd = 2)
 lines(x = forty_nine_cGy, y = calib_HZE_nte_ider(dose = forty_nine_cGy, L = 195), col = "violet", lwd = 2)
 
-lines(x = forty_nine_cGy, y = calculate_id(r = c(.6, .2, .1, .025, .025, .5), L =  c(0.4, 1.6, 25, 70, 100, 195),
-                                                   d = forty_nine_cGy, model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
+lines(x = forty_nine_cGy, y = calculate_id(forty_nine_cGy, c(0.4, 1.6, 25, 70, 100, 195), 
+                                           c(.6, .2, .1, .025, .025, .5), model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
 abline(v = 49, lwd = 1)
 legend(x = "topleft", legend = c("H1 Low-LET NTE-TE IDER", "He4 Low-LET NTE-TE IDER", "O16 NTE-TE IDER", 
                                "Si28 NTE-TE IDER", "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
@@ -258,8 +258,7 @@ calib_ci_test <- simulate_monte_carlo(200, d = hundred_cGy, r = r, L = L, model 
 ci_data <- data.frame(dose = hundred_cGy,
                       monteCarloBottom = calib_ci_test$monte_carlo[1, ],
                       monteCarloTop = calib_ci_test$monte_carlo[2, ], 
-                      i = calculate_id(r = r, LET = L,
-                                               d = hundred_cGy, model = "NTE", 
+                      i = calculate_id(hundred_cGy, L, r, model = "NTE", 
                                                lowLET = TRUE)[, 2])
 ci_plot <- ggplot(data = ci_data, aes = fill) +
       theme_bw() +
@@ -307,9 +306,8 @@ ci_data <- data.frame(dose = hundred_cGy,
                       la = calib_HZE_nte_ider(dose = hundred_cGy, L = 953),
                       
                       #  I(d)
-                      i = calculate_id(r = ratios, LET = LET_vals,
-                                               d = hundred_cGy, model = "NTE", 
-                                               lowLET = TRUE)[, 2])
+                      i = calculate_id(hundred_cGy, LET_vals, ratios,
+                                       model = "NTE", lowLET = TRUE)[, 2])
 #  Plotting call
 ci_plot <- ggplot(data = ci_data, aes = fill) +
   theme_bw() +
@@ -364,9 +362,8 @@ ci_data <- data.frame(dose = hundred_cGy,
                       fe_six = calib_HZE_nte_ider(dose = hundred_cGy, L = 195),
                       
                       #  I(d)
-                      i = calculate_id(r = ratios, LET = LET_vals,
-                                               d = hundred_cGy, model = "NTE", 
-                                               lowLET = TRUE)[, 2])
+                      i = calculate_id(hundred_cGy, LET_vals, ratios,
+                                       model = "NTE", lowLET = TRUE)[, 2])
 
 #  Plotting call
 ci_plot <- ggplot(data = ci_data, aes = fill) +
