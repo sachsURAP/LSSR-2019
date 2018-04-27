@@ -8,11 +8,11 @@
 #               source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  16 Apr 2018
+# Mod history:  26 Apr 2018
 # Details:      See hgData.R for further licensing, attribution, references, 
 #               and abbreviation information.
 
-source("hgData.R") # Load in the data. Remark: dose is in units of cGy 
+source("dataAndInfo.R") # Load in the data. Remark: dose is in units of cGy 
 # RKS: ASAP we should convert all cGy items to Gy) #EGH: Converted everything to cGy, ADDRESSED.
 # LET usually in keV/micron; 
 # prevalence Prev always < 1 (i.e. not in %, which would mean prevalence < 100 

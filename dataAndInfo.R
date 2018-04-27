@@ -48,7 +48,7 @@
 rm(list=ls()) # To be removed when script is finalized
 
 # Data used in 16Chang; includes data analyzed in .93Alp and .94Alp. Does not 
-# include gamma-ray data or ion background (i.e. control) data.
+# include gamma-ray data.
 # These two lines of script plus the .csv file (which will need work as 
 # additions and perhaps corrections come up) should be all we need.
 ion_data <- data.frame(read.csv("data/raw_data_ordered.csv")) 
