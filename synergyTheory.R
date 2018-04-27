@@ -13,10 +13,8 @@
 #               and abbreviation information.
 
 source("dataAndInfo.R") # Load in the data. Remark: dose is in units of cGy 
-# RKS: ASAP we should convert all cGy items to Gy) #EGH: Converted everything to cGy, ADDRESSED.
-# LET usually in keV/micron; 
-# prevalence Prev always < 1 (i.e. not in %, which would mean prevalence < 100 
-# but is strongly deprecated).
+# LET usually in keV/micron; prevalence Prev always < 1 
+# (i.e. not in %, which would mean prevalence < 100 but is strongly deprecated).
 
 library(deSolve) # Solving differential equations
 
@@ -59,7 +57,7 @@ calib_nte_hazard_func <- function(dose, LET, coef) { #  Calibrated hazard functi
         + (1 - exp( - phi * dose)) * coef[3])
 } 
 
-calib_HZE_nte_ider <- function(dose, LET, coef = HZE_nte_model_coef) { #  Calibrated HZE NTE IDER
+calib_HZE_nte_der <- function(dose, LET, coef = HZE_nte_model_coef) { #  Calibrated HZE NTE IDER
   return(1 - exp( - calib_nte_hazard_func(dose, LET, coef)))
 }
 
@@ -83,7 +81,7 @@ calib_te_hazard_func <- function(dose, LET, coef) { # Calibrated hazard function
   return(coef[1] * LET * dose * exp( - coef[2] * LET))
 }
 
-calib_HZE_te_ider <- function(dose, LET, coef = HZE_te_model_coef) {
+calib_HZE_te_der <- function(dose, LET, coef = HZE_te_model_coef) {
   return(1 - exp( - calib_te_hazard_func(dose, LET, coef))) # Calibrated HZE TE IDER
 }
 
@@ -100,7 +98,7 @@ summary(low_LET_model, correlation = TRUE)
 low_LET_model_coef <- coef(low_LET_model) # Calibrated central values of the parameter
 
 # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small
-calib_low_LET_ider <- function(dose, LET, beta = low_LET_model_coef[1]) {  
+calib_low_LET_der <- function(dose, LET, beta = low_LET_model_coef[1]) {  
   return(1 - exp( - beta * dose))
 }  
 
@@ -118,7 +116,7 @@ low_LET_slope <- function(dose, LET) {
 # graphs in these references. Exceptionally this graph has dose axis in Gy, not cGy.
 #The whole graph is obsolete 4.21.18 because error bars are missing
 plot(c(0, 7), c(0, 1), col = 'red', ann = 'F')  
-lines(0.01 * 0:700, calib_low_LET_ider(0:700, 0) + .0275)  # calibrated lowLET IDER
+lines(0.01 * 0:700, calib_low_LET_der(0:700, 0) + .0275)  # calibrated lowLET IDER
 # Next are Helium data points. Factor 100 converts cGy to Gy
 points(low_LET_data[1:8, "dose"]/100, low_LET_data[1:8, "Prev"], pch = 19) 
 points(low_LET_data[9:12, "dose"]/100, low_LET_data[9:12, "Prev"] )  # proton data points 
@@ -163,11 +161,11 @@ calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
   i = 1
   if (lowLET == TRUE) { 
     # First elements of ratios and LET should be the low-LET IDER
-    total = total + calib_low_LET_ider(dose * ratios[i], LET[i])
+    total = total + calib_low_LET_der(dose * ratios[i], LET[i])
     i = i + 1
   } 
   while (i < length(ratios) + 1) { # Iterate over HZE ions in MIXDER
-    total = total + calib_HZE_nte_ider(dose * ratios[i], LET[i])
+    total = total + calib_HZE_nte_der(dose * ratios[i], LET[i])
     i = i + 1
   }
   return(total)
@@ -185,7 +183,7 @@ calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
 #' @param model String value corresponding to the model to be used, either 
 #'              "NTE" or "TE". 
 #' @param coef Named list of numeric vectors containing coefficients for IDERs.
-#' @param iders Named list of functions containing relevant IDER models.
+#' @param ders Named list of functions containing relevant IDER models.
 #' @param calculate_dI Named vector of functions to calculate dI depending on 
 #'                     the selected model.
 #' @param phi Numeric value, used in NTE models.
@@ -205,9 +203,9 @@ calculate_id <- function(dose, LET, ratios, lowLET = FALSE, model = "NTE",
                                  coef = list(NTE = HZE_nte_model_coef, 
                                              TE = HZE_te_model_coef, 
                                              lowLET = low_LET_model_coef),
-                                 iders = list(NTE = calib_HZE_nte_ider, 
-                                              TE = calib_HZE_te_ider, 
-                                              lowLET = calib_low_LET_ider),
+                                 ders = list(NTE = calib_HZE_nte_der, 
+                                              TE = calib_HZE_te_der, 
+                                              lowLET = calib_low_LET_der),
                                  calculate_dI = c(NTE = .calculate_dI_nte, 
                                                   TE = .calculate_dI_te),
                                  phi = 2000) {
@@ -216,7 +214,7 @@ calculate_id <- function(dose, LET, ratios, lowLET = FALSE, model = "NTE",
       aa <- u <- dI <- vector(length = length(LET))
       for (i in 1:length(LET)) {
         aa[i] <- pars[1] * LET[i] * exp( - pars[2] * LET[i])
-        u[i] <- uniroot(function(dose) HZE_ider(dose, LET[i], pars) - I, 
+        u[i] <- uniroot(function(dose) HZE_der(dose, LET[i], pars) - I, 
                         interval = c(0, 20000), 
                         extendInt = "yes",
                         tol = 10 ^ - 10)$root
@@ -224,8 +222,7 @@ calculate_id <- function(dose, LET, ratios, lowLET = FALSE, model = "NTE",
       }
       if (lowLET == TRUE) { 
         # If low-LET IDER is present then include it at the end of the dI vector
-        u[length(LET) + 1] <- uniroot(function(dose) calib_low_LET_ider(dose, 
-                                      LET = LET, 
+        u[length(LET) + 1] <- uniroot(function(dose) low_der(dose, LET = LET, 
                                       beta = coef[["lowLET"]]) - I, 
                                       interval = c(0, 20000), 
                                       extendInt = "yes", 
@@ -237,8 +234,8 @@ calculate_id <- function(dose, LET, ratios, lowLET = FALSE, model = "NTE",
     })
   }
   p <- list(pars = coef[[model]], 
-            HZE_ider = iders[[model]], 
-            calib_low_LET_ider = iders[["lowLET"]], 
+            HZE_der = ders[[model]], 
+            low_der = ders[["lowLET"]], 
             calc_dI = calculate_dI[[model]])
   return(ode(c(I = 0), times = dose, dE, parms = p, method = "radau"))
 }
