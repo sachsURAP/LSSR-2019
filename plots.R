@@ -254,7 +254,7 @@ par(mfrow = c(1, 1))
 #  Yimin's original test confidence interval plot
 r <- c(0.05, 0.05, 0.05, 0.05, 0.8)
 L <- c(25, 70, 100, 195)
-calib_ci_test <- simulate_monte_carlo(200, d = hundred_cGy, r = r, L = L, model = "NTE")
+calib_ci_test <- simulate_monte_carlo(200, hundred_cGy, L, r, model = "NTE")
 ci_data <- data.frame(dose = hundred_cGy,
                       monteCarloBottom = calib_ci_test$monte_carlo[1, ],
                       monteCarloTop = calib_ci_test$monte_carlo[2, ], 
@@ -283,10 +283,10 @@ ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
 LET_vals <- c(25, 70, 100, 195, 250, 464, 953)
 
 #  We begin with the calibrated plot
-calib_ci_3.2.4 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE")
+calib_ci_3.2.4 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE")
 
 #  We now calculate the uncalibrated Monte Carlo
-uncorr_ci_3.2.4 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE", vcov = FALSE)
+uncorr_ci_3.2.4 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE", vcov = FALSE)
 
 #  Construct a data.frame for ease of use with ggplot2
 ci_data <- data.frame(dose = hundred_cGy,
@@ -345,10 +345,10 @@ ratios <- c(1/2, 1/2)
 LET_vals <- c(195, 70)
   
 #  We begin with the calibrated plot
-calib_ci_3.2.3 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE")
+calib_ci_3.2.3 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE")
 
 #  We now calculate the uncalibrated Monte Carlo
-uncorr_ci_3.2.3 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE", vcov = FALSE)
+uncorr_ci_3.2.3 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE", vcov = FALSE)
 
 ci_data <- data.frame(dose = hundred_cGy,
                       #  Monte Carlo values
