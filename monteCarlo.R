@@ -26,7 +26,7 @@ library(mvtnorm) # Sampling
 #' @param l Numeric vector of all LET values, must be length n.
 #' @param model String value corresponding to the model to be used. 
 #' @param seed Numeric value for pseudorandom generators.
-#' @param corr Boolean for assessing inter-parameter correlation.
+#' @param vcov Boolean for assessing inter-parameter correlation.
 #'             
 #' @details Corresponding elements of ratios, LET should be associated with the
 #'          same IDER.
@@ -37,11 +37,11 @@ library(mvtnorm) # Sampling
 #' @examples
 
 simulate_monte_carlo <- function(sample_num = 200, d, r, L,
-                                 model = "NTE", seed = 100, corr = TRUE) {
+                                 model = "NTE", seed = 100, vcov = TRUE) {
   # Set the pseudorandom seed
   set.seed(seed)
   # Generate N randomly generated samples of parameters of HZE model.
-  curve_list <- .generate_samples(sample_num, d, L, r, model, corr)
+  curve_list <- .generate_samples(sample_num, d, L, r, model, vcov)
   numDosePoints <- length(d)
   monte_carlo_ci <- matrix(nrow = 2, ncol = numDosePoints)
   
@@ -65,7 +65,7 @@ simulate_monte_carlo <- function(sample_num = 200, d, r, L,
 #' @param r Numeric vector of the dose proportions applied to component IDERs.
 #' @param l Numeric vector of all LET values, must be length n.
 #' @param model String value corresponding to the model to be used.
-#' @param corr Boolean for assessing inter-parameter correlation. 
+#' @param vcov Boolean for assessing inter-parameter correlation. 
 #'             TRUE iff correlations are being taken into account. #RKS to EGH. Is this correct? #EGH Apr 16: Correct. I will update function documentation in the next few commmits.
 #' @param HINmodel The input HIN model
 #' @param HITmodel The input HIT model # RKS to EGH. Corrected misprint. #EGH Apr 16: Thanks.
@@ -78,11 +78,10 @@ simulate_monte_carlo <- function(sample_num = 200, d, r, L,
 #' 
 #' @examples
 
-.generate_samples <- function(N = 200, d, L, r, model, corr, 
+.generate_samples <- function(N = 200, d, L, r, model, vcov, 
                               HINmodel = HZE_nte_model, HITmodel = HZE_te_model, 
                               LOWmodel = low_LET_model) {
-  # monteCarloSamplesLow <- rmvnorm(n = N, mean = coef(LOWmodel), sigma = vcov(LOWmodel)) # RKS to RKS and EGH. Is vcov a 1x1 matrix here? #EGH Apr 16: Correct. 
-  low_LET_samples <- rmvnorm(N, coef(LOWmodel), vcov(LOWmodel))
+  low_LET_samples <- rmvnorm(N, coef(LOWmodel), vcov(LOWmodel)) # RKS to RKS and EGH. Is vcov a 1x1 matrix here? #EGH Apr 16: Correct.
   # RKS to EGH. I worried that your Monte Carlo was fast whereas that of Dae and the CA pod is much slower.
   # So I tried to understand the next chunk that defines curve_list, but got lost. #EGH Apr 16: That's fair. Funnily enough, I was worried that this Monte Carlo seemed too slow, and I was looking into ways to speed it up.
   # How should we handle this kind of situation to not lose information but not clutter up the script? #EGH Apr 16: Are you familiar with the browser() function? It allows you to freeze a function mid-evaluation and examine its environment and make other diagnostic function calls. 
@@ -93,7 +92,7 @@ simulate_monte_carlo <- function(sample_num = 200, d, r, L,
     ion_model <- HITmodel
     num_coef <- 2
   }
-  if (corr) {
+  if (vcov) {
     samples <- rmvnorm(n = N, mean = coef(ion_model), sigma = vcov(ion_model))
   } else {
     samples <- mapply(rnorm, rep(N, num_coef), coef(ion_model), 
@@ -103,12 +102,12 @@ simulate_monte_carlo <- function(sample_num = 200, d, r, L,
   
   for (i in 1:N) { #EGH: Possible vectorization opportunity. Next block constitutes the bulk of the Monte Carlo runtime.
     if (model == "NTE") {
-      curve_list[[i]] <- calculate_complex_id(r = r, LET = L, d = d, 
+      curve_list[[i]] <- calculate_id(r = r, LET = L, d = d, 
                                               coef = list(NTE = samples[i, ],
                                               lowLET = low_LET_samples[i]),
                                               model = "NTE", lowLET = TRUE)
     } else if (model == "TE") {
-      curve_list[[i]] <- calculate_complex_id(r = r, LET = L, d = d, 
+      curve_list[[i]] <- calculate_id(r = r, LET = L, d = d, 
                                               coef = list(TE = samples[i, ],
                                               lowLET = low_LET_samples[i]),
                                               model = "TE", lowLET = TRUE)

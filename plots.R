@@ -287,7 +287,7 @@ LET_vals <- c(25, 70, 100, 195, 250, 464, 953)
 calib_ci_3.2.4 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE")
 
 #  We now calculate the uncalibrated Monte Carlo
-uncorr_ci_3.2.4 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE", corr = FALSE)
+uncorr_ci_3.2.4 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE", vcov = FALSE)
 
 #  Construct a data.frame for ease of use with ggplot2
 ci_data <- data.frame(dose = hundred_cGy,
@@ -350,7 +350,7 @@ LET_vals <- c(195, 70)
 calib_ci_3.2.3 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE")
 
 #  We now calculate the uncalibrated Monte Carlo
-uncorr_ci_3.2.3 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE", corr = FALSE)
+uncorr_ci_3.2.3 <- simulate_monte_carlo(200, d = hundred_cGy, r = ratios, L = LET_vals, model = "NTE", vcov = FALSE)
 
 ci_data <- data.frame(dose = hundred_cGy,
                       #  Monte Carlo values
