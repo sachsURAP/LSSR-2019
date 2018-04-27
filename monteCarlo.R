@@ -8,7 +8,7 @@
 #               part of the source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  16 Apr 2018
+# Mod history:  26 Apr 2018
 # Details:      See hgData.R for further licensing, attribution, references, 
 #               and abbreviation information.
 

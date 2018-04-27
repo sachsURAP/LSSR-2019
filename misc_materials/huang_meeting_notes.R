@@ -112,10 +112,20 @@
 
 ## 041318 SACHS & HUANG 918 EVANS / YALIS
 ## a. Move MS06 to paper, check Ray's permissions b/c 
-##     he can't upload to subdirectories
-## b. Ray will move virtual pod to sachsURAP
-## c. Make the 3.2.4 CI overlay plot
-## d. Plot CI overlay without calibrated coefficients
-## e. If need help -> Yimin -> Peter -> Andy in that order
-## f. Downsize plot legends, assume audience will view only in IDE
-## 
+##     he can't upload to subdirectories - CHANGED PERMISSIONS
+## b. Ray will move virtual pod to sachsURAP - NOTED
+## c. Make the 3.2.4 CI overlay plot - DONE
+## d. Plot CI overlay without calibrated coefficients - DONE
+## e. If need help -> Yimin -> Peter -> Andy in that order - NOTED
+## f. Downsize plot legends, assume audience will view only in IDE - DONE
+
+## 042018 SACHS & HUANG 918 EVANS / YALIS
+## Paper is getting shorter; progress is slow; - NOTED
+## Consider the parameter order dose, LET, z, ratios (z = lowLET) - DONE
+## Change calculate_complex_id to calculate_id - DONE
+## Test calculate_id on empty MIXDER - DONE, error in uniroot
+## Change name of hgData.R to dataandComments or equivalent - DONE
+## consider maybe longer commenting blocks in synergyTheory - NOTED
+## Consider changing "corr" in monteCarlo.R to respect_corr or something equivalent try "vcov" - DONE
+## look at URAP.CA monte carlo in "Graphs" 
+
