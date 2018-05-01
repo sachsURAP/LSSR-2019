@@ -52,13 +52,13 @@ vcov(HZE_nte_model) # Variance-covariance matrix RKSB
 HZE_nte_model_coef <- coef(HZE_nte_model) # Calibrated central values of the 3 parameters. 
 
 # The IDER, = 0 at dose 0
-calib_nte_hazard_func <- function(dose, LET, coef) { #  Calibrated hazard function 
+calibrated_nte_hazard_func <- function(dose, LET, coef) { #  Calibrated hazard function 
  return(coef[1] * LET * dose * exp( - coef[2] * LET) 
         + (1 - exp( - phi * dose)) * coef[3])
 } 
 
-calib_HZE_nte_der <- function(dose, LET, coef = HZE_nte_model_coef) { #  Calibrated HZE NTE IDER
-  return(1 - exp( - calib_nte_hazard_func(dose, LET, coef)))
+calibrated_HZE_nte_der <- function(dose, LET, coef = HZE_nte_model_coef) { #  Calibrated HZE NTE IDER
+  return(1 - exp( - calibrated_nte_hazard_func(dose, LET, coef)))
 }
 
 
@@ -77,12 +77,12 @@ vcov(HZE_te_model) # Variance-covariance matrix RKSB
 HZE_te_model_coef <- coef(HZE_te_model) #  Calibrated central values of the 2 parameters. 
 
 # The IDER, = 0 at dose 0
-calib_te_hazard_func <- function(dose, LET, coef) { # Calibrated hazard function
+calibrated_te_hazard_func <- function(dose, LET, coef) { # Calibrated hazard function
   return(coef[1] * LET * dose * exp( - coef[2] * LET))
 }
 
-calib_HZE_te_der <- function(dose, LET, coef = HZE_te_model_coef) {
-  return(1 - exp( - calib_te_hazard_func(dose, LET, coef))) # Calibrated HZE TE IDER
+calibrated_HZE_te_der <- function(dose, LET, coef = HZE_te_model_coef) {
+  return(1 - exp( - calibrated_te_hazard_func(dose, LET, coef))) # Calibrated HZE TE IDER
 }
 
 
@@ -98,7 +98,7 @@ summary(low_LET_model, correlation = TRUE)
 low_LET_model_coef <- coef(low_LET_model) # Calibrated central values of the parameter
 
 # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small
-calib_low_LET_der <- function(dose, LET, beta = low_LET_model_coef[1]) {  
+calibrated_low_LET_der <- function(dose, LET, beta = low_LET_model_coef[1]) {  
   return(1 - exp( - beta * dose))
 }  
 
@@ -116,10 +116,10 @@ low_LET_slope <- function(dose, LET) {
 # graphs in these references. Exceptionally this graph has dose axis in Gy, not cGy.
 #The whole graph is obsolete 4.21.18 because error bars are missing
 plot(c(0, 7), c(0, 1), col = 'red', ann = 'F')  
-lines(0.01 * 0:700, calib_low_LET_der(0:700, 0) + .0275)  # calibrated lowLET IDER
+lines(0.01 * 0:700, calibrated_low_LET_der(0:700, 0) + .0275)  # calibrated lowLET IDER
 # Next are Helium data points. Factor 100 converts cGy to Gy
-points(low_LET_data[1:8, "dose"]/100, low_LET_data[1:8, "Prev"], pch = 19) 
-points(low_LET_data[9:12, "dose"]/100, low_LET_data[9:12, "Prev"] )  # proton data points 
+points(low_LET_data[1:8, "dose"] / 100, low_LET_data[1:8, "Prev"], pch = 19) 
+points(low_LET_data[9:12, "dose"] / 100, low_LET_data[9:12, "Prev"] )  # proton data points 
 
 
 #=========================== INFORMATION CRITERION ============================#
@@ -161,11 +161,11 @@ calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
   i = 1
   if (lowLET == TRUE) { 
     # First elements of ratios and LET should be the low-LET IDER
-    total = total + calib_low_LET_der(dose * ratios[i], LET[i])
+    total = total + calibrated_low_LET_der(dose * ratios[i], LET[i])
     i = i + 1
   } 
   while (i < length(ratios) + 1) { # Iterate over HZE ions in MIXDER
-    total = total + calib_HZE_nte_der(dose * ratios[i], LET[i])
+    total = total + calibrated_HZE_nte_der(dose * ratios[i], LET[i])
     i = i + 1
   }
   return(total)
@@ -203,9 +203,9 @@ calculate_id <- function(dose, LET, ratios, lowLET = FALSE, model = "NTE",
                                  coef = list(NTE = HZE_nte_model_coef, 
                                              TE = HZE_te_model_coef, 
                                              lowLET = low_LET_model_coef),
-                                 ders = list(NTE = calib_HZE_nte_der, 
-                                              TE = calib_HZE_te_der, 
-                                              lowLET = calib_low_LET_der),
+                                 ders = list(NTE = calibrated_HZE_nte_der, 
+                                              TE = calibrated_HZE_te_der, 
+                                              lowLET = calibrated_low_LET_der),
                                  calculate_dI = c(NTE = .calculate_dI_nte, 
                                                   TE = .calculate_dI_te),
                                  phi = 2000) {

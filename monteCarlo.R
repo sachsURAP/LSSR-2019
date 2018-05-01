@@ -12,7 +12,7 @@
 # Details:      See hgData.R for further licensing, attribution, references,
 #               and abbreviation information.
 
-source("synergyTheory.R") # load in data and models
+source("synergyTheory.R") # Load in data and models
 
 library(mvtnorm) # Sampling
 
@@ -31,8 +31,8 @@ library(mvtnorm) # Sampling
 #' @details Corresponding elements of ratios, LET should be associated with the
 #'          same IDER.
 #'          
-#' @return Numeric vector representing lower and upper bounds for a Monte Carlo
-#'         confidence interval for the given MIXDER at the given dosages.
+#' @return Named list representing lower and upper bounds for a Monte Carlo
+#'         confidence interval for a MIXDER over an interval of dosages.
 #'         
 #' @examples
 #' ratios <- c(1/2, 1/2)
@@ -40,7 +40,8 @@ library(mvtnorm) # Sampling
 #' simulate_monte_carlo(200, 0:100, LET_vals, ratios)
 
 simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE", 
-                                 vcov = TRUE, seed = 100) {
+                                 vcov = TRUE, seed = 100, 
+                                 interval_length = 0.95) {
   # Set the pseudorandom seed
   set.seed(seed)
   # Generate N randomly generated samples of parameters of HZE model.
@@ -48,8 +49,8 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
   monte_carlo_ci <- matrix(nrow = 2, ncol = length(dose))
   
   # Calculate CI for each dose point
-  for (i in 1 : length(dose)) { #EGH: Possible vectorization opportunity
-    monte_carlo_ci[, i] <- .generate_ci(n, i, curve_list)
+  for (i in 1 : length(dose)) { # EGH: Possible vectorization opportunity
+    monte_carlo_ci[, i] <- .generate_ci(n, i, curve_list, interval_length)
   }
   return(list(monte_carlo = monte_carlo_ci))
 }
@@ -67,9 +68,9 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
 #' @param ratios Numeric vector of dose proportions applied on component IDERs.
 #' @param model String value corresponding to the model to be used.
 #' @param vcov Boolean for assessing inter-parameter correlation. 
-#' @param nte_model The input HIN model
-#' @param te_model The input HIT model
-#' @param low_model The input LOW model
+#' @param nte_model The input HZE nontargeted + targeted effects model
+#' @param te_model The input HZE targeted effects only model
+#' @param low_model The input low LET model
 #'          
 #' @return Numeric vector of sample MIXDERs evaluated at the given dosages. 
 
@@ -92,9 +93,7 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
                       summary(ion_model)$coefficients[, "Std. Error"])
   }
   curve_list <- list(0)
-  
-  for (i in 1:n) { # EGH: Possible vectorization opportunity. Next block
-                   #      constitutes the bulk of the Monte Carlo runtime.
+  for (i in 1:n) {
     if (model == "NTE") {
       curve_list[[i]] <- calculate_id(dose, LET, ratios, 
                                       coef = list(NTE = samples[i, ],
@@ -106,8 +105,8 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
                                       lowLET = low_LET_samples[i]),
                                       model = "TE", lowLET = TRUE)
     }
-    cat(paste("  Currently at Monte Carlo step:", toString(i), 
-              "of", toString(n)), sprintf('\r'))
+    cat(paste("  Currently at Monte Carlo step:", toString(i), "of", 
+              toString(n)), sprintf('\r'))
   }
   return(curve_list)
 }
@@ -124,7 +123,7 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
 #' @return Numeric length-two vector of an upper and lower bound for the 
 #'         confidence interval of a dosage.
 
-.generate_ci <- function(n, dose_index, sample_curves, interval_length = 0.95) {
+.generate_ci <- function(n, dose_index, sample_curves, interval_length) {
   # For each sample curve, evalute them at input dose, and sort.
   sample_values <- sort(sapply(sample_curves, function(x) x[, 2][dose_index]))
   # Returning resulting CI
