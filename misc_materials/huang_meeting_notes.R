@@ -129,3 +129,13 @@
 ## Consider changing "corr" in monteCarlo.R to respect_corr or something equivalent try "vcov" - DONE
 ## look at URAP.CA monte carlo in "Graphs" 
 
+## 042718 SACHS & HUANG 918 EVANS 
+## Add summary call to line 54 of plots.R. This would be on the low LET model coefficient
+## Change calib_ in DER names to calibrated_ - DONE
+## See if I can find any examples of (dose, ratios, LET, ...) in function headers - DONE
+## All Fe56 600 MeV/u LET values at 195 need to go back to 193 - DONE
+## Use yellow for vcov confidence interval (inside one) 
+## Use aquamarine (aquamarine2), lightblue, for outside non-vcov confidence interval
+## Look into getting Illustrator
+## Look into getting mathtype onto linux
+
