@@ -7,7 +7,7 @@ Data and script for analyzing ionizing radiation tumorigenesis outside low-earth
 
 #### `NASAmouseHG`
 The main directory. Houses our primary R scripts for analysis, licensing information, git integration, and important subfolders.
-The primary scripts, in order of development, are: `hgData.R`, `synergyTheory.R`, `monteCarlo.R`, and `plots.R`.
+The primary scripts, in order of development, are: `dataAndInfo.R`, `synergyTheory.R`, `monteCarlo.R`, and `plots.R`.
 
 #### `data`
 Data files, strictly in CSV format. 
