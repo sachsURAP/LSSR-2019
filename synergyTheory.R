@@ -20,8 +20,8 @@ library(deSolve) # Solving differential equations
 
 #========================= MISC. OBJECTS & VARIABLES ==========================#
 # In next line phi controls how fast NTE build up from zero; not really needed 
-# during calibration since phi * Dose >> 1 at every observed Dose !=0. 
-# phi needed for later synergy calculations.
+# during calibration since phi * Dose >> 1 at every observed Dose !=0. phi is
+# needed for later synergy calculations. d_0=1/phi=5x10-4 cGy= 5x10^-6Gy.
 
 phi <- 2000 # even larger phi should give the same final results, 
             # but might cause extra problems with R. 
@@ -48,7 +48,7 @@ HZE_nte_model <- nls( # Calibrating parameters in a model that modifies the haza
   start = list(aa1 = .00009, aa2 = .001, kk1 = .06)) # Use extra argument trace=TRUE if you want to watch convergence. 
 
 summary(HZE_nte_model, correlation = TRUE) # Parameter values & accuracy
-vcov(HZE_nte_model) # Variance-covariance matrix RKSB
+vcov(HZE_nte_model) # Variance-covariance matrix
 HZE_nte_model_coef <- coef(HZE_nte_model) # Calibrated central values of the 3 parameters. 
 
 # The IDER, = 0 at dose 0
@@ -73,7 +73,7 @@ HZE_te_model <- nls( # Calibrating parameters in a TE only model.
   start = list(aate1 = .00009, aate2 = .01))
 
 summary(HZE_te_model, correlation = TRUE) # Parameter values & accuracy
-vcov(HZE_te_model) # Variance-covariance matrix RKSB
+vcov(HZE_te_model) # Variance-covariance matrix
 HZE_te_model_coef <- coef(HZE_te_model) #  Calibrated central values of the 2 parameters. 
 
 # The IDER, = 0 at dose 0
