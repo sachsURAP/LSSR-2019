@@ -1,7 +1,7 @@
 # Copyright:    (C) 2017-2018 Sachs Undergraduate Research Apprentice Program
 #               This program and its accompanying materials are distributed 
 #               under the terms of the GNU General Public License v3.
-# Filename:     hgData.R 
+# Filename:     dataAndInfo.R 
 # Purpose:      Concerns radiogenic mouse Harderian gland tumorigenesis. Loads 
 #               ion and tumor prevalence data from CSV files. It is part of the 
 #               source code for the NASAmouseHG project.
