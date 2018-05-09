@@ -47,7 +47,8 @@ HZE_nte_model <- nls( # Calibrating parameters in a model that modifies the haza
   weights = NWeight,
   start = list(aa1 = .00009, aa2 = .001, kk1 = .06)) # Use extra argument trace=TRUE if you want to watch convergence. 
 
-summary(HZE_nte_model, correlation = TRUE) # Parameter values & accuracy
+summary(HZE_nte_model, correlation = TRUE) # Parameter values & accuracy.
+#If a paper uses dose in Gy some care is required in the preceding and following lines to rescale from cGy
 vcov(HZE_nte_model) # Variance-covariance matrix
 HZE_nte_model_coef <- coef(HZE_nte_model) # Calibrated central values of the 3 parameters. 
 
