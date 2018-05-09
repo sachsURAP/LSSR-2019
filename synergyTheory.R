@@ -89,17 +89,17 @@ calibrated_HZE_te_der <- function(dose, LET, coef = HZE_te_model_coef) {
 #==== LIGHT ION, LOW Z (<= 3), LOW LET MODEL ===#
 low_LET_data = ion_data[1:12, ] # Swift protons and alpha particles
 low_LET_model <- nls(
-  Prev~ .0275 + 1 - exp( - bet * dose),
+  Prev~ .0275 + 1 - exp( - alpha_low * dose), #alpha is used throughout radioiology for dose coefficients
   data = low_LET_data,
   weights = NWeight,
-  start = list(bet = .005))
+  start = list(alpha_low = .005))
 
 summary(low_LET_model, correlation = TRUE)
 low_LET_model_coef <- coef(low_LET_model) # Calibrated central values of the parameter
 
 # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small
-calibrated_low_LET_der <- function(dose, LET, beta = low_LET_model_coef[1]) {  
-  return(1 - exp( - beta * dose))
+calibrated_low_LET_der <- function(dose, LET, alph_low= low_LET_model_coef[1]) {  
+  return(1 - exp( - alph_low * dose))
 }  
 
 # Slope dE/dd of the low LET, low Z model; looking at the next plot() it seems fine
@@ -223,7 +223,7 @@ calculate_id <- function(dose, LET, ratios, lowLET = FALSE, model = "NTE",
       if (lowLET == TRUE) { 
         # If low-LET IDER is present then include it at the end of the dI vector
         u[length(LET) + 1] <- uniroot(function(dose) low_der(dose, LET = LET, 
-                                      beta = coef[["lowLET"]]) - I, 
+                                      alph_low = coef[["lowLET"]]) - I, 
                                       interval = c(0, 20000), 
                                       extendInt = "yes", 
                                       tol = 10 ^ - 10)$root
