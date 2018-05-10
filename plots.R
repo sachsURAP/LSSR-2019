@@ -163,6 +163,7 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 # Fig. 3.2.2 
 # h1, 0.4, 80%
 # L=c(40, 110, 180, 250), proportions (5,5,5,5)%
+forty_cGy = c(.001*0:9, .01*1:9, .1*1:9, 1:41) # RKS this plot needed more detail near dose zero
 plot(x = forty_cGy, y = calculate_SEA(forty_cGy, c(0.4, 40, 110, 180, 250), c(.8, rep(.05,4)), lowLET = TRUE), 
      type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2)
 
@@ -178,35 +179,10 @@ legend(x = "topleft", legend = c("Low-LET","L=40", "L=110", "L=180", "L=250",
        col = c("orange", "green","purple","blue", "aquamarine2", "red", "black"), 
        lwd = c(2, 2, 2, 2, 2, 3, 2), 
        lty = c(1, 1, 1, 1,  1, 1, 2), cex = 0.3, inset = 0.025)
+forty_cGy=0:41  # RKS: replaced above more detailed forty_cGy with its former valued in case that is needed below
 
-
-# h1, 0.4, 60
-# he4, 1.6, 20
-# o16, 25, 10
-# si28, 70, 2.5
-# ti28, 100, 2.5
-# fe56, 193, 5
-plot(x = forty_nine_cGy, y = calculate_SEA(forty_nine_cGy, c(0.4, 1.6, 25, 70, 100, 193), c(.6, .2, .1, .025, .025, .05), lowLET = TRUE), 
-     type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l', col = "black", lwd = 2, lty = 2, xaxs = "i")
-
-lines(x = forty_nine_cGy, y = calibrated_low_LET_der(dose = forty_nine_cGy, L = 0.4), col = "orange", lwd = 2)
-lines(x = forty_nine_cGy, y = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 1.6), col = "yellow", lwd = 2)
-lines(x = forty_nine_cGy, y = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 25), col = "green", lwd = 2)
-lines(x = forty_nine_cGy, y = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 70), col = "blue", lwd = 2)
-lines(x = forty_nine_cGy, y = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 100), col = "purple", lwd = 2)
-lines(x = forty_nine_cGy, y = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 193), col = "violet", lwd = 2)
-
-lines(x = forty_nine_cGy, y = calculate_id(forty_nine_cGy, c(0.4, 1.6, 25, 70, 100, 193), 
-                                           c(.6, .2, .1, .025, .025, .5), model = "NTE", lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
-abline(v = 49, lwd = 1)
-legend(x = "topleft", legend = c("H1 Low-LET NTE-TE IDER", "He4 Low-LET NTE-TE IDER", "O16 NTE-TE IDER", 
-                               "Si28 NTE-TE IDER", "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
-                               "IEA MIXDER (Equally Distributed)", "SEA MIXDER (Equally Distributed)"),
-       col = c("orange", "yellow", "green", "blue", "purple", "violet", "red", "black"), 
-       lwd = c(2, 2, 2, 2, 2, 2, 2, 2), 
-       lty = c(1, 1, 1, 1, 1, 1, 1, 2), cex = 0.2, inset = 0.025)
-
-
+# RKS 5/9/18. I took out an entire incorrect plot here. The problem was having 2 different low_LET components. 
+# The script incorrectly interprets the second low LET component as having non-zero NTE effects.
 
 # 8-panel plot: 7 HZE IDERS, one low-LET HZE IDER in bottom right
 par(mfrow = c(2, 4))
