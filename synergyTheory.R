@@ -20,8 +20,8 @@ library(deSolve) # Solving differential equations
 
 #========================= MISC. OBJECTS & VARIABLES ==========================#
 # In next line phi controls how fast NTE build up from zero; not really needed 
-# during calibration since phi * Dose >> 1 at every observed Dose !=0. 
-# phi needed for later synergy calculations.
+# during calibration since phi * Dose >> 1 at every observed Dose !=0. phi is
+# needed for later synergy calculations. d_0=1/phi=5x10-4 cGy= 5x10^-6Gy.
 
 phi <- 2000 # even larger phi should give the same final results, 
             # but might cause extra problems with R. 
@@ -47,8 +47,9 @@ HZE_nte_model <- nls( # Calibrating parameters in a model that modifies the haza
   weights = NWeight,
   start = list(aa1 = .00009, aa2 = .001, kk1 = .06)) # Use extra argument trace=TRUE if you want to watch convergence. 
 
-summary(HZE_nte_model, correlation = TRUE) # Parameter values & accuracy
-vcov(HZE_nte_model) # Variance-covariance matrix RKSB
+summary(HZE_nte_model, correlation = TRUE) # Parameter values & accuracy.
+#If a paper uses dose in Gy some care is required in the preceding and following lines to rescale from cGy
+vcov(HZE_nte_model) # Variance-covariance matrix
 HZE_nte_model_coef <- coef(HZE_nte_model) # Calibrated central values of the 3 parameters. 
 
 # The IDER, = 0 at dose 0
@@ -73,7 +74,7 @@ HZE_te_model <- nls( # Calibrating parameters in a TE only model.
   start = list(aate1 = .00009, aate2 = .01))
 
 summary(HZE_te_model, correlation = TRUE) # Parameter values & accuracy
-vcov(HZE_te_model) # Variance-covariance matrix RKSB
+vcov(HZE_te_model) # Variance-covariance matrix
 HZE_te_model_coef <- coef(HZE_te_model) #  Calibrated central values of the 2 parameters. 
 
 # The IDER, = 0 at dose 0
@@ -89,17 +90,17 @@ calibrated_HZE_te_der <- function(dose, LET, coef = HZE_te_model_coef) {
 #==== LIGHT ION, LOW Z (<= 3), LOW LET MODEL ===#
 low_LET_data = ion_data[1:12, ] # Swift protons and alpha particles
 low_LET_model <- nls(
-  Prev~ .0275 + 1 - exp( - bet * dose),
+  Prev~ .0275 + 1 - exp( - alpha_low * dose), #alpha is used throughout radioiology for dose coefficients
   data = low_LET_data,
   weights = NWeight,
-  start = list(bet = .005))
+  start = list(alpha_low = .005))
 
 summary(low_LET_model, correlation = TRUE)
 low_LET_model_coef <- coef(low_LET_model) # Calibrated central values of the parameter
 
 # Calibrated Low LET model. Use L=0, but maybe later will use L > 0 but small
-calibrated_low_LET_der <- function(dose, LET, beta = low_LET_model_coef[1]) {  
-  return(1 - exp( - beta * dose))
+calibrated_low_LET_der <- function(dose, LET, alph_low= low_LET_model_coef[1]) {  
+  return(1 - exp( - alph_low * dose))
 }  
 
 # Slope dE/dd of the low LET, low Z model; looking at the next plot() it seems fine
@@ -223,7 +224,7 @@ calculate_id <- function(dose, LET, ratios, lowLET = FALSE, model = "NTE",
       if (lowLET == TRUE) { 
         # If low-LET IDER is present then include it at the end of the dI vector
         u[length(LET) + 1] <- uniroot(function(dose) low_der(dose, LET = LET, 
-                                      beta = coef[["lowLET"]]) - I, 
+                                      alph_low = coef[["lowLET"]]) - I, 
                                       interval = c(0, 20000), 
                                       extendInt = "yes", 
                                       tol = 10 ^ - 10)$root
