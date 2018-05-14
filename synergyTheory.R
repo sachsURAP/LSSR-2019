@@ -137,7 +137,7 @@ print(info_crit_table)
 #' @param dose Numeric vector corresponding to the sum dose in cGy.
 #' @param LET Numeric vector of all LET values, must be length n.
 #' @param ratios Numeric vector of all dose ratios, must be length n.
-#' @param lowLET Boolean of whether an LET IDER should be included in the MIXDER
+#' @param lowLET Boolean of whether a LET IDER should be included in the MIXDER.
 #' @param n Number of IDERs, optional argument used to check parameter validity.
 #' 
 #' @details Corresponding elements of ratios, LET should be associated with the
@@ -179,7 +179,7 @@ calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
 #' @param dose Numeric vector corresponding to the sum dose in cGy.
 #' @param LET Numeric vector of all LET values, must be length n.
 #' @param ratios Numeric vector of all dose ratios, must be length n.
-#' @param lowLET Boolean of whether an LET IDER should be included in the MIXDER.
+#' @param lowLET Boolean of whether a LET IDER should be included in the MIXDER.
 #' @param model String value corresponding to the model to be used, either 
 #'              "NTE" or "TE". 
 #' @param coef Named list of numeric vectors containing coefficients for IDERs.
@@ -197,7 +197,7 @@ calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
 #'         
 #' @examples
 #' calculate_id(.01 * 0:40, c(70, 195), c(1/2, 1/2))
-#' calculate_id(.01 * 0:70, c(0.4, 195), c(4/7, 3/7), lowLET = TRUE, model = "TE")
+#' calculate_id(.01 * 0:70, c(.4, 195), c(4/7, 3/7), lowLET = T, model = "TE")
 
 calculate_id <- function(dose, LET, ratios, lowLET = FALSE, model = "NTE",
                                  coef = list(NTE = HZE_nte_model_coef, 

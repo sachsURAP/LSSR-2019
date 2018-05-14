@@ -25,9 +25,10 @@ library(mvtnorm) # Sampling
 #' @param LET Numeric vector of all LET values, must be length n.
 #' @param ratios Numeric vector of dose proportions applied on component IDERs.
 #' @param model String value corresponding to the model to be used. 
-#' @param seed Numeric value for pseudorandom generators.
 #' @param vcov Boolean for assessing inter-parameter correlation.
-#'             
+#' @param interval_length Numeric double of the confidence interval width.
+#' @param seed Numeric value for pseudorandom generators.
+           
 #' @details Corresponding elements of ratios, LET should be associated with the
 #'          same IDER.
 #'          
@@ -40,8 +41,8 @@ library(mvtnorm) # Sampling
 #' simulate_monte_carlo(200, 0:100, LET_vals, ratios)
 
 simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE", 
-                                 vcov = TRUE, seed = 100, 
-                                 interval_length = 0.95) {
+                                 vcov = TRUE, interval_length = 0.95,
+                                 seed = 100) {
   # Set the pseudorandom seed
   set.seed(seed)
   # Generate N randomly generated samples of parameters of HZE model.
@@ -68,9 +69,9 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
 #' @param ratios Numeric vector of dose proportions applied on component IDERs.
 #' @param model String value corresponding to the model to be used.
 #' @param vcov Boolean for assessing inter-parameter correlation. 
-#' @param nte_model The input HZE nontargeted + targeted effects model
-#' @param te_model The input HZE targeted effects only model
-#' @param low_model The input low LET model
+#' @param nte_model The input HZE nontargeted and targeted effects model.
+#' @param te_model The input HZE targeted effects only model.
+#' @param low_model The input low LET model.
 #'          
 #' @return Numeric vector of sample MIXDERs evaluated at the given dosages. 
 
@@ -116,9 +117,9 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
 #' @description Generates confidence intervals for MIXDER samples at a dosage.
 #'              
 #' @param n Numeric integer of the number of samples to be drawn.
-#' @param interval_length Numeric double of the confidence interval width.
 #' @param dose_index Numeric integer of dosage.
 #' @param sample_curves Numeric list of sampled MIXDER values.
+#' @param interval_length Numeric double of the confidence interval width.
 #' 
 #' @return Numeric length-two vector of an upper and lower bound for the 
 #'         confidence interval of a dosage.
