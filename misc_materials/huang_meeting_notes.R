@@ -72,7 +72,7 @@
 ## write Ray an email reminder to ask Yimin to refactor his Monte Carlo code from Feb. - DONE
 ## ask Yimin to refactor his Monte Carlo code  - NOTED
 ## error bars for the 8panel, 2 * standard deviation or 95% confidence intervals - NOTED
-## a. maybe try using a binomial or poisson model on the data - NOTEDs
+## a. maybe try using a binomial or poisson model on the data - NOTED
 ## get n x n normalized correlation matrix from vcov() matrix  - DONE
 ## potential big project: refactor Andy's CA code with Peter 
 ## error bars for plots - NOTED
@@ -138,4 +138,12 @@
 ## Use aquamarine (aquamarine2), lightblue, for outside non-vcov confidence interval
 ## Look into getting Illustrator
 ## Look into getting mathtype onto linux
+
+## 050418 SACHS & HUANG STRADA CAFE
+## Ray will try using LaTeX and Illustrator - NOTED
+## Edward will complete past open assignments
+## Iff Claire is interested in EvoLab then Edward will connect her with current
+## lab members. - NOTED
+
+
 

@@ -7,15 +7,15 @@
 #               source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  26 Apr 2018
+# Mod history:  14 May 2018
 # Details:      See hgData.R for further licensing, attribution, references, 
 #               and abbreviation information.
 
-source("monteCarlo.R") #  load Monte Carlo
+source("monteCarlo.R") #  Load Monte Carlo
 
-library(ggplot2) # ribbon plot functionality
-library(grid)  # plot grids
-library(Hmisc) # error bars
+library(ggplot2) # Ribbon plot functionality
+library(grid)  # Plot grids
+library(Hmisc) # Error bars
 
 forty_cGy <- 0:41 
 sixty_cGy <- 0:61
