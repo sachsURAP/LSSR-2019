@@ -26,34 +26,48 @@ forty_nine_cGy <- 0:50
 #===============================================================================
 #=== Shape of DER for Fe 600 MeV/u. Paper Fig. 3 (was Fig. 2.2.4.1)  4/23/18 ===
 #===============================================================================
-d =0.01*0:16000 # RKD to EGH. dose notation inconsistent with the above forty_cGy etc.
+d <- 0.01 * 0:16000 # RKD to EGH. dose notation inconsistent with the above forty_cGy etc.
 # RKS to EGH. Ideally, the next three plots would align horizontally as panels 
 # A, B, and C, about 4" total width with room for ~12 point annotations. 
 # However, I will in any case do a lot of fine tuning in Illustrator so even 
 # just the right curve shapes panels of almost equal height, and the legend 
 # shown are about good enough.
-prevalence = calibrated_HZE_nte_der(d,193) # RKS to EGH. I suggest changing the name
+prevalence <- calibrated_HZE_nte_der(d, 193) # RKS to EGH. I suggest changing the name
 #of this function to "calibrated_HZE_nte_der and similarly for other functions. # EGH 26 Apr: Done. ADDRESSED
-plot(d,prevalence,type='l', bty='u')
-legend(x = "bottomright", legend = "dose in centiGy; Fe 193 zoom in twice", cex = 0.6, inset = 0.025)
-d=2*10^-6*0:16000
-prevalence=calibrated_HZE_nte_der(d,193)
-plot(d,prevalence,type='l', bty='u')
-d=10^-7*0:16000
-prevalence=calibrated_HZE_nte_der(d,193)
-plot(d,prevalence,type='l', bty='u')
+plot(d, prevalence, type = 'l', bty = 'u')
+legend(x = "bottomright", 
+       legend = "dose in centiGy; Fe 193 zoom in twice",
+       cex = 0.6, inset = 0.025)
+d <- 2 * 10^-6 * 0:16000
+prevalence <- calibrated_HZE_nte_der(d, 193)
+plot(d, prevalence, type = 'l', bty='u')
+d <- 10^-7 * 0:16000
+prevalence <- calibrated_HZE_nte_der(d, 193)
+plot(d, prevalence, type = 'l', bty = 'u')
 
 #===============================================================================
 #== Low LET data, error bars, and DER. Paper Fig. 5 (was Fig. 3.1.1)  4/22/18 ==
 #===============================================================================
 # RKS to EGH. The following plot needs to be relocated further down but I'm not yet sure exactly where
-errbar(ion_data[9:12, "dose"], ion_data[9:12, "Prev"],yplus=ion_data[9:12, "Prev"]+1.96*ion_data[9:12, "SD"], 
-  yminus=ion_data[9:12, "Prev"]-1.96*ion_data[9:12, "SD"], pch=19,cap=0.02,xlim=c(0,700), 
-  ylim=c(0,1), bty='l',col='red', errbar.col = 'red', ann=FALSE) #  RKS: proton data points
-errbar(ion_data[1:8, "dose"], ion_data[1:8, "Prev"],yplus=ion_data[1:8, "Prev"]+1.96*ion_data[1:8, "SD"],yminus=ion_data[1:8, "Prev"]-1.96*ion_data[1:8, "SD"], pch = 19,cap=0.02, add=TRUE) #  RKS: Helium data points
-ddose=0:700 # RKS to EGH: This line and the next need work but do function  # EGH 26 Apr: Ok. ADDRESSED
-lines(ddose, 1-exp(-0.00153*ddose)) # RKS to EGH of course 0.00153 is actually from a summary()
-legend(x = "topleft", legend = c("protons","4He"), col = c("red", "black"), pch = c(19,19), cex = 1, inset = 0.025)
+errbar(ion_data[9:12, "dose"], 
+       ion_data[9:12, "Prev"], 
+       yplus = ion_data[9:12, "Prev"] + 1.96 * ion_data[9:12, "SD"], 
+       yminus = ion_data[9:12, "Prev"] - 1.96 * ion_data[9:12, "SD"], 
+       pch = 19, cap = 0.02, 
+       xlim = c(0,700), 
+       ylim = c(0,1), 
+       bty = 'l', col = 'red', errbar.col = 'red', ann = FALSE) #  RKS: proton data points
+errbar(ion_data[1:8, "dose"], 
+       ion_data[1:8, "Prev"], 
+       yplus = ion_data[1:8, "Prev"] + 1.96 * ion_data[1:8, "SD"],
+       yminus = ion_data[1:8, "Prev"] - 1.96 * ion_data[1:8, "SD"], 
+       pch = 19,cap = 0.02, add = TRUE) #  RKS: Helium data points
+ddose <- 0:700 # RKS to EGH: This line and the next need work but do function  # EGH 26 Apr: Ok. ADDRESSED
+# lines(ddose, 1 - exp(-0.00153 * ddose)) # RKS to EGH of course 0.00153 is actually from a summary()
+lines(ddose, 1 - exp(-coef(summary(low_LET_model, correlation = TRUE))[1] * ddose)) # Replacement for preceeding line # EGH to RKS please verify accuracy
+legend(x = "topleft", 
+       legend = c("protons","4He"), 
+       col = c("red", "black"), pch = c(19,19), cex = 1, inset = 0.025)
 # RKS to EGH. Please let me know if editing just by insert a chunk as above + comments is OK. # EGH 26 Apr: Very ok. ADDRESSED
 
 #======================== PLOTS  ==========================#
@@ -66,7 +80,7 @@ r <- c(.2, .8) #Proportions. Next plot IDERs and MIXDER.
 plot(x = d, y = calibrated_HZE_nte_der(dose = d, L = 193), type = "l", xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) 
 lines(x = d, y = calibrated_low_LET_der(d, 0), col = 'orange', lwd = 2) 
 lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
-lines(x=d, y=calibrated_HZE_nte_der(dose = .2 * d, L = 193) + calibrated_low_LET_der(.8 * d, 0), lty= 3) # SEA S(d)
+lines(x = d, y = calibrated_HZE_nte_der(dose = .2 * d, L = 193) + calibrated_low_LET_der(.8 * d, 0), lty= 3) # SEA S(d)
 
 
 # Plot 2 : one HZE one low-LET; NTE & TE rather than TE-only always in minor paper
@@ -75,7 +89,7 @@ r <- c(.8, .2) # Proportions. Next plot IDERs and MIXDER.
 plot(x = d, y = calibrated_HZE_nte_der(dose = d, L = 193), type = "l", xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) 
 lines(x = d, y = calibrated_low_LET_der(d, 0), col = 'orange', lwd = 2) 
 lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
-lines(x=d, y=calibrated_HZE_nte_der(dose = .8 * d, L = 193)+calibrated_low_LET_der(.2 *d, 0), lty= 3) # SEA S(d)
+lines(x = d, y = calibrated_HZE_nte_der(dose = .8 * d, L = 193)+calibrated_low_LET_der(.2 *d, 0), lty= 3) # SEA S(d)
 
 # Plot 3: four HZE; NTE
 dose_vector <- c(0:100)
@@ -241,7 +255,7 @@ ci_plot <- ggplot(data = ci_data, aes = fill) +
       theme_bw() +
       theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
       labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
-      geom_ribbon(aes(dose, ymin = monteCarloBottom, ymax = monteCarloTop, fill = "pink"), alpha = 0.8) +
+      geom_ribbon(aes(dose, ymin = monteCarloBottom, ymax = monteCarloTop), fill = "aquamarine2", alpha = 0.8) +
       scale_fill_discrete(name="Type",
                           breaks=c("pink"),
                           labels=c("Monte Carlo")) +
@@ -292,21 +306,21 @@ ci_plot <- ggplot(data = ci_data, aes = fill) +
   labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
   
   #  Ribbon plot of both confidence intervals
-  geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop, fill = "blue"), alpha = 1) + #  Uncorrelated in pink
-  geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop, fill = "pink"), alpha = .7) + #  Correlated in dull blue
+  geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop), fill = "aquamarine2", alpha = 1) + #  Uncorrelated in pink
+  geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop), fill = "yellow", alpha = .7) + #  Correlated in dull blue
   
   # scale_fill_discrete(name="Type",
                       # breaks=c("pink", "blue"),
                       # labels=c("Correlated Monte Carlo", "Uncorrelated Monte Carlo")) +
   
   #  DER plots
-  geom_line(aes(dose, y = ne), col = "yellow", size = 1) + #  neon in yellow
+  geom_line(aes(dose, y = ne), col = "blue", size = 1) + #  neon in yellow
   geom_line(aes(dose, y = si),  col = "orange", size = 1) + #  silicon in orange
   geom_line(aes(dose, y = ti),  col = "green", size = 2) + # titanium in green
   geom_line(aes(dose, y = fe_six),  col = "purple", size = 1) + #  iron 600 in purple
   geom_line(aes(dose, y = fe_three),  col = "violet", size = 1) + #  iron 300 in violet
   geom_line(aes(dose, y = nb),  col = "darkcyan", size = 1) + #  niobium in dark cyan 
-  geom_line(aes(dose, y = la),  col = "black", size = 1) + #  lanthanum in black 
+  geom_line(aes(dose, y = la),  col = "darkorange", size = 1) + #  lanthanum in black 
   
   # I(d) plot
   geom_line(aes(dose, y = i), col = "red", size = 1) #  I(d) in red
@@ -349,16 +363,16 @@ ci_plot <- ggplot(data = ci_data, aes = fill) +
   labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
   
   #  Ribbon plot of both confidence intervals
-  geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop, fill = "blue"), alpha = 1) +  #  Uncorrelated in pink
-  geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop, fill = "pink"), alpha = .7) + #  Correlated in dull blue
+  geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop), fill = "aquamarine2", alpha = 1) +  #  Uncorrelated in pink
+  geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop), fill = "yellow", alpha = .7) + #  Correlated in dull blue
   
   # scale_fill_discrete(name="Type",
   # breaks=c("pink", "blue"),
   # labels=c("Correlated Monte Carlo", "Uncorrelated Monte Carlo")) +
   
   # DER plots
-  geom_line(aes(dose, y = si),  col = "green", size = 1) + #  iron in green
-  geom_line(aes(dose, y = fe_six),  col = "darkgreen", size = 1) + #  silicon in dark green
+  geom_line(aes(dose, y = si),  col = "orange", size = 1) + #  iron in green
+  geom_line(aes(dose, y = fe_six),  col = "darkblue", size = 1) + #  silicon in dark green
   
   # I(d) plot
   geom_line(aes(dose, y = i), col = "red", size = 1) #  I(d) in red
