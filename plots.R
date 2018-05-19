@@ -53,18 +53,18 @@ errbar(ion_data[1:4, "dose"], ion_data[1:4, "Prev"],yplus=ion_data[1:4, "Prev"]+
   ylim=c(0,1), bty='l',col='red', errbar.col = 'red', ann=FALSE) #  RKS: proton data points
 errbar(ion_data[5:12, "dose"], ion_data[5:12, "Prev"],yplus=ion_data[5:12, "Prev"]+1.96*ion_data[5:12, "SD"],yminus=ion_data[5:12, "Prev"]-1.96*ion_data[5:12, "SD"], pch = 19,cap=0.02, add=TRUE) #  RKS: Helium data points
 ddose=0:700 # RKS to EGH: This line and the next need work but do function  # EGH 26 Apr: Ok. ADDRESSED
-lines(ddose, 1-exp(-0.00153*ddose)) # RKS to EGH of course 0.00153 is actually from a summary()
+lines(ddose, 1-exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*ddose)) # RKS to EGH of course 0.00153 is actually from a summary()
 legend(x = "topleft", legend = c("protons","4He"), col = c("red", "black"), pch = c(19,19), cex = 1, inset = 0.025)
 
 ddose=0:82 # RKS to EGH: This line and the next need work but do function  # EGH 26 Apr: Ok. ADDRESSED
-plot(ddose, 1-exp(-0.00153*ddose), type='l',lwd=2, ann=FALSE, xlim=c(0,80),ylim=c(-.02,.35), bty='u')
+plot(ddose, 1-exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*ddose), type='l',lwd=2, ann=FALSE, xlim=c(0,80),ylim=c(-.02,.35), bty='u')
 errbar(ion_data[1:2, "dose"], ion_data[1:2, "Prev"],yplus=ion_data[1:2, "Prev"]+1.96*ion_data[1:2, "SD"],yminus=ion_data[1:2, "Prev"]-1.96*ion_data[1:2, "SD"], pch = 19,cap=0.05, add=TRUE, col='orange',errbar.col = 'orange', ann=FALSE, xlim=c(0,80),ylim=c(-.02,.35),lwd=2, bty='u') #  RKS: proton data points
 errbar(ion_data[5:7, "dose"], ion_data[5:7, "Prev"],yplus=ion_data[5:7, "Prev"]+1.96*ion_data[5:7, "SD"],yminus=ion_data[5:7, "Prev"]-1.96*ion_data[5:7, "SD"], pch = 19,cap=0.05, add=TRUE, col='black',errbar.col = 'black', ann=FALSE, lwd=2) #alpha particles
 errbar(60, .081,yplus=.081+.09,yminus=.081-.09, pch = 19,cap=0.05, add=TRUE, col='red',errbar.col = 'red', ann=FALSE, lwd=2)
 
 ddose=0:82 # RKS to EGH: This line and the next need work but do function  # EGH 26 Apr: Ok. ADDRESSED
-lines(ddose, 1-exp(-0.00153*ddose), lwd=2) # RKS to EGH of course 0.00153 is actually from a summary()
-lines(ddose, 1 - exp(-coef(summary(low_LET_model, correlation = TRUE))[1] * ddose)) # Replacement for preceeding line # EGH to RKS please verify accuracy
+lines(ddose, 1 - exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*ddose), lwd=2) # RKS to EGH of course 0.00153 is actually from a summary()
+#lines(ddose,1 - exp(-coef(summary(low_LET_model, correlation = TRUE))[1] * ddose)) # Replacement for preceeding line # EGH to RKS please verify accuracy
 #RKS to EGH 5/19/18 I checked that coef(summary(low_LET_model, correlation = TRUE))[1] is .00153 but did  not yet rerun monte_carlo.R
 #======================== PLOTS  ==========================#
 # Plot 1 : one HZE one low-LET; RKS->EH: always NTE & TE rather than TE-only in 
