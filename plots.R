@@ -294,7 +294,7 @@ ci_data <- data.frame(dose = hundred_cGy,
                       
                       #  I(d)
                       i = calculate_id(hundred_cGy, LET_vals, ratios,
-                                       model = "NTE", lowLET = TRUE)[, 2])
+                                       model = "NTE", lowLET = FALSE)[, 2])
 #  Plotting call
 ci_plot <- ggplot(data = ci_data, aes = fill) +
   theme_bw() +
