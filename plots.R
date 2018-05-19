@@ -65,7 +65,7 @@ errbar(60, .081,yplus=.081+.09,yminus=.081-.09, pch = 19,cap=0.05, add=TRUE, col
 ddose=0:82 # RKS to EGH: This line and the next need work but do function  # EGH 26 Apr: Ok. ADDRESSED
 lines(ddose, 1-exp(-0.00153*ddose), lwd=2) # RKS to EGH of course 0.00153 is actually from a summary()
 lines(ddose, 1 - exp(-coef(summary(low_LET_model, correlation = TRUE))[1] * ddose)) # Replacement for preceeding line # EGH to RKS please verify accuracy
-
+#RKS to EGH 5/19/18 I checked that coef(summary(low_LET_model, correlation = TRUE))[1] is .00153 but did  not yet rerun monte_carlo.R
 #======================== PLOTS  ==========================#
 # Plot 1 : one HZE one low-LET; RKS->EH: always NTE & TE rather than TE-only in 
 # minor paper. For plots 1 and 2 I can and will do the key box specifying which 
