@@ -261,40 +261,58 @@ ci_plot
 
 #=============== Correlated vs Uncorrelated CI Overlay Plots ==================#
 
-############### FIGURE 3.2.4 ############# 
-# We use the MIXDER shown as Figure 3.2.4 in MS06. This consists of all seven
+############### FIGURE 11 (was 3.2.4) ############# 
+# We use the MIXDER shown as Figure 9 in MS09. This consists of all seven
 # HZE ions in our dataset, with equally distributed dosage.
 
 #  Declare ratios and LET values for plot
 ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
 LET_vals <- c(25, 70, 100, 193, 250, 464, 953)
 
-#  We begin with the calibrated plot
-calib_ci_3.2.4 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE")
+#  We begin with the correlated plot # RKS correlated not calibrated similar corrections needed often below
+calib_ci_3.2.4 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE") 
+#RKS rename: calibrated goes to correlated and 3.2.4 goes to 11. 
+#  We now calculate the uncorrelated Monte Carlo
+uncorr_ci_3.2.4 <- simulate_monte_carlo(200, forty_nine_cGy, LET_vals, ratios, model = "NTE", vcov = FALSE)
 
-#  We now calculate the uncalibrated Monte Carlo
-uncorr_ci_3.2.4 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE", vcov = FALSE)
-
-#  Construct a data.frame for ease of use with ggplot2
-ci_data <- data.frame(dose = hundred_cGy,
+#  Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
+ci_data <- data.frame(dose = forty_nine_cGy,
                       #  Monte Carlo values
                       corrBottom = calib_ci_3.2.4$monte_carlo[1, ],
-                      corrTop = calib_ci_3.2.4$monte_carlo[2, ],
+                      corrTop = calib_ci_3.2.4$monte_carlo[2, ], # RKS: This is higher than uncorrTop so somewhere the two got mixed up
                       uncorrTop = uncorr_ci_3.2.4$monte_carlo[1, ],
                       uncorrBottom = uncorr_ci_3.2.4$monte_carlo[2, ],
                       
                       #  DER values
-                      ne = calibrated_HZE_nte_der(dose = hundred_cGy, L = 25),
-                      si = calibrated_HZE_nte_der(dose = hundred_cGy, L = 70),
-                      ti = calibrated_HZE_nte_der(dose = hundred_cGy, L = 100),
-                      fe_six = calibrated_HZE_nte_der(dose = hundred_cGy, L = 193),
-                      fe_three = calibrated_HZE_nte_der(dose = hundred_cGy, L = 250),
-                      nb = calibrated_HZE_nte_der(dose = hundred_cGy, L = 464),
-                      la = calibrated_HZE_nte_der(dose = hundred_cGy, L = 953),
+                      ne = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 25),
+                      si = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 70),
+                      ti = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 100),
+                      fe_six = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 193),
+                      fe_three = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 250),
+                      nb = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 464),
+                      la = calibrated_HZE_nte_der(dose = forty_nine_cGy, L = 953),
                       
                       #  I(d)
-                      i = calculate_id(hundred_cGy, LET_vals, ratios,
-                                       model = "NTE", lowLET = FALSE)[, 2])
+                      i = calculate_id(forty_nine_cGy, LET_vals, ratios,
+                                       model = "NTE", lowLET = FALSE)[, 2]) #RKS: lowLET = TRUE would be wrong
+
+#  Plotting call. RKS will use the plot below instead of ggplot2
+plot(ci_data[,"dose"],ci_data[,"fe_three"],col='violet',type = 'l', lwd = 2, bty='u', ann=FALSE) # This IDER is the highest; plot it first
+polygon(x=c(0:101,101:0),y=c(ci_data[,"uncorrTop"],rev(ci_data[,"uncorrBottom"])),xpd=-1,col="aquamarine2",lwd=.2,border="blue") # wide CI
+# RKS: "uncorrTop" must actually be uncorrBottom and vice-versa?
+polygon(x=c(0:101,101:0),y=c(ci_data[,"corrTop"],rev(ci_data[,"corrBottom"])),xpd=-1,col="yellow",lwd=2,border="yellow") # narrow CI
+# RKS solid yellow ribbon hides part of the blue ribbon without opacity commands; the opacity commands are giving me problems
+lines(ci_data[,"dose"],ci_data[,"ne"],col='violet', lwd = 2) #the lowest IDER
+lines(ci_data[,"dose"],ci_data[,"si"],col='violet', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"ti"],col='violet', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"fe_six"],col='violet', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"nb"],col='violet', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"la"],col='violet', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd=3) #
+# RKS: The resulting plot has the slope at the origin too small. This can be corrected by a visual trick.
+# That visual trick will be added later. An alternative is to calculate with many more dose points near 0.
+# Then no trick is needed but the Monte Carlo will be slower.
+
 #  Plotting call
 ci_plot <- ggplot(data = ci_data, aes = fill) +
   theme_bw() +
