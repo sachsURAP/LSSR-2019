@@ -32,8 +32,8 @@ d <- 0.01 * 0:16000 # RKD to EGH. dose notation inconsistent with the above fort
 # However, I will in any case do a lot of fine tuning in Illustrator so even 
 # just the right curve shapes panels of almost equal height, and the legend 
 # shown are about good enough.
-prevalence <- calibrated_HZE_nte_der(d, 193) # RKS to EGH. I suggest changing the name
-#of this function to "calibrated_HZE_nte_der and similarly for other functions. # EGH 26 Apr: Done. ADDRESSED
+prevalence <- calibrated_HZE_nte_der(d, 193) # RKS to EGH: maybe "der" -> "DER" here and all similar places
+#Reasons: matches papers better. Less confusing when derivatives are calculated during and I(d) calculation.
 plot(d, prevalence, type = 'l', bty = 'u')
 legend(x = "bottomright", 
        legend = "dose in centiGy; Fe 193 zoom in twice",
@@ -67,12 +67,12 @@ lines(ddose, 1 - exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*ddose)
 #lines(ddose,1 - exp(-coef(summary(low_LET_model, correlation = TRUE))[1] * ddose)) # Replacement for preceeding line # EGH to RKS please verify accuracy
 #RKS to EGH 5/19/18 I checked that coef(summary(low_LET_model, correlation = TRUE))[1] is .00153 but did  not yet rerun monte_carlo.R
 #======================== PLOTS  ==========================#
-# Plot 1 : one HZE one low-LET; RKS->EH: always NTE & TE rather than TE-only in 
-# minor paper. For plots 1 and 2 I can and will do the key box specifying which 
-# curve is which by hand. When more than 2 ions are involved the key should be 
-# part of the script that generates the figure. # EGH 26 Apr: Noted. ADDRESSED
+# Plot 1 : one HZE one low-LET
+# We will always use NTE & TE rather than TE-only for HZE in the minor paper. 
 d <- 1 * 0:302
 r <- c(.2, .8) #Proportions. Next plot IDERs and MIXDER. 
+# When lowLET=TRUE in a mixture calculation, the low LET ratio must always be the last entry in r.
+#RKS to EGH 5/20/18: can that be made more obvious? It may be done wrong in some plots below. I will check later.
 plot(x = d, y = calibrated_HZE_nte_der(dose = d, L = 193), type = "l", xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) 
 lines(x = d, y = calibrated_low_LET_der(d, 0), col = 'orange', lwd = 2) 
 lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 2) # I(d)
@@ -262,14 +262,14 @@ ci_plot
 #=============== Correlated vs Uncorrelated CI Overlay Plots ==================#
 
 ############### FIGURE 11 (was 3.2.4) ############# 
-# We use the MIXDER shown as Figure 9 in MS09. This consists of all seven
-# HZE ions in our dataset, with equally distributed dosage.
+# We use the MIXDER shown as Figure 9 in MS09. This consists of all seven HZE ions in our dataset, with equally distributed dosage.
 
 #  Declare ratios and LET values for plot
 ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
 LET_vals <- c(25, 70, 100, 193, 250, 464, 953)
 
 #  We begin with the correlated plot # RKS correlated not calibrated similar corrections needed often below
+#RKS to EGH 5/20/18: Please change ggplot2 to agree with my plot version for the minor paper
 calib_ci_3.2.4 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE") 
 #RKS rename: calibrated goes to correlated and 3.2.4 goes to 11. 
 #  We now calculate the uncorrelated Monte Carlo
@@ -309,11 +309,13 @@ lines(ci_data[,"dose"],ci_data[,"fe_six"],col='violet', lwd = 2)
 lines(ci_data[,"dose"],ci_data[,"nb"],col='violet', lwd = 2)
 lines(ci_data[,"dose"],ci_data[,"la"],col='violet', lwd = 2)
 lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd=3) #
-# RKS: The resulting plot has the slope at the origin too small. This can be corrected by a visual trick.
+# RKS to EGH : The resulting plot has the slope at the origin too small. This can be corrected by a visual trick.
 # That visual trick will be added later. An alternative is to calculate with many more dose points near 0.
 # Then no trick is needed but the Monte Carlo will be slower.
 
-#  Plotting call
+#  Plotting call # RKS to EGH 5/20/18. I think the next might give the same curves as plot() above. Does it?
+# RKS to EGH 5/20/18. We never need Monte Carlo for a mixture of low and high LET in the minor paper.
+# But for later I think a toggle will be needed in monte_carlo.R, with low LET the last compnonent of r
 ci_plot <- ggplot(data = ci_data, aes = fill) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
