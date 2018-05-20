@@ -344,42 +344,52 @@ ci_plot <- ggplot(data = ci_data, aes = fill) +
 ci_plot # Print figure
 
 
-############### FIGURE 3.2.3 #############  
-# Fe56 (600 MeV/u) and Si28 in equal proportions
+############### FIGURE 10 (was Fig. 3.2.3 #############)  
+# Fe56 (600 MeV/u) and Si28 in equal proportions for a total of 40 cGy
 
 #  Declare ratios and LET values for plot
 ratios <- c(1/2, 1/2)
 LET_vals <- c(193, 70)
-  
-#  We begin with the calibrated plot
-calib_ci_3.2.3 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE")
 
-#  We now calculate the uncalibrated Monte Carlo
-uncorr_ci_3.2.3 <- simulate_monte_carlo(200, hundred_cGy, LET_vals, ratios, model = "NTE", vcov = FALSE)
-
-ci_data <- data.frame(dose = hundred_cGy,
+#We begin with the correlated plot # RKS correlated not calibrated similar corrections needed often
+# #RKS to EGH 5/20/18: Please change ggplot2 to agree with my plot version for the minor paper
+calib_ci_3.2.3 <- simulate_monte_carlo(200, forty_cGy, LET_vals, ratios, model = "NTE") 
+#  Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
+ci_data <- data.frame(dose = forty_cGy,
                       #  Monte Carlo values
                       corrBottom = calib_ci_3.2.3$monte_carlo[1, ],
-                      corrTop = calib_ci_3.2.3$monte_carlo[2, ],
-                      uncorrTop = uncorr_ci_3.2.3$monte_carlo[1, ],
-                      uncorrBottom = uncorr_ci_3.2.3$monte_carlo[2, ],
+                      corrTop = calib_ci_3.2.3$monte_carlo[2, ], # RKS: This is higher than uncorrTop so somewhere the two got mixed up
+                      
                       
                       #  DER values
-                      si = calibrated_HZE_nte_der(dose = hundred_cGy, L = 70),
-                      fe_six = calibrated_HZE_nte_der(dose = hundred_cGy, L = 193),
+                      fe_six = calibrated_HZE_nte_der(dose = forty_cGy, L = 193),
+                      si = calibrated_HZE_nte_der(dose = forty_cGy, L = 70),
+                    
                       
                       #  I(d)
-                      i = calculate_id(hundred_cGy, LET_vals, ratios,
-                                       model = "NTE", lowLET = TRUE)[, 2])
+                      i = calculate_id(forty_cGy, LET_vals, ratios,
+                                       model = "NTE", lowLET = FALSE)[, 2]) #RKS: lowLET = TRUE would be wrong
 
-#  Plotting call
+  
+#  We make the ribbon plot for correlated parameters
+plot(c(0,41), c(0,.30), col="white", bty='u')
+polygon(x=c(0:41,41:0),y=c(ci_data[,"corrTop"],rev(ci_data[,"corrBottom"])),xpd=-1,col="yellow",lwd=.4,border="orange") ## narrow CI
+lines(ci_data[,"dose"],ci_data[,"si"],col='violet', lwd = 2) 
+lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd = 3)
+lines(ci_data[,"dose"],ci_data[,"fe_six"],col='green',type = 'l', lwd = 3, lty = 2, ann=FALSE)
+
+
+#  RKS to EGH 5/20/18. we do not need the uncorrelated Monte Carlo which would be
+#uncorr_ci_3.2.3 <- simulate_monte_carlo(200, forty_cGy, LET_vals, ratios, model = "NTE", vcov = FALSE)
+#please change your ggplot2 below so it agrees in substance with the above plot
+#  Plotting call with ggplot2
 ci_plot <- ggplot(data = ci_data, aes = fill) +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
   labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
   
   #  Ribbon plot of both confidence intervals
-  geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop), fill = "aquamarine2", alpha = 1) +  #  Uncorrelated in pink
+ # geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop), fill = "aquamarine2", alpha = 1) +  #  Uncorrelated in pink
   geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop), fill = "yellow", alpha = .7) + #  Correlated in dull blue
   
   # scale_fill_discrete(name="Type",
