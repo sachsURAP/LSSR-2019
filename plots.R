@@ -17,8 +17,9 @@ library(ggplot2) # Ribbon plot functionality
 library(grid)  # Plot grids
 library(Hmisc) # Error bars
 
-forty_cGy <- 0:41 #RKS to EGH: dose-vectors are now usually used only once each
-# probably best to put them with each plot than globally here?
+forty_cGy <- 0:41 #RKS to EGH 5.31.18: dose-vectors are now usually used only once each
+#much better to put them with each plot than globally here. I did that for my plots but not for 
+#your ggplots.
 sixty_cGy <- 0:61
 seventy_cGy <- 0:71
 hundred_cGy <- 0:101
@@ -27,27 +28,27 @@ forty_nine_cGy <- 0:50
 #===============================================================================
 #=== Shape of DER for Fe 600 MeV/u. Paper Fig. 3 (was Fig. 2.2.4.1)  4/23/18 ===
 #===============================================================================
-d <- 0.01 * 0:16000 # RKS to EGH. d notation inconsistent with forty_cGy etc. above
-prevalence <- calibrated_HZE_nte_der(d, 193) 
-plot(d, prevalence, type = 'l', bty = 'u')
+d3A <- 0.01 * 0:16000 # RKS to EGH. d notation inconsistent with forty_cGy etc. above
+prevalence <- calibrated_HZE_nte_der(d3A, 193) 
+plot(d3A, prevalence, type = 'l', bty = 'u')
 legend(x = "bottomright", 
        legend = "dose in centiGy; Fe 193 zoom in twice",
        cex = 0.6, inset = 0.025)
 
-d <- 2 * 10^-5 * 0:1600 # zoom in by a factor of 10^4
-prevalence <- calibrated_HZE_nte_der(d, 193)
-plot(d, prevalence, type = 'l', bty='u')
+d3b <- 2 * 10^-5 * 0:1600 # zoom in by a factor of 10^4
+prevalence <- calibrated_HZE_nte_der(d3b, 193)
+plot(d3b, prevalence, type = 'l', bty='u')
 
-d <- 10^-6 * 0:1600 # zoom in by another factor of 20
-prevalence <- calibrated_HZE_nte_der(d, 193)
-plot(d, prevalence, type = 'l', bty = 'u')
+d3c <- 10^-6 * 0:1600 # zoom in by another factor of 20
+prevalence <- calibrated_HZE_nte_der(d3c, 193)
+plot(d3c, prevalence, type = 'l', bty = 'u')
 
 #======================================================================#
 #== Low LET data, error bars, and DER. Paper Fig. 5 (was Fig. 3.1.1) ==#
 #======================================================================
-ddose=0:701 
+d5=0:701 
 plot(c(0,701), c(-.02,1), pch=19, col='white', ann=FALSE, bty='u')
-lines(ddose, 1-exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*ddose),lwd=2)
+lines(d5, 1-exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*d5),lwd=2)
 errbar(ion_data[5:12, "dose"], ion_data[5:12, "Prev"],
        yplus=ion_data[5:12, "Prev"]+1.96*ion_data[5:12, "SD"],
        yminus=ion_data[5:12, "Prev"]-1.96*ion_data[5:12, "SD"], pch = 19,cap=0.02,
@@ -137,7 +138,8 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
        lwd = c(2, 2, 2, 2, 2, 2, 2, 2, 2), 
        lty = c(1, 1, 1, 1, 1, 1, 1, 1, 2), cex = 0.3, inset = 0.0125)
 
-# RKS to EGH 5/9/18. Mi
+#==============================================================================
+# RKS to EGH. Always put low LET last in vectors; never put in two different low LET (just add doses);  
 # The script incorrectly interprets the second low LET component as having non-zero NTE effects.
 
 #==============================================================================#
