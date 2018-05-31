@@ -151,7 +151,7 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 #  Declare ratios and LET values for plot
 ratios <- c(1/2, 1/2)
 LET_vals <- c(193, 70)
-d10 = c(0.01*0:9,0.1*1:9,1:40)
+d10 = c(0.01*0:9,0.1*1:9,1:40) # This is enough detail near the origin.
 # We begin with the correlated plot # RKS correlated not calibrated similar corrections needed often
 # #RKS to EGH 5/20/18: Change ggplot2 to agree with my plot version. Different colors are OK though
 calib_ci_3.2.3 <- simulate_monte_carlo(200, d10, LET_vals, ratios, model = "NTE") 
@@ -180,10 +180,10 @@ lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd = 3)
 lines(ci_data[,"dose"],ci_data[,"fe_six"],col='green',type = 'l', lwd = 3, lty = 2)
 
 
-#  RKS to EGH 5/20/18. we do not need the uncorrelated Monte Carlo which would be
+#  RKS to EGH 5/20/18. for Fig. 10 we don't need the uncorrelated Monte Carlo which would be
 #  uncorr_ci_3.2.3 <- simulate_monte_carlo(200, forty_cGy, LET_vals, ratios, model = "NTE", vcov = FALSE)
 #  RKS to EGH 5/23/18: change ggplot2 below so it agrees in substance with the above plot; can keep colors as is
-#  Plotting call with ggplot2
+#  Plotting call with ggplot2 #RKS to EGH: delete all ggplot2 entirely? 5/31/2018
 # ci_plot <- ggplot(data = ci_data, aes = fill) +
 #   theme_bw() +
 #   theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
