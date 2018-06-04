@@ -7,7 +7,7 @@
 #               source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  17 May 2018
+# Mod history:  03 Jun 2018
 # Details:      See hgData.R for further licensing, attribution, references, 
 #               and abbreviation information.
 
@@ -17,38 +17,30 @@ library(ggplot2) # Ribbon plot functionality
 library(grid)  # Plot grids
 library(Hmisc) # Error bars
 
-forty_cGy <- 0:41 #RKS to EGH 5.31.18: dose-vectors are now usually used only once each
-#much better to put them with each plot than globally here. I did that for my plots but not for 
-#your ggplots.
-sixty_cGy <- 0:61
-seventy_cGy <- 0:71
-hundred_cGy <- 0:101
-forty_nine_cGy <- 0:50
-
 #===============================================================================
 #=== Shape of DER for Fe 600 MeV/u. Paper Fig. 3 (was Fig. 2.2.4.1)  4/23/18 ===
 #===============================================================================
-d3A <- 0.01 * 0:16000 # RKS to EGH. d notation inconsistent with forty_cGy etc. above
-prevalence <- calibrated_HZE_nte_der(d3A, 193) 
-plot(d3A, prevalence, type = 'l', bty = 'u')
+d_01 <- 0.01 * 0:16000 # RKS to EGH. d notation inconsistent with forty_cGy etc. above
+prevalence <- calibrated_HZE_nte_der(d_01, 193) 
+plot(d_01, prevalence, type = 'l', bty = 'u')
 legend(x = "bottomright", 
        legend = "dose in centiGy; Fe 193 zoom in twice",
        cex = 0.6, inset = 0.025)
 
-d3b <- 2 * 10^-5 * 0:1600 # zoom in by a factor of 10^4
-prevalence <- calibrated_HZE_nte_der(d3b, 193)
-plot(d3b, prevalence, type = 'l', bty='u')
+d_02 <- 2 * 10^-5 * 0:1600 # zoom in by a factor of 10^4
+prevalence <- calibrated_HZE_nte_der(d_02, 193)
+plot(d_02, prevalence, type = 'l', bty='u')
 
-d3c <- 10^-6 * 0:1600 # zoom in by another factor of 20
-prevalence <- calibrated_HZE_nte_der(d3c, 193)
-plot(d3c, prevalence, type = 'l', bty = 'u')
+d_03 <- 10^-6 * 0:1600 # zoom in by another factor of 20
+prevalence <- calibrated_HZE_nte_der(d_03, 193)
+plot(d_03, prevalence, type = 'l', bty = 'u')
 
 #======================================================================#
 #== Low LET data, error bars, and DER. Paper Fig. 5 (was Fig. 3.1.1) ==#
 #======================================================================
-d5=0:701 
+ddose <- 0:701 
 plot(c(0,701), c(-.02,1), pch=19, col='white', ann=FALSE, bty='u')
-lines(d5, 1-exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*d5),lwd=2)
+lines(ddose, 1-exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*ddose),lwd=2)
 errbar(ion_data[5:12, "dose"], ion_data[5:12, "Prev"],
        yplus=ion_data[5:12, "Prev"]+1.96*ion_data[5:12, "SD"],
        yminus=ion_data[5:12, "Prev"]-1.96*ion_data[5:12, "SD"], pch = 19,cap=0.02,
@@ -138,8 +130,7 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
        lwd = c(2, 2, 2, 2, 2, 2, 2, 2, 2), 
        lty = c(1, 1, 1, 1, 1, 1, 1, 1, 2), cex = 0.3, inset = 0.0125)
 
-#==============================================================================
-# RKS to EGH. Always put low LET last in vectors; never put in two different low LET (just add doses);  
+# RKS to EGH 5/9/18. Mi
 # The script incorrectly interprets the second low LET component as having non-zero NTE effects.
 
 #==============================================================================#
@@ -148,24 +139,21 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 
 #========= FIGURE 10 (was Fig. 3.2.3) =========#  
 # Fe56 (600 MeV/u) and Si28 in equal proportions for a total of 40 cGy
-#  Declare ratios and LET values for plot
+# Declare ratios and LET values for plot
 ratios <- c(1/2, 1/2)
 LET_vals <- c(193, 70)
-d10 = c(0.01*0:9,0.1*1:9,1:40) # This is enough detail near the origin.
-# We begin with the correlated plot # RKS correlated not calibrated similar corrections needed often
-# #RKS to EGH 5/20/18: Change ggplot2 to agree with my plot version. Different colors are OK though
-calib_ci_3.2.3 <- simulate_monte_carlo(200, d10, LET_vals, ratios, model = "NTE") 
+d10 = c(0.01*0:9,0.1*1:9,1:40)
+# We begin with the correlated plot
+corr_ci_3.2.3 <- simulate_monte_carlo(200, d10, LET_vals, ratios, model = "NTE") 
 #  Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
 ci_data <- data.frame(dose = d10,
                       #  Monte Carlo values
-                      corrBottom = calib_ci_3.2.3$monte_carlo[1, ],
-                      corrTop = calib_ci_3.2.3$monte_carlo[2, ], # 
-                      
+                      corrBottom = corr_ci_3.2.3$monte_carlo[1, ],
+                      corrTop = corr_ci_3.2.3$monte_carlo[2, ], # 
                       
                       #  DER values
                       fe_six = calibrated_HZE_nte_der(dose = d10, L = 193),
                       si = calibrated_HZE_nte_der(dose = d10, L = 70),
-                    
                       
                       #  I(d)
                       i = calculate_id(d10, LET_vals, ratios,
@@ -180,32 +168,6 @@ lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd = 3)
 lines(ci_data[,"dose"],ci_data[,"fe_six"],col='green',type = 'l', lwd = 3, lty = 2)
 
 
-#  RKS to EGH 5/20/18. for Fig. 10 we don't need the uncorrelated Monte Carlo which would be
-#  uncorr_ci_3.2.3 <- simulate_monte_carlo(200, forty_cGy, LET_vals, ratios, model = "NTE", vcov = FALSE)
-#  RKS to EGH 5/23/18: change ggplot2 below so it agrees in substance with the above plot; can keep colors as is
-#  Plotting call with ggplot2 #RKS to EGH: delete all ggplot2 entirely? 5/31/2018
-# ci_plot <- ggplot(data = ci_data, aes = fill) +
-#   theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
-#   labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
-#   
-#  # Ribbon plot of both confidence intervals
-#  # geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop), fill = "aquamarine2", alpha = 1) +  #  Uncorrelated in pink
-#   geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop), fill = "yellow", alpha = .7) + #  Correlated in dull blue
-#   
-#   # scale_fill_discrete(name="Type",
-#   # breaks=c("pink", "blue"),
-#   # labels=c("Correlated Monte Carlo", "Uncorrelated Monte Carlo")) +
-#   
-#   # DER plots
-#   geom_line(aes(dose, y = si),  col = "orange", size = 1) + #  iron in green
-#   geom_line(aes(dose, y = fe_six),  col = "darkblue", size = 1) + #  silicon in dark green
-#   
-#   # I(d) plot
-#   geom_line(aes(dose, y = i), col = "red", size = 1) #  I(d) in red
-#   
-# ci_plot # Print figure
-
 #========= FIGURE 11 (was 3.2.4) =================#
 #=============== Correlated vs Uncorrelated CI Overlay Plot ==================#
 
@@ -213,22 +175,23 @@ lines(ci_data[,"dose"],ci_data[,"fe_six"],col='green',type = 'l', lwd = 3, lty =
 #  Declare ratios and LET values for plot
 ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
 LET_vals <- c(25, 70, 100, 193, 250, 464, 953)
-d11 =c(0.1*0:9, 1:50)
+d11 <- c(0.1 * 0:9, 1:50)
+
 # We begin with the correlated plot # RKS correlated not calibrated similar corrections needed often
-calib_ci_3.2.4 <- simulate_monte_carlo(200, d11, LET_vals, ratios, model = "NTE") 
-# ###RKS rename: calibrated goes to correlated and 3.2.4 goes to 11 and hundred_cGy goes to d11 
+corr_ci_3.2.4 <- simulate_monte_carlo(200, d11, LET_vals, ratios, model = "NTE") 
+
 # We now calculate the uncorrelated Monte Carlo
 uncorr_ci_3.2.4 <- simulate_monte_carlo(200, d11, LET_vals, ratios, model = "NTE", vcov = FALSE)
-# 
+
 # Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
 ci_data <- data.frame(dose = d11,
-# #                       #  Monte Carlo values
-                        corrBottom = calib_ci_3.2.4$monte_carlo[1, ],
-                        corrTop = calib_ci_3.2.4$monte_carlo[2, ], 
-                        uncorrTop = uncorr_ci_3.2.4$monte_carlo[1, ],
-                        uncorrBottom = uncorr_ci_3.2.4$monte_carlo[2, ],
-# RKS to EGH: This is higher than uncorrTop so somewhere the two got mixed up
-# #                       #  DER values
+                        # Monte Carlo values
+                        corrBottom = corr_ci_3.2.4$monte_carlo[1, ],
+                        corrTop = corr_ci_3.2.4$monte_carlo[2, ],
+                        uncorrBottom = uncorr_ci_3.2.4$monte_carlo[1, ],
+                        uncorrTop = uncorr_ci_3.2.4$monte_carlo[2, ],
+
+                        # DER values
                         ne = calibrated_HZE_nte_der(dose = d11, L = 25),
                         si = calibrated_HZE_nte_der(dose = d11, L = 70),
                         ti = calibrated_HZE_nte_der(dose = d11, L = 100),
@@ -237,12 +200,12 @@ ci_data <- data.frame(dose = d11,
                         nb = calibrated_HZE_nte_der(dose = d11, L = 464),
                         la = calibrated_HZE_nte_der(dose = d11, L = 953),
                         i = calculate_id(d11, LET_vals, ratios, model = "NTE")[, 2])  
-# # 
+
 # # #  Plotting call. RKS will use the plot below instead of ggplot2
 plot(c(0,50),c(0,.40), col="white", bty='u')
 polygon(x=c(d11,rev(d11)),y=c(ci_data[,"uncorrTop"],rev(ci_data[,"uncorrBottom"])),xpd=-1,
         col="orange",lwd=.5,border="orange") # wide CI
-# # # RKS: "uncorrTop" must actually be uncorrBottom and vice-versa?
+
 polygon(x=c(d11,rev(d11)),y=c(ci_data[,"corrTop"],rev(ci_data[,"corrBottom"])),xpd=-1,
         col="yellow",border="orange", lwd=.2) # narrow CI
 # RKS to EGH solid yellow ribbon hides part of the blue ribbon without opacity commands.
@@ -257,40 +220,9 @@ lines(ci_data[,"dose"],ci_data[,"ti"],col='black', lwd = 2)
 lines(ci_data[,"dose"],ci_data[,"fe_six"],col='black', lwd = 2)
 lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd=3, lty=2)
 
-#  Plotting call # RKS to EGH 5/20/18. I think the next might give the same curves as plot() above. Does it?
-# RKS to EGH 5/20/18. We never need Monte Carlo for a mixture of low and high LET in the minor paper.
-# But for later I think a toggle will be needed in monte_carlo.R, with low LET the last component of r
-# ci_plot <- ggplot(data = ci_data, aes = fill) +
-#   theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5), legend.position="right") +
-#   labs(title = "Confidence Intervals", x = "Dose (cGy)", y = "HG Prevalence (%)") +
-#   
-#   #  Ribbon plot of both confidence intervals
-#   geom_ribbon(aes(dose, ymin = uncorrBottom, ymax = uncorrTop), fill = "aquamarine2", alpha = 1) + #  Uncorrelated in pink
-#   geom_ribbon(aes(dose, ymin = corrBottom, ymax = corrTop), fill = "yellow", alpha = .7) + #  Correlated in dull blue
-#   
-#   # scale_fill_discrete(name="Type",
-#                       # breaks=c("pink", "blue"),
-#                       # labels=c("Correlated Monte Carlo", "Uncorrelated Monte Carlo")) +
-#   
-#   #  DER plots
-#   geom_line(aes(dose, y = ne), col = "blue", size = 1) + #  neon in yellow
-#   geom_line(aes(dose, y = si),  col = "orange", size = 1) + #  silicon in orange
-#   geom_line(aes(dose, y = ti),  col = "green", size = 2) + # titanium in green
-#   geom_line(aes(dose, y = fe_six),  col = "purple", size = 1) + #  iron 600 in purple
-#   geom_line(aes(dose, y = fe_three),  col = "violet", size = 1) + #  iron 300 in violet
-#   geom_line(aes(dose, y = nb),  col = "darkcyan", size = 1) + #  niobium in dark cyan 
-#   geom_line(aes(dose, y = la),  col = "darkorange", size = 1) + #  lanthanum in black 
-#   
-#   # I(d) plot
-#   geom_line(aes(dose, y = i), col = "red", size = 1) #  I(d) in red
-# 
-# ci_plot # Print figure#
 
-# Plot 3: four HZE; NTE: RKS to EGH 5/23/18. I deleted this and some other plots not needed in the minor paper.
-
-#==========Figure for Chang's new proton data point 5/22/2018=============#
-ddose=0:82 
+#========== Figure for Chang's new proton data point 5/22/2018=============#
+ddose <- 0:82 
 plot(ddose, 1-exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*ddose),
      type='l',lwd=2, ann=FALSE, xlim=c(0,80),ylim=c(-.02,.35), bty='u')
 errbar(ion_data[1:2, "dose"], ion_data[1:2, "Prev"],yplus=ion_data[1:2, "Prev"]+1.96*ion_data[1:2, "SD"],
