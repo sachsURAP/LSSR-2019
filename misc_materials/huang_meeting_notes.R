@@ -130,20 +130,133 @@
 ## look at URAP.CA monte carlo in "Graphs" 
 
 ## 042718 SACHS & HUANG 918 EVANS 
-## Add summary call to line 54 of plots.R. This would be on the low LET model coefficient
+## Add summary call to line 54 of plots.R. This would be on the low LET model coefficient - DONE
 ## Change calib_ in DER names to calibrated_ - DONE
 ## See if I can find any examples of (dose, ratios, LET, ...) in function headers - DONE
 ## All Fe56 600 MeV/u LET values at 195 need to go back to 193 - DONE
-## Use yellow for vcov confidence interval (inside one) 
-## Use aquamarine (aquamarine2), lightblue, for outside non-vcov confidence interval
-## Look into getting Illustrator
-## Look into getting mathtype onto linux
+## Use yellow for vcov confidence interval (inside one) - DONE
+## Use aquamarine (aquamarine2), lightblue, for outside non-vcov confidence interval - DONE
+## Look into getting Illustrator - NO LONGER RELEVANT
+## Look into getting mathtype onto linux - NO LONGER RELEVANT
 
 ## 050418 SACHS & HUANG STRADA CAFE
 ## Ray will try using LaTeX and Illustrator - NOTED
-## Edward will complete past open assignments
+## Edward will complete past open assignments - DONE
 ## Iff Claire is interested in EvoLab then Edward will connect her with current
 ## lab members. - NOTED
 
+
+## 0501618 SACHS & HUANG GMAIL
+# 1.
+# Remove all figures not in the newest version of the minor paper (ms09.docx)
+# or its online supplement from plot.R - DONE BY RAY
+
+# 2.
+# Consider defining dose vectors such as forty_cGy etc. with each figure 
+# instead of in the global environment. With only about 6 figures using this 
+# notation, there will be only minor redundancies. The advantage would be that
+# more essential information would be available right at the figure and could be
+# tweaked by changing the dose vector in a way unique to to optimizing that 
+# figure, e.g. by adding one extra very low dose to the dose vector as suggested
+# below. - DONE BY RAY
+
+# 3.
+# In plots.R renumber Figs. 1-11 as in the attached paper (some are not in 
+# plots.R but rather in minor auxiliary .R files; just skip those and go 
+# directly to the next Fig. that is in plots.R)  - DONE BY RAY
+
+# 4.
+# Order figures consequtively within plots.R. Perhaps put online supplement 
+# figs at end or in a separate file? - DONE BY RAY
+
+# 5.
+# Many of the plots have the slope at the origin much too small. If a dose 
+# axis runs from 0 to 50 or 100 Gy the region near 0 should look as if the
+# slope at zero is infinite (despite the fact that it is actually finite but 
+# very large) and should appear to have at discontinuous first derivative (which
+# is actually a region of very high concavity) at a kink. These misimpressions 
+# will occur if the first non-zero dose point is, say, 1 cGy. There are various 
+# reasons why one might want extra dose points near the origin. If there is 
+# no other reason for extra dose points adding a single dose point at, say 
+# 10^-5 Gy (i.e.10^-3 cGy, a thousand times smaller) is enough to cure the 
+# misimpression. Just make the IDER effect or mixture DER at the extra dose 
+# point a little bit smaller than the IDER or mixture effect calculated near 
+# 1 cGy (after the usual subtracting out of background). Then the slope will 
+# look as if it might be infinite and the kink will look as if it could be a 
+# slope discontinuity as desired. No further calculations are then required. 
+# This trick can and should be used iff: (a) the maximum dose on the graph is 
+# larger than a few cGy; and (b), there is no other reason (such as feeding 
+# uniroot) to have lots of extra dose points near the origin. - NOTED
+
+# 6.
+# At the moment the command "lowLET='True'" need lots of attention.
+# It cannot be used if one has both protons and alpha particles because there 
+# is only one DER for both protons and alpha particles and the alpha particles 
+# would be incorrectly assigned an HZE IDER with LET 1.6. If we are calculating
+# I(d) for a mixture that has only HZE components then the opposite problem 
+# occurs: the first HZE component will (correct me if I am wrong) be incorrectly
+# assigned the low LET IDER and I(d) will be somewhat too small near dose=0. I 
+# think the two ribbon plots (now Figs. 10 and 11) are both wrong, not only in 
+# the I(d) curve but also in the ribbon widths, for this reason. - NEED TO 
+# DISCUSS WITH RAY
+
+# 7. 
+# In many places "calibrated" is written where "correlated" is meant.
+# (plots.R, check all monte_carlo_runs) - DONE
+
+# 8.
+# In at least one place, the "corrTop" and "corrBottom" curves have been 
+# switched in my sandbox, so that the former is lower than the latter instead 
+# of being above it. Please check whether the master version on gitHub of 
+# plot.R also has this problem (error is in line 222, bug probably in 
+# monte_carlo.R) - FIXED
+
+# 9.
+# The maximum doses in Figs. Now numbered 10 and 11 are too large. The Figs 
+# should go up to 40 or 50 cGy, the same as their non-ribbon counterparts in 
+# section 3.2 of ms09 (Fig. 8 and Fig. 9 IIRC). - DONE BY RAY 
+
+# 10.
+# I will use plot() without opacity commands because the opacity commands are 
+# giving me trouble. Fig. 11 in MS09.docx shows the kind of  ribbon figure we 
+# need IMHO but never used layers or opacity. Instead the order of the various
+# curves was chosen such that the later give the desired effects when they 
+# overwrite the earlier curves. You can make the master with ggplot2() and/or 
+# layers and/or using opacity commands if you want but the results for ribbon 
+# plots should look similar to Fig. 11 in MS09.docx. - NOTED 
+
+# 11. (Additional Bug)
+# I just saw that when we went over to the .csv way of handling data we 
+# reordered the data using Z as a label (first protons with Z=1, then Helium 
+# .with Z=2, then neon with Z=10, then Silicon with Z=14,  and so on up. But we
+# did not correct synergy.R and plot.R for this reordering (I don't know if 
+# it matters to Monte_Carlo.R?). As far as I can tell at the moment, 
+# the only change is for the low LET model: 
+# on our graphs all of the proton points are mislabelled as helium and four of
+# the helium points are mislabeled as protons. Otherwise we were often smart 
+# enough to use names instead of numbers so hopefully the mislabelling is the
+# only mistake, all the regressions and calculations of I(d) are probably OK 
+# (though the latter is in trouble when low_LET=TRUE is misused, as I wrote 
+# you earlier.) - CORRECTED BY RAY
+
+
+## 053118 SACHS & HUANG @ THE STRADA 
+# Make 8 panel plot of HZE ions with points and error bars,
+# follow procedure from Ray's Figure 5, base R or ggplot no preference
+
+# Add low-LET boolean parameter in simulate_monte_carlo (only if below is not implemented)
+
+# MODIIFY calculate_id
+# For a MIXDER of N low-LET ions and 0 HZE ions, add up the LETs of all 
+# the low-LET ions and treat as IDER (Z < 3 is low-LET)
+# For a MIXDER of M low-LET ions and N HZE ions, add up the LETs of all 
+# the low-LET ions and treat as MIXDER of N HZE + one low-LET DER (Z < 3 is low-LET)
+# ( IF DONE CORRECTLY THERE IS NO LONGER A NEED FOR lowLET boolean toggle parameters)
+
+# If par() is ever called please reset the graphics settings
+
+# If extra time rewrite Mark's report and code on Lam's synergy theory
+
+# Ray will send me link to audrey's repo about the giant letters
 
 
