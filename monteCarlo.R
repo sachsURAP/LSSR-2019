@@ -8,7 +8,7 @@
 #               part of the source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  26 Apr 2018
+# Mod history:  03 Jun 2018
 # Details:      See hgData.R for further licensing, attribution, references,
 #               and abbreviation information.
 
@@ -99,12 +99,12 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
       curve_list[[i]] <- calculate_id(dose, LET, ratios, 
                                       coef = list(NTE = samples[i, ],
                                       lowLET = low_LET_samples[i]),
-                                      model = "NTE", lowLET = TRUE)
+                                      model = "NTE")
     } else if (model == "TE") {
       curve_list[[i]] <- calculate_id(dose, LET, ratios,
                                       coef = list(TE = samples[i, ],
                                       lowLET = low_LET_samples[i]),
-                                      model = "TE", lowLET = TRUE)
+                                      model = "TE")
     }
     cat(paste("  Currently at Monte Carlo step:", toString(i), "of", 
               toString(n)), sprintf('\r'))
