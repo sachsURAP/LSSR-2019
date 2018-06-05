@@ -7,7 +7,7 @@
 #               source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  03 Jun 2018
+# Mod history:  04 Jun 2018
 # Details:      See hgData.R for further licensing, attribution, references, 
 #               and abbreviation information.
 
@@ -237,45 +237,61 @@ errbar(60, 0.081,yplus=.081+.09,yminus=.081-.09, pch = 19,cap=0.05, add=TRUE, co
 ## RKS to EGH: This gives a figure that looks probably correct, but is highly incomplete. Needs data points with errorbars.
 ## The par commands sometimes leave my terminal in the wrong graphics state so I
 ##  commented out the whole 8-panel plot until that has also been fixed.
-# plot(1,1)
-# par(mfrow = c(2, 4)) 
-# # Maybe we should put all plot commands not needed for the minor paper, including even this figure
-# # needed in the supplement, into a separate script on auxiliary figures?
-# par(cex = 0.6)
-# par(mar = c(0, 0, 0, 0), oma = c(4, 4, 0.5, 0.5))
-# par(tcl = -0.25)
-# par(mgp = c(2, 0.6, 0))
-# LET_values <- c(25, 70, 100, 193, 250, 464, 953)
-# IDER_names <- c("He4", "Ne20", "Si28", "Ti48", "Fe56 (600 MeV/u)", "Nb93", "La139")
-# hundred_cGy = 0:101 # RKS to EGH: for some reason this repeat may be needed?
-# i = 1
-# while (i < length(LET_values) + 1) {
-#   plot(x = hundred_cGy, y = calibrated_HZE_nte_der(dose = hundred_cGy, L = LET_values[i]),
-#        xlim = c(0, 100), ylim = c(0, 1),
-#        type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l',
-#        col = "red", lwd = 2, axes = FALSE, ann = FALSE)
-#   
-#   if (i %in% c(5, 6, 7))
-#     axis(1, col = "black", col.axis = "black", at = seq(0, 100, 10))
-#   if (i %in% c(1, 5))
-#     axis(2, col = "black", col.axis = "black", at = seq(0, 1, .1))
-#   grid(col = "gray60")
-#   box(col = "gray60", lwd = 1.5)
-#   title(IDER_names[i], line = -2, cex = 0.5)
-#   i = i + 1
-# }
-# 
-# plot(x = hundred_cGy, y = calibrated_low_LET_der(dose = hundred_cGy, L = 0.4),
-#      xlim = c(0, 100), ylim = c(0, 1),
-#      type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l',
-#      col = "red", lwd = 2, axes = FALSE, ann = FALSE)
-# axis(1, col = "black", col.axis = "black", at = seq(0, 100, 10))
-# box(col = "gray60", lwd = 1.5)
-# grid(col = "gray60")
-# title("H1", line = -2, cex = 0.5)
-# 
-# mtext("Dose (cGy)", side = 1, outer = TRUE, cex = 0.7, line = 2.2,
-#       col = "black")
-# mtext("HG Prevalence (%)", side = 2, outer = TRUE, cex = 0.7, line = 2.2,
-#       col = "black")
-# par(mfrow = c(1, 1))
+plot(1,1)
+par(mfrow = c(2, 4))
+# Maybe we should put all plot commands not needed for the minor paper, including even this figure
+# needed in the supplement, into a separate script on auxiliary figures?
+par(cex = 0.6)
+par(mar = c(0, 0, 0, 0), oma = c(4, 4, 0.5, 0.5))
+par(tcl = -0.25)
+par(mgp = c(2, 0.6, 0))
+LET_values <- c(25, 70, 100, 193, 250, 464, 953)
+IDER_names <- c("He4", "Ne20", "Si28", "Ti48", "Fe56 (600 MeV/u)", "Nb93", "La139")
+hundred_cGy <- 0:101 # RKS to EGH: for some reason this repeat may be needed?
+i <- 1
+
+errbar_dose <- c(10, 20, 40, 60, 80, 100)
+
+while (i < length(LET_values) + 1) {
+  plot(x = hundred_cGy, y = calibrated_HZE_nte_der(dose = hundred_cGy, L = LET_values[i]),
+       xlim = c(0, 100), ylim = c(0, 1),
+       type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l',
+       col = "red", lwd = 2, axes = FALSE, ann = FALSE)
+  
+  errbar(errbar_dose, calibrated_HZE_nte_der(dose = errbar_dose, LET = LET_values[i]),
+         yplus = calibrated_HZE_nte_der(errbar_dose, LET_values[i], HZE_nte_model_coef + 2 * summary(HZE_nte_model)$coefficients[, "Std. Error"]),
+         yminus = calibrated_HZE_nte_der(errbar_dose, LET_values[i], HZE_nte_model_coef - 2 * summary(HZE_nte_model)$coefficients[, "Std. Error"]),
+         add = TRUE, col = 'black', errbar.col = 'black', lwd = 2)
+
+  if (i %in% c(5, 6, 7))
+    axis(1, col = "black", col.axis = "black", at = seq(0, 100, 10))
+  if (i %in% c(1, 5))
+    axis(2, col = "black", col.axis = "black", at = seq(0, 1, .1))
+  grid(col = "gray60")
+  box(col = "gray60", lwd = 1.5)
+  title(IDER_names[i], line = -2, cex = 0.5)
+  i = i + 1
+}
+
+plot(x = hundred_cGy, y = calibrated_low_LET_der(dose = hundred_cGy, L = 0.4),
+     xlim = c(0, 100), ylim = c(0, 1),
+     type = "l", xlab = "Dose (cGy)", ylab = "HG Prevalence (%)", bty = 'l',
+     col = "red", lwd = 2, axes = FALSE, ann = FALSE)
+
+errbar(errbar_dose, calibrated_low_LET_der(dose = errbar_dose, LET = 0.4),
+       yplus = calibrated_low_LET_der(errbar_dose, 0.4, low_LET_model_coef + 2 * summary(low_LET_model)$coefficients[, "Std. Error"]),
+       yminus = calibrated_low_LET_der(errbar_dose, 0.4, low_LET_model_coef - 2 * summary(low_LET_model)$coefficients[, "Std. Error"]),
+       add = TRUE, col = 'black', errbar.col = 'black', lwd = 2)
+
+axis(1, col = "black", col.axis = "black", at = seq(0, 100, 10))
+box(col = "gray60", lwd = 1.5)
+grid(col = "gray60")
+title("H1", line = -2, cex = 0.5)
+
+mtext("Dose (cGy)", side = 1, outer = TRUE, cex = 0.7, line = 2.2,
+      col = "black")
+mtext("HG Prevalence (%)", side = 2, outer = TRUE, cex = 0.7, line = 2.2,
+      col = "black")
+
+dev.off() # Resets par() calls
+
