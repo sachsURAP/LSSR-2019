@@ -8,7 +8,7 @@
 #               source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  03 Jun 2018
+# Mod history:  04 Jun 2018
 # Details:      See hgData.R for further licensing, attribution, references, 
 #               and abbreviation information.
 
@@ -284,7 +284,7 @@ test_runtime <- function(f, ...) {
 #' calculate_id(.01 * 0:40, c(70, 195), c(1/2, 1/2))
 #' calculate_id(.01 * 0:70, c(.4, 195), c(4/7, 3/7), model = "TE")
 
-calculate_id <- function(dose, LET, ratios, model = "NTE",
+new_calculate_id <- function(dose, LET, ratios, model = "NTE",
                          coef = list(NTE = HZE_nte_model_coef, 
                                      TE = HZE_te_model_coef, 
                                      lowLET = low_LET_model_coef),
@@ -316,7 +316,6 @@ calculate_id <- function(dose, LET, ratios, model = "NTE",
       if (length(LET) > 0) {
         for (i in 1:length(LET)) { 
         aa[i] <- pars[1] * LET[i] * exp( - pars[2] * LET[i])
-        # browser()
         u[i] <- uniroot(function(dose) HZE_der(dose, LET[i], pars) - I,  
                         interval = c(0, 20000), 
                         extendInt = "yes", 
@@ -333,7 +332,7 @@ calculate_id <- function(dose, LET, ratios, model = "NTE",
                                       extendInt = "yes", 
                                       tol = 10 ^ - 10)$root
         dI[length(LET) + 1] <- lowLET_ratio * low_LET_slope(u[length(LET) + 1], 
-                                                            LET = 0)
+                                                            LET = lowLET_total)
       }
       return(list(sum(dI)))
     }) 

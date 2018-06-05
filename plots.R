@@ -60,6 +60,7 @@ plot(x = d, y = calibrated_HZE_nte_der(dose = d, L = 193), type = "l", #  Now pl
      xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) # Fe DER
 lines(x = d, y = calibrated_low_LET_der(d, 0), col = 'orange', lwd = 2) #low LET DER 
 lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 3) # I(d)
+lines(x = d, y = new_calculate_id(d, c(193, 0), r)[, 2], col = "black", lwd = 3, lty = 2) #EGH modified I(d)
 lines(x = d, y = calibrated_HZE_nte_der(dose = .2 * d, L = 193) + 
         calibrated_low_LET_der(.8 * d, 0), lty= 2, lwd=2) # SEA mixture baseline S(d)
 
@@ -68,6 +69,7 @@ plot(x = d, y = calibrated_HZE_nte_der(dose = d, L = 193), type = "l",
      xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) 
 lines(x = d, y = calibrated_low_LET_der(d, 0), col = 'orange', lwd = 2) 
 lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 3) # I(d)
+lines(x = d, y = new_calculate_id(d, c(193, 0), r)[, 2], col = "black", lwd = 3, lty = 2) #EGH modified I(d)
 lines(x = d, y = calibrated_HZE_nte_der(dose = .8 * d, L = 193) +
         calibrated_low_LET_der(.2 *d, 0), lty= 2, lwd=2) 
 
@@ -86,9 +88,11 @@ lines(x = d7, y = calibrated_HZE_nte_der(dose = d7, L = 180),
       col = "blue", lwd = 2)
 lines(x = d7, y = calibrated_HZE_nte_der(dose = d7, L = 250),
       col = "aquamarine2", lwd = 2)
-lines(x = d7, y = calculate_id(d7, c(0.4, 40,110, 180, 250),
-                               c(.8, rep(.05,4)), model = "NTE",
+lines(x = d7, y = calculate_id(d7, c(0.4, 40, 110, 180, 250),
+                               c(.8, rep(.05, 4)), model = "NTE",
                                lowLET = TRUE)[, 2], col = "red", lwd = 2) #I(d)
+lines(x = d7, y = new_calculate_id(d7, c(0.4, 40, 110, 180, 250),
+                               c(.8, rep(.05, 4)), model = "NTE")[, 2], col = "black", lwd = 2) #EGH modified I(d) PLEASE INSPECT BEHAVIOR OF new_calculate_id IN THIS PLOT
 legend(x = "topleft", legend = c("Low-LET","L=40", "L=110", "L=180", "L=250", 
                                  "I(d)", "S(d)"),
        col = c("orange", "green","purple","blue", "aquamarine2", "red", "black"), 
@@ -96,12 +100,14 @@ legend(x = "topleft", legend = c("Low-LET","L=40", "L=110", "L=180", "L=250",
        lty = c(1, 1, 1, 1,  1, 1, 2), cex = 0.3, inset = 0.025)
 
 #=== Fig. 8 was Fig. 3.2.3. DERs: Fe56 (600 MeV/u), Si28, IEA, SEA ======
-d8=c(0.01*0:9, 0.1*1:9, 1:41)
+d8 <- c(0.01*0:9, 0.1*1:9, 1:41)
 plot(c(0,40),c(0, 0.33), col="white", bty='l', xlab = "Dose (Gy)", ylab = "HG")
 lines(x = d8, y = calibrated_HZE_nte_der(dose = d8, L = 70), col = "cyan", lwd = 2)
 lines(x = d8, y = calibrated_HZE_nte_der(dose = d8, L = 193), col = "orange", lwd = 2)
 lines(x = d8, y = calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
       col = "red", lwd = 2) # I(d)
+lines(x = d8, y = new_calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
+      col = "black", lwd = 2, lty = 2) #EGH modified I(d)
 lines(x = d8, y = calculate_SEA(d8, c(70, 193), c(1/2, 1/2), n = 2), col = "black",
       lwd = 2, lty = 2)
 legend(x = "topleft", legend = c("Fe56 (600 MeV/u)", "Si28", "IEA", "SEA"),
@@ -109,7 +115,7 @@ legend(x = "topleft", legend = c("Fe56 (600 MeV/u)", "Si28", "IEA", "SEA"),
        lty = c(1, 1, 1, 2), cex = 0.6, inset = 0.05)
 
 #===== Minor paper Fig. 9. All 7 HZE ions; each ion contributes 7 cGy =======
-d9 = c(0.01*0:9, 0.1*1:9, 0.5*2:100)
+d9 <- c(0.01*0:9, 0.1*1:9, 0.5*2:100)
 plot(x = d9, y = calculate_SEA(d9, c(25, 70, 100, 193, 250, 464, 953), rep(1/7,7)), 
      type = "l", xlab = "Dose (cGy)", ylab = "HG", bty = 'u', col = "black", lwd = 2, lty = 2)
 lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 25), col = "pink", lwd = 2)
@@ -121,6 +127,8 @@ lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 464), col = "purple", lw
 lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 953), col = "violet", lwd = 2)
 lines(x = d9, y = calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
           rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) # I(d)
+lines(x = d9, y = new_calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
+                               rep(1/7, 7), model = "NTE")[, 2], col = "black", lwd = 3, lty = 2) #EGH modifed I(d)
 legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER", 
                                  "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
                                  "Fe56 (300 MeV/u) NTE-TE IDER", "Nb93 NTE-TE IDER",
