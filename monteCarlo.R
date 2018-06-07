@@ -9,7 +9,7 @@
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
 # Mod history:  03 Jun 2018
-# Details:      See hgData.R for further licensing, attribution, references,
+# Details:      See dataAndInfo.R for further licensing, attribution, references,
 #               and abbreviation information.
 
 source("synergyTheory.R") # Load in data and models
