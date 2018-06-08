@@ -138,11 +138,11 @@ lines(x = d7, y = calibrated_HZE_nte_der(dose = d7, L = 180),
       col = "blue", lwd = 2)
 lines(x = d7, y = calibrated_HZE_nte_der(dose = d7, L = 250),
       col = "aquamarine2", lwd = 2)
-lines(x = d7, y = calculate_id(d7, c(0.4, 40, 110, 180, 250),
-                               c(.8, rep(.05, 4)), model = "NTE",
-                               lowLET = TRUE)[, 2], col = "red", lwd = 2) #I(d)
+#lines(x = d7, y = calculate_id(d7, c(0.4, 40, 110, 180, 250),
+#                               c(.8, rep(.05, 4)), model = "NTE",
+#                               lowLET = TRUE)[, 2], col = "red", lwd = 2) #I(d)
 lines(x = d7, y = new_calculate_id(d7, c(0.4, 40, 110, 180, 250),
-                               c(.8, rep(.05, 4)), model = "NTE")[, 2], col = "black", lwd = 2) #EGH modified I(d) PLEASE INSPECT BEHAVIOR OF new_calculate_id IN THIS PLOT
+                               c(.8, rep(.05, 4)), model = "NTE")[, 2], col = "red", lwd = 3) #EGH modified I(d) PLEASE INSPECT BEHAVIOR OF new_calculate_id IN THIS PLOT
 legend(x = "topleft", legend = c("Low-LET","L=40", "L=110", "L=180", "L=250", 
                                  "I(d)", "S(d)"),
        col = c("orange", "green","purple","blue", "aquamarine2", "red", "black"), 
@@ -154,8 +154,8 @@ d8 <- c(0.01*0:9, 0.1*1:9, 1:41)
 plot(c(0,40),c(0, 0.33), col="white", bty='l', xlab = "Dose (Gy)", ylab = "HG")
 lines(x = d8, y = calibrated_HZE_nte_der(dose = d8, L = 70), col = "cyan", lwd = 2)
 lines(x = d8, y = calibrated_HZE_nte_der(dose = d8, L = 193), col = "orange", lwd = 2)
-lines(x = d8, y = calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
-      col = "red", lwd = 2) # I(d)
+#lines(x = d8, y = calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
+#      col = "red", lwd = 2) # I(d)
 lines(x = d8, y = new_calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
       col = "black", lwd = 2, lty = 2) #EGH modified I(d)
 lines(x = d8, y = calculate_SEA(d8, c(70, 193), c(1/2, 1/2), n = 2), col = "black",
@@ -175,10 +175,10 @@ lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 193), col = "green", lwd
 lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 250), col = "blue", lwd = 2)
 lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 464), col = "purple", lwd = 2)
 lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 953), col = "violet", lwd = 2)
-lines(x = d9, y = calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
-          rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) # I(d)
+#lines(x = d9, y = calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
+          #rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) # I(d)
 lines(x = d9, y = new_calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
-                               rep(1/7, 7), model = "NTE")[, 2], col = "black", lwd = 3, lty = 2) #EGH modifed I(d)
+                               rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) #EGH modifed I(d)
 legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER", 
                                  "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
                                  "Fe56 (300 MeV/u) NTE-TE IDER", "Nb93 NTE-TE IDER",
