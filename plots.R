@@ -16,24 +16,74 @@ source("monteCarlo.R") #  Load Monte Carlo
 library(ggplot2) # Ribbon plot functionality
 library(grid)  # Plot grids
 library(Hmisc) # Error bars
+#=====================================================================
+#===Fig. 1. SEA synergy theory unreliable for quadratic component DERs
+#=====================================================================
+d1=0.01*0:100
+d=0.5*d1
+E1=d1^2
+E2=2*d1^2
+SEA=d^2+2*d^2
+plot(d1,E2,type='l', lwd=3, bty='l', ann=FALSE)
+lines(d1,E1, lwd=3)
+lines (d1, SEA, lwd=3, lty = 2)
+
+#=====================================================================
+#===Fig. 2. convex, concave, standard
+#=====================================================================
+d2=0.01*0:200
+a=2; b=.6; c=4
+E1=a*d2+b*d2^2  #convex
+E2=a*d2  #linear no-thresshold (LNT) same initial slope
+E3= c*(1-(exp(-a*d2/c))) # concave, same initial slope
+plot(d2,E1,type='l', lwd=3, bty='l', ann=FALSE)
+lines(d2,E2, lwd=3)
+lines (d2, E3, lwd=3)
+
+a=0.45; b=1/8; c=0.8
+E1= b*d2+0.35*b*d2^2  #convex
+E2=0.7*a*d2  #linear no-thresshold (LNT) 
+E3= c*(1-(exp(-2*a*d2/c))) # concave
+plot(d2,E3,type='l', lwd=3, bty='l', ann=FALSE)
+lines(d2,E1, lwd=3)
+lines (d2, E2, lwd=3)
+
+
 
 #===============================================================================
 #=== Shape of DER for Fe 600 MeV/u. Paper Fig. 3 (was Fig. 2.2.4.1)  4/23/18 ===
 #===============================================================================
-d_01 <- 0.01 * 0:16000 # RKS to EGH. d notation inconsistent with forty_cGy etc. above
-prevalence <- calibrated_HZE_nte_der(d_01, 193) 
-plot(d_01, prevalence, type = 'l', bty = 'u')
-legend(x = "bottomright", 
-       legend = "dose in centiGy; Fe 193 zoom in twice",
-       cex = 0.6, inset = 0.025)
+d3A <- c(0.01 * 0:9, 0.1*1:9,1:150) # RKS to EGH. d notation inconsistent with forty_cGy etc. above
+prevalence <- calibrated_HZE_nte_der(d3A, 193) 
+plot(d3A, prevalence, type = 'l', bty = 'u',lwd=3, ann=FALSE)
+# legend(x = "bottomright", 
+#        legend = "dose in centiGy; Fe 193 zoom in twice",
+#        cex = 0.4, inset = 0.025)
 
-d_02 <- 2 * 10^-5 * 0:1600 # zoom in by a factor of 10^4
-prevalence <- calibrated_HZE_nte_der(d_02, 193)
-plot(d_02, prevalence, type = 'l', bty='u')
+d3B <- 2 * 10^-5 * 0:1600 # zoom in by a factor of 10^4
+prevalence <- calibrated_HZE_nte_der(d3B, 193)
+plot(d3B, prevalence, type = 'l', bty='u', lwd=3, ann=FALSE)
 
-d_03 <- 10^-6 * 0:1600 # zoom in by another factor of 20
-prevalence <- calibrated_HZE_nte_der(d_03, 193)
-plot(d_03, prevalence, type = 'l', bty = 'u')
+d3C <- 10^-6 * 0:1600 # zoom in by another factor of 20
+prevalence <- calibrated_HZE_nte_der(d3C, 193)
+plot(d3C, prevalence, type = 'l', bty = 'u', lwd=3)
+#===============================================================================
+#=== Shape of DER for Fe 600 MeV/u. Paper Fig. 3 (was Fig. 2.2.4.1)  4/23/18 ===
+#===============================================================================
+#d_01 <- 0.01 * 0:16000 # RKS to EGH. d notation inconsistent with forty_cGy etc. above
+#prevalence <- calibrated_HZE_nte_der(d_01, 193) 
+#plot(d_01, prevalence, type = 'l', bty = 'u')
+#legend(x = "bottomright", 
+#       legend = "dose in centiGy; Fe 193 zoom in twice",
+#       cex = 0.6, inset = 0.025)
+
+#d_02 <- 2 * 10^-5 * 0:1600 # zoom in by a factor of 10^4
+#prevalence <- calibrated_HZE_nte_der(d_02, 193)
+#plot(d_02, prevalence, type = 'l', bty='u')
+
+#d_03 <- 10^-6 * 0:1600 # zoom in by another factor of 20
+#prevalence <- calibrated_HZE_nte_der(d_03, 193)
+#plot(d_03, prevalence, type = 'l', bty = 'u')
 
 #======================================================================#
 #== Low LET data, error bars, and DER. Paper Fig. 5 (was Fig. 3.1.1) ==#
