@@ -108,21 +108,6 @@ low_LET_slope <- function(dose, LET) {
   low_LET_model_coef * exp( - low_LET_model_coef * dose)  
 }
 
-
-#============================== VISUAL CHECKS =================================#
-# plot () chunks such as the following are visual check to see if our 
-# calibration is consistent with 16Chang, .93Alp, .94Alp
-# and 17Cuc; (ggplot commands are Yinmin's and concern CI)
-# Put various values in our calibrated model to check with numbers and 
-# graphs in these references. Exceptionally this graph has dose axis in Gy, not cGy.
-#The whole graph is obsolete 4.21.18 because error bars are missing
-plot(c(0, 7), c(0, 1), col = 'red', ann = 'F')  
-lines(0.01 * 0:700, calibrated_low_LET_der(0:700, 0) + .0275)  # calibrated lowLET IDER
-# Next are Helium data points. Factor 100 converts cGy to Gy
-points(low_LET_data[1:8, "dose"] / 100, low_LET_data[1:8, "Prev"], pch = 19) 
-points(low_LET_data[9:12, "dose"] / 100, low_LET_data[9:12, "Prev"] )  # proton data points 
-
-
 #=========================== INFORMATION CRITERION ============================#
 info_crit_table <- cbind(AIC(HZE_te_model, HZE_nte_model), 
                          BIC(HZE_te_model, HZE_nte_model))
