@@ -7,7 +7,7 @@
 #               source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  04 Jun 2018
+# Mod history:  07 Jun 2018
 # Details:      See hgData.R for further licensing, attribution, references, 
 #               and abbreviation information.
 
@@ -16,6 +16,7 @@ source("monteCarlo.R") #  Load Monte Carlo
 library(ggplot2) # Ribbon plot functionality
 library(grid)  # Plot grids
 library(Hmisc) # Error bars
+
 #=====================================================================
 #===Fig. 1. SEA synergy theory unreliable for quadratic component DERs
 #=====================================================================
@@ -109,8 +110,7 @@ r <- c(.2, .8) # dose proportions. RKS to EGH: at most one low LET, always last 
 plot(x = d, y = calibrated_HZE_nte_der(dose = d, L = 193), type = "l", #  Now plot DERs 
      xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) # Fe DER
 lines(x = d, y = calibrated_low_LET_der(d, 0), col = 'orange', lwd = 2) #low LET DER 
-#lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 3) # I(d)
-lines(x = d, y = new_calculate_id(d, c(193, 0), r)[, 2], col = "red", lwd = 3) #EGH modified I(d)
+lines(x = d, y = calculate_id(d, c(193, 0), r)[, 2], col = "red", lwd = 3) # I(d)
 lines(x = d, y = calibrated_HZE_nte_der(dose = .2 * d, L = 193) + 
         calibrated_low_LET_der(.8 * d, 0), lty= 2, lwd=2) # SEA mixture baseline S(d)
 
@@ -118,8 +118,7 @@ r <- c(.8, .2) # Panel B, proportions reversed with low LET small
 plot(x = d, y = calibrated_HZE_nte_der(dose = d, L = 193), type = "l", 
      xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) 
 lines(x = d, y = calibrated_low_LET_der(d, 0), col = 'orange', lwd = 2) 
-#lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 3) # I(d)
-lines(x = d, y = new_calculate_id(d, c(193, 0), r)[, 2], col = "red", lwd = 3) #EGH modified I(d)
+lines(x = d, y = calculate_id(d, c(193, 0), r)[, 2], col = "red", lwd = 3) # I(d)
 lines(x = d, y = calibrated_HZE_nte_der(dose = .8 * d, L = 193) +
         calibrated_low_LET_der(.2 *d, 0), lty= 2, lwd=2) 
 
@@ -138,11 +137,8 @@ lines(x = d7, y = calibrated_HZE_nte_der(dose = d7, L = 180),
       col = "blue", lwd = 2)
 lines(x = d7, y = calibrated_HZE_nte_der(dose = d7, L = 250),
       col = "aquamarine2", lwd = 2)
-#lines(x = d7, y = calculate_id(d7, c(0.4, 40, 110, 180, 250),
-#                               c(.8, rep(.05, 4)), model = "NTE",
-#                               lowLET = TRUE)[, 2], col = "red", lwd = 2) #I(d)
-lines(x = d7, y = new_calculate_id(d7, c(0.4, 40, 110, 180, 250),
-                               c(.8, rep(.05, 4)), model = "NTE")[, 2], col = "red", lwd = 3) #EGH modified I(d) PLEASE INSPECT BEHAVIOR OF new_calculate_id IN THIS PLOT
+lines(x = d7, y = calculate_id(d7, c(0.4, 40, 110, 180, 250),
+                               c(.8, rep(.05, 4)), model = "NTE")[, 2], col = "red", lwd = 3) # I(d)
 legend(x = "topleft", legend = c("Low-LET","L=40", "L=110", "L=180", "L=250", 
                                  "I(d)", "S(d)"),
        col = c("orange", "green","purple","blue", "aquamarine2", "red", "black"), 
@@ -154,10 +150,8 @@ d8 <- c(0.01*0:9, 0.1*1:9, 1:41)
 plot(c(0,40),c(0, 0.33), col="white", bty='l', xlab = "Dose (Gy)", ylab = "HG")
 lines(x = d8, y = calibrated_HZE_nte_der(dose = d8, L = 70), col = "cyan", lwd = 2)
 lines(x = d8, y = calibrated_HZE_nte_der(dose = d8, L = 193), col = "orange", lwd = 2)
-#lines(x = d8, y = calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
-#      col = "red", lwd = 2) # I(d)
-lines(x = d8, y = new_calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
-      col = "red", lwd = 3) #EGH modified I(d)RKS seems OK
+lines(x = d8, y = calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
+      col = "red", lwd = 3) # I(d)
 lines(x = d8, y = calculate_SEA(d8, c(70, 193), c(1/2, 1/2), n = 2), col = "black",
       lwd = 2, lty = 2)
 legend(x = "topleft", legend = c("Fe56 (600 MeV/u)", "Si28", "IEA", "SEA"),
@@ -175,10 +169,8 @@ lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 193), col = "green", lwd
 lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 250), col = "blue", lwd = 2)
 lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 464), col = "purple", lwd = 2)
 lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 953), col = "violet", lwd = 2)
-#lines(x = d9, y = calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
-          #rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) # I(d)
-lines(x = d9, y = new_calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
-                               rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) #EGH modifed I(d)  RKS seems OK
+lines(x = d9, y = calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
+                               rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) # I(d)
 legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER", 
                                  "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
                                  "Fe56 (300 MeV/u) NTE-TE IDER", "Nb93 NTE-TE IDER",
@@ -188,8 +180,6 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
        lwd = c(2, 2, 2, 2, 2, 2, 2, 2, 2), 
        lty = c(1, 1, 1, 1, 1, 1, 1, 1, 2), cex = 0.3, inset = 0.0125)
 
-# RKS to EGH 5/9/18. Mi
-# The script incorrectly interprets the second low LET component as having non-zero NTE effects.
 
 #==============================================================================#
 #====================== Confidence Interval Ribbon Plots ======================#
@@ -266,8 +256,7 @@ polygon(x=c(d11,rev(d11)),y=c(ci_data[,"uncorrTop"],rev(ci_data[,"uncorrBottom"]
 
 polygon(x=c(d11,rev(d11)),y=c(ci_data[,"corrTop"],rev(ci_data[,"corrBottom"])),xpd=-1,
         col="yellow",border="orange", lwd=.2) # narrow CI
-# RKS to EGH solid yellow ribbon hides part of the blue ribbon without opacity commands.
-# The opacity commands were giving me problems
+
 lines(ci_data[,"dose"],ci_data[,"fe_three"],col='black',type = 'l', lwd = 2, bty='u', ann=FALSE) 
 # This IDER is the highest; so plot it first
 lines(ci_data[,"dose"],ci_data[,"ne"],col='black', lwd = 2) #the lowest IDER
@@ -292,9 +281,6 @@ errbar(ion_data[5:7, "dose"], ion_data[5:7, "Prev"],yplus=ion_data[5:7, "Prev"]+
 errbar(60, 0.081,yplus=.081+.09,yminus=.081-.09, pch = 19,cap=0.05, add=TRUE, col='red',errbar.col = 'red', lwd=3)
 
 #========= 8-panel plot for supplement: 7 HZE IDER panels, 1 low-LET IDER ============#
-## RKS to EGH: This gives a figure that looks probably correct, but is highly incomplete. Needs data points with errorbars.
-## The par commands sometimes leave my terminal in the wrong graphics state so I
-##  commented out the whole 8-panel plot until that has also been fixed.
 plot(1,1)
 par(mfrow = c(2, 4))
 # Maybe we should put all plot commands not needed for the minor paper, including even this figure
@@ -305,7 +291,7 @@ par(tcl = -0.25)
 par(mgp = c(2, 0.6, 0))
 LET_values <- c(25, 70, 100, 193, 250, 464, 953)
 IDER_names <- c("He4", "Ne20", "Si28", "Ti48", "Fe56 (600 MeV/u)", "Nb93", "La139")
-hundred_cGy <- 0:101 # RKS to EGH: for some reason this repeat may be needed?
+hundred_cGy <- 0:101
 i <- 1
 
 errbar_dose <- c(10, 20, 40, 60, 80, 100)
@@ -352,4 +338,3 @@ mtext("HG Prevalence (%)", side = 2, outer = TRUE, cex = 0.7, line = 2.2,
       col = "black")
 
 dev.off() # Resets par() calls
-
