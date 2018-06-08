@@ -157,7 +157,7 @@ lines(x = d8, y = calibrated_HZE_nte_der(dose = d8, L = 193), col = "orange", lw
 #lines(x = d8, y = calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
 #      col = "red", lwd = 2) # I(d)
 lines(x = d8, y = new_calculate_id(d8, c(70, 193), c(0.5 , 0.5), model = "NTE")[, 2],
-      col = "black", lwd = 2, lty = 2) #EGH modified I(d)
+      col = "red", lwd = 3) #EGH modified I(d)RKS seems OK
 lines(x = d8, y = calculate_SEA(d8, c(70, 193), c(1/2, 1/2), n = 2), col = "black",
       lwd = 2, lty = 2)
 legend(x = "topleft", legend = c("Fe56 (600 MeV/u)", "Si28", "IEA", "SEA"),
@@ -178,7 +178,7 @@ lines(x = d9, y = calibrated_HZE_nte_der(dose = d9, L = 953), col = "violet", lw
 #lines(x = d9, y = calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
           #rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) # I(d)
 lines(x = d9, y = new_calculate_id(d9, c(25, 70, 100, 193, 250, 464, 953),
-                               rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) #EGH modifed I(d)
+                               rep(1/7, 7), model = "NTE")[, 2], col = "red", lwd = 3) #EGH modifed I(d)  RKS seems OK
 legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER", 
                                  "Ti48 NTE-TE IDER", "Fe56 (600 MeV/u) NTE-TE IDER", 
                                  "Fe56 (300 MeV/u) NTE-TE IDER", "Nb93 NTE-TE IDER",
@@ -215,7 +215,7 @@ ci_data <- data.frame(dose = d10,
                       
                       #  I(d)
                       i = calculate_id(d10, LET_vals, ratios,
-                                       model = "NTE")[, 2]) 
+                                       model = "NTE")[, 2]) #RKS should this be new_calculate_id for the time being till our checks are finished?
 
 #  We make the ribbon plot for correlated parameters
 plot(c(0,41), c(0,.30), col="white", bty='L')
@@ -257,7 +257,7 @@ ci_data <- data.frame(dose = d11,
                         fe_three = calibrated_HZE_nte_der(dose = d11, L = 250),
                         nb = calibrated_HZE_nte_der(dose = d11, L = 464),
                         la = calibrated_HZE_nte_der(dose = d11, L = 953),
-                        i = calculate_id(d11, LET_vals, ratios, model = "NTE")[, 2])  
+                        i = calculate_id(d11, LET_vals, ratios, model = "NTE")[, 2])  #RKS should this be new_calculate_id for the time being till our checks are finished?
 
 # # #  Plotting call. RKS will use the plot below instead of ggplot2
 plot(c(0,50),c(0,.40), col="white", bty='u')
