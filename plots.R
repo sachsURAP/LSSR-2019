@@ -109,8 +109,8 @@ r <- c(.2, .8) # dose proportions. RKS to EGH: at most one low LET, always last 
 plot(x = d, y = calibrated_HZE_nte_der(dose = d, L = 193), type = "l", #  Now plot DERs 
      xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) # Fe DER
 lines(x = d, y = calibrated_low_LET_der(d, 0), col = 'orange', lwd = 2) #low LET DER 
-lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 3) # I(d)
-lines(x = d, y = new_calculate_id(d, c(193, 0), r)[, 2], col = "black", lwd = 3, lty = 2) #EGH modified I(d)
+#lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 3) # I(d)
+lines(x = d, y = new_calculate_id(d, c(193, 0), r)[, 2], col = "red", lwd = 3) #EGH modified I(d)
 lines(x = d, y = calibrated_HZE_nte_der(dose = .2 * d, L = 193) + 
         calibrated_low_LET_der(.8 * d, 0), lty= 2, lwd=2) # SEA mixture baseline S(d)
 
@@ -118,8 +118,8 @@ r <- c(.8, .2) # Panel B, proportions reversed with low LET small
 plot(x = d, y = calibrated_HZE_nte_der(dose = d, L = 193), type = "l", 
      xlab = "dose", ylab = "HG", bty = 'u', col = 'green', lwd = 2) 
 lines(x = d, y = calibrated_low_LET_der(d, 0), col = 'orange', lwd = 2) 
-lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 3) # I(d)
-lines(x = d, y = new_calculate_id(d, c(193, 0), r)[, 2], col = "black", lwd = 3, lty = 2) #EGH modified I(d)
+#lines(x = d, y = calculate_id(d, 193, r, lowLET = TRUE)[, 2], col = "red", lwd = 3) # I(d)
+lines(x = d, y = new_calculate_id(d, c(193, 0), r)[, 2], col = "red", lwd = 3) #EGH modified I(d)
 lines(x = d, y = calibrated_HZE_nte_der(dose = .8 * d, L = 193) +
         calibrated_low_LET_der(.2 *d, 0), lty= 2, lwd=2) 
 
