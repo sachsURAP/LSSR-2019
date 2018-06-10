@@ -283,8 +283,6 @@ errbar(60, 0.081,yplus=.081+.09,yminus=.081-.09, pch = 19,cap=0.05, add=TRUE, co
 #========= 8-panel plot for supplement: 7 HZE IDER panels, 1 low-LET IDER ============#
 plot(1,1)
 par(mfrow = c(2, 4))
-# Maybe we should put all plot commands not needed for the minor paper, including even this figure
-# needed in the supplement, into a separate script on auxiliary figures?
 par(cex = 0.6)
 par(mar = c(0, 0, 0, 0), oma = c(4, 4, 0.5, 0.5))
 par(tcl = -0.25)
