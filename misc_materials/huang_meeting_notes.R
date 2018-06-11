@@ -244,7 +244,9 @@
 # Make 8 panel plot of HZE ions with points and error bars,
 # follow procedure from Ray's Figure 5, base R or ggplot no preference
 
-# Add low-LET boolean parameter in simulate_monte_carlo (only if below is not implemented)
+
+# Add low-LET boolean parameter in simulate_monte_carlo
+# (only if below is not implemented) - NEGATED BY BELOW
 
 # MODIIFY calculate_id
 # For a MIXDER of N low-LET ions and 0 HZE ions, add up the LETs of all 
@@ -252,11 +254,12 @@
 # For a MIXDER of M low-LET ions and N HZE ions, add up the LETs of all 
 # the low-LET ions and treat as MIXDER of N HZE + one low-LET DER (Z < 3 is low-LET)
 # ( IF DONE CORRECTLY THERE IS NO LONGER A NEED FOR lowLET boolean toggle parameters)
+# - DONE
 
-# If par() is ever called please reset the graphics settings
+# If par() is ever called please reset the graphics settings - DONE
 
-# If extra time rewrite Mark's report and code on Lam's synergy theory
+# If extra time rewrite Mark's report and code on Lam's synergy theory - LATER
 
-# Ray will send me link to audrey's repo about the giant letters
+# Ray will send me link to audrey's repo about the giant letters - LATER
 
 
