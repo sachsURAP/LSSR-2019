@@ -176,8 +176,8 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 # LET_vals <- c(193, 70)
 # d10 = c(0.01*0:9,0.1*1:9,1:40)
 # # We use the plot that takes adjustable parameter correlations into account
-# corr_ci_3.2.3 <- simulate_monte_carlo(200, d10, LET_vals, ratios, model = "NTE") 
-# # The first argument, 200, is the number of Monte Carlo repeats. Increase for
+# corr_ci_3.2.3 <- simulate_monte_carlo(n=500, d10, LET_vals, ratios, model = "NTE") 
+# # The first argument, n, is the number of Monte Carlo repeats. Increase for
 # #greater accuracy. Decrease to speed up the program.
 # # Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
 # ci_data <- data.frame(dose = d10,
@@ -189,18 +189,17 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 #                        fe_six = calibrated_HZE_nte_der(dose = d10, L = 193),
 #                        si = calibrated_HZE_nte_der(dose = d10, L = 70),
 # #                       
-# #                       #  IEA basline mixture DER I(d), denoted by id below
+# #                       #  IEA baseline mixture DER I(d), denoted by id below
 #                        i = calculate_id(d10, LET_vals, ratios,
 #                                         model = "NTE")[, 2]) 
 # # 
 # # #  We make the ribbon plot for correlated parameters
-# plot(c(0,41), c(0,.30), col="white", bty='L') #just sets plot area
+# plot(c(0,41), c(0,.30), col="white", bty='L', ann=FALSE) #just sets plot area
 # polygon(x=c(d10,rev(d10)),y=c(ci_data[,"corrTop"], rev(ci_data[,"corrBottom"])),
 #          xpd=-1,col="yellow",lwd=.4,border="orange") ## narrow CI ribbon
-# lines(ci_data[,"dose"],ci_data[,"si"],col='violet', lwd = 2) # Si DER
-# lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd = 3) # I(d)
-# lines(ci_data[,"dose"],ci_data[,"fe_six"],col='green',type = 'l', lwd = 3, lty = 2) #Fe
-# # 
+# lines(ci_data[,"dose"],ci_data[,"si"],col='brown', lwd = 2) # Si DER
+# lines(ci_data[,"dose"],ci_data[,"fe_six"],col='blue') #Fe
+# lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd = 3) # I(d) 
 
 # #========= FIGURE 11 =================#
 # #=============== Correlated vs Uncorrelated CI Overlay Plot ==================#
