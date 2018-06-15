@@ -211,7 +211,7 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 # d11 <- c(0.1 * 0:9, 1:50)
 # # 
 # # We begin with the correlated plot
-# corr_ci_3.2.4 <- simulate_monte_carlo(n=200, d11, LET_vals, ratios, model = "NTE") 
+# corr_ci_3.2.4 <- simulate_monte_carlo(n=500, d11, LET_vals, ratios, model = "NTE") 
 # # Comments for Fig. 10 apply with minor changes here and in some other lines 
 # # We now calculate the uncorrelated Monte Carlo
 # uncorr_ci_3.2.4 <- simulate_monte_carlo(n=200, d11, LET_vals, ratios, model = "NTE", vcov = FALSE)
@@ -235,18 +235,17 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 #                        i = calculate_id(d11, LET_vals, ratios, model = "NTE")[, 2])  
 # # 
 # #  Plotting call. RKS will use the plot below instead of ggplot2
-# plot(c(0,50),c(0,.40), col="white", bty='u') #next is broad CI ribbon
+# plot(c(0,50),c(0,.40), col="white", bty='u', ann=FALSE) #next is broad CI ribbon
 # polygon(x=c(d11,rev(d11)),y=c(ci_data[,"uncorrTop"],rev(ci_data[,"uncorrBottom"])),xpd=-1,
 #        col="orange",lwd=.5,border="orange") # wide CI
 #  
 # polygon(x=c(d11,rev(d11)),y=c(ci_data[,"corrTop"],rev(ci_data[,"corrBottom"])),xpd=-1,
 #        col="yellow",border="orange", lwd=.2) # narrow CI
 #  
-# lines(ci_data[,"dose"],ci_data[,"fe_three"],col='black',type = 'l', lwd = 2, bty='u', ann=FALSE) 
-# # # This IDER is the highest; so plot it first
-# lines(ci_data[,"dose"],ci_data[,"ne"],col='black', lwd = 2) #the lowest IDER
-# lines(ci_data[,"dose"],ci_data[,"nb"],col='black', lwd = 2)# 
-# lines(ci_data[,"dose"],ci_data[,"la"],col='black', lwd = 2)# 
+# lines(ci_data[,"dose"],ci_data[,"fe_three"],col='black', lwd = 2) 
+# lines(ci_data[,"dose"],ci_data[,"ne"],col='black', lwd = 2) 
+# lines(ci_data[,"dose"],ci_data[,"nb"],col='black', lwd = 2)
+# lines(ci_data[,"dose"],ci_data[,"la"],col='black', lwd = 2) 
 # lines(ci_data[,"dose"],ci_data[,"si"],col='black', lwd = 2)
 # lines(ci_data[,"dose"],ci_data[,"ti"],col='black', lwd = 2)
 # lines(ci_data[,"dose"],ci_data[,"fe_six"],col='black', lwd = 2)
