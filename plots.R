@@ -211,10 +211,10 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 # d11 <- c(0.1 * 0:9, 1:50)
 # # 
 # # We begin with the correlated plot
-# corr_ci_3.2.4 <- simulate_monte_carlo(200, d11, LET_vals, ratios, model = "NTE") 
+# corr_ci_3.2.4 <- simulate_monte_carlo(n=200, d11, LET_vals, ratios, model = "NTE") 
 # # Comments for Fig. 10 apply with minor changes here and in some other lines 
 # # We now calculate the uncorrelated Monte Carlo
-# uncorr_ci_3.2.4 <- simulate_monte_carlo(200, d11, LET_vals, ratios, model = "NTE", vcov = FALSE)
+# uncorr_ci_3.2.4 <- simulate_monte_carlo(n=200, d11, LET_vals, ratios, model = "NTE", vcov = FALSE)
 # # 
 # # Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
 # ci_data <- data.frame(dose = d11,
