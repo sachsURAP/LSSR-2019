@@ -250,7 +250,7 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 # lines(ci_data[,"dose"],ci_data[,"si"],col='black', lwd = 2)
 # lines(ci_data[,"dose"],ci_data[,"ti"],col='black', lwd = 2)
 # lines(ci_data[,"dose"],ci_data[,"fe_six"],col='black', lwd = 2)
-# lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd=3, lty=2)
+# lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd=3)
 
 
 #===moved Figure for Chang's new proton data point 5/22/2018 to its own separate file===#
