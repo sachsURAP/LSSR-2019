@@ -14,26 +14,26 @@
 
 source("synergyTheory.R") # Load in data and models
 
-library(mvtnorm) # Sampling
+library(mvtnorm) # Random sampling
 
 #======================= MONTE CARLO SIMULATION FUNCTION ======================#
 
-#' @description Runs the Monte Carlo method on a MIXDER.
+#' @description Runs the Monte Carlo method on a baseline no-synergy/antagonism mixture DER.
 #' 
 #' @param n Numeric integer of the number of samples to be drawn.
 #' @param dose Numeric vector of all total dose values to be evaluated. 
 #' @param LET Numeric vector of all LET values, must be length n.
-#' @param ratios Numeric vector of dose proportions applied on component IDERs.
+#' @param ratios Numeric vector of dose proportions applied on component DERs.
 #' @param model String value corresponding to the model to be used. 
 #' @param vcov Boolean for assessing inter-parameter correlation.
 #' @param interval_length Numeric double of the confidence interval width.
 #' @param seed Numeric value for pseudorandom generators.
            
 #' @details Corresponding elements of ratios, LET should be associated with the
-#'          same IDER.
+#'          same DER.
 #'          
 #' @return Named list representing lower and upper bounds for a Monte Carlo
-#'         confidence interval for a MIXDER over an interval of dosages.
+#'         confidence interval for a mixture DER over an interval of doses.
 #'         
 #' @examples
 #' ratios <- c(1/2, 1/2)
@@ -60,20 +60,20 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
 
 #================== SAMPLING ===================#
 
-#' @description Generates MIXDER samples with parameters drawn from a Gaussian 
+#' @description Generates mixture no-synergy/antagonism DER samples with parameters drawn from a Gaussian 
 #'              distribution.
 #'              
 #' @param n Numeric integer of the number of samples to be drawn.
 #' @param dose Numeric vector of all total dose values to be evaluated. 
 #' @param LET Numeric vector of all LET values, must be length n.
-#' @param ratios Numeric vector of dose proportions applied on component IDERs.
+#' @param ratios Numeric vector of dose proportions applied on component DERs.
 #' @param model String value corresponding to the model to be used.
 #' @param vcov Boolean for assessing inter-parameter correlation. 
 #' @param nte_model The input HZE nontargeted and targeted effects model.
 #' @param te_model The input HZE targeted effects only model.
 #' @param low_model The input low LET model.
 #'          
-#' @return Numeric vector of sample MIXDERs evaluated at the given dosages. 
+#' @return Numeric vector of sample mixture baseline DERs evaluated at the given doses. 
 
 .generate_samples <- function(n, dose, LET, ratios, model, vcov, 
                               nte_model = HZE_nte_model, 
@@ -114,15 +114,15 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
 
 #============= INTERVAL CONSTRUCTION ===========#
 
-#' @description Generates confidence intervals for MIXDER samples at a dosage.
+#' @description Generates confidence intervals for mixture baeline DER samples at a dose.
 #'              
 #' @param n Numeric integer of the number of samples to be drawn.
-#' @param dose_index Numeric integer of dosage.
-#' @param sample_curves Numeric list of sampled MIXDER values.
+#' @param dose_index Numeric integer of doses
+#' @param sample_curves Numeric list of sampled mixture DER values.
 #' @param interval_length Numeric double of the confidence interval width.
 #' 
 #' @return Numeric length-two vector of an upper and lower bound for the 
-#'         confidence interval of a dosage.
+#'         confidence interval of a dose.
 
 .generate_ci <- function(n, dose_index, sample_curves, interval_length) {
   # For each sample curve, evalute them at input dose, and sort.
