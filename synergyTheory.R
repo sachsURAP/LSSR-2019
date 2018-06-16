@@ -26,7 +26,7 @@ library(deSolve) # Solving differential equations
 phi <- 2000 # even larger phi should give the same final results, 
             # but might cause extra problems with R. 
 
-#=============================== IDER MODELS ==================================#
+#=============================== DER MODELS ==================================#
 
 #================ PHOTON MODEL =================#
 # Linear model fit on beta_decay_data dataset. 
@@ -37,7 +37,7 @@ phi <- 2000 # even larger phi should give the same final results,
 # summary(beta_decay_lm, correlation = TRUE)
 
 #=============== HZE/NTE MODEL =================#
-# (HZE = high charge and energy; NTE = non-targeted effects are included)
+# (HZE = high charge and energy; NTE = non-targeted effects are included in addition to TE)
 HZE_data <- ion_data[13:47,] # Includes 1-ion data iff Z > 3
 # Uses 3 adjustable parameters. 
 HZE_nte_model <- nls( # Calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc. 
@@ -52,13 +52,13 @@ summary(HZE_nte_model, correlation = TRUE) # Parameter values & accuracy.
 vcov(HZE_nte_model) # Variance-covariance matrix
 HZE_nte_model_coef <- coef(HZE_nte_model) # Calibrated central values of the 3 parameters. 
 
-# The IDER, = 0 at dose 0
+# The DER, = 0 at dose 0
 calibrated_nte_hazard_func <- function(dose, LET, coef) { #  Calibrated hazard function 
  return(coef[1] * LET * dose * exp( - coef[2] * LET) 
         + (1 - exp( - phi * dose)) * coef[3])
 } 
 
-calibrated_HZE_nte_der <- function(dose, LET, coef = HZE_nte_model_coef) { #  Calibrated HZE NTE IDER
+calibrated_HZE_nte_der <- function(dose, LET, coef = HZE_nte_model_coef) { #  Calibrated HZE NTE DER
   return(1 - exp( - calibrated_nte_hazard_func(dose, LET, coef)))
 }
 
@@ -77,13 +77,13 @@ summary(HZE_te_model, correlation = TRUE) # Parameter values & accuracy
 vcov(HZE_te_model) # Variance-covariance matrix
 HZE_te_model_coef <- coef(HZE_te_model) #  Calibrated central values of the 2 parameters. 
 
-# The IDER, = 0 at dose 0
+# The DER, = 0 at dose 0
 calibrated_te_hazard_func <- function(dose, LET, coef) { # Calibrated hazard function
   return(coef[1] * LET * dose * exp( - coef[2] * LET))
 }
 
 calibrated_HZE_te_der <- function(dose, LET, coef = HZE_te_model_coef) {
-  return(1 - exp( - calibrated_te_hazard_func(dose, LET, coef))) # Calibrated HZE TE IDER
+  return(1 - exp( - calibrated_te_hazard_func(dose, LET, coef))) # Calibrated HZE TE one-ion DER
 }
 
 
@@ -114,23 +114,23 @@ info_crit_table <- cbind(AIC(HZE_te_model, HZE_nte_model),
 print(info_crit_table)
 
 
-#============================== MIXDER FUNCTIONS ==============================#
+#===========baseline no-synergy/antagonism mixture DER  FUNCTIONS ================#
 
 #======= Simple Effect Addititvity (SEA) =======#
 
-#' @description Applies Simple Effect Additivity to a MIXDER.
+#' @description Applies Simple Effect Additivity to get a baselin mixture DER.
 #' 
 #' @param dose Numeric vector corresponding to the sum dose in cGy.
 #' @param LET Numeric vector of all LET values, must be length n.
 #' @param ratios Numeric vector of all dose ratios, must be length n.
-#' @param lowLET Boolean of whether a LET IDER should be included in the MIXDER.
-#' @param n Number of IDERs, optional argument used to check parameter validity.
+#' @param lowLET Boolean of whether a low LET DER should be included in the mixture DER.
+#' @param n Number of DERs, optional argument used to check parameter validity.
 #' 
 #' @details Corresponding elements of ratios, LET should be associated with the
-#'          same IDER.
+#'          same DER.
 #'          
 #' @return Numeric vector representing the estimated Harderian Gland 
-#'         prevalence from a SEA MIXDER constructed from the given IDER 
+#'         prevalence from a SEA mixture DER constructed from the given DER 
 #'         parameters. 
 #'         
 #' @examples
@@ -146,11 +146,11 @@ calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
   total = 0
   i = 1
   if (lowLET == TRUE) { 
-    # First elements of ratios and LET should be the low-LET IDER
+    # First elements of ratios and LET should be the low-LET DER
     total = total + calibrated_low_LET_der(dose * ratios[i], LET[i])
     i = i + 1
   } 
-  while (i < length(ratios) + 1) { # Iterate over HZE ions in MIXDER
+  while (i < length(ratios) + 1) { # Iterate over HZE ions in the mixture
     total = total + calibrated_HZE_nte_der(dose * ratios[i], LET[i])
     i = i + 1
   }
@@ -160,24 +160,24 @@ calculate_SEA <- function(dose, LET, ratios, lowLET = FALSE, n = NULL) {
 
 #===== Incremental Effect Addititvity (IEA) ====#
 
-#' @description Applies Incremental Effect Additivity to a MIXDER.
+#' @description Applies IEA to get a baseline no-synergy/antagonism mixture DER.
 #' 
 #' @param dose Numeric vector corresponding to the sum dose in cGy.
 #' @param LET Numeric vector of all LET values, must be length n.
 #' @param ratios Numeric vector of all dose ratios, must be length n.
 #' @param model String value corresponding to the model to be used, either 
 #'              "NTE" or "TE". 
-#' @param coef Named list of numeric vectors containing coefficients for IDERs.
-#' @param ders Named list of functions containing relevant IDER models.
+#' @param coef Named list of numeric vectors containing coefficients for one-ion DERs.
+#' @param ders Named list of functions containing relevant one-ion DER models.
 #' @param calculate_dI Named vector of functions to calculate dI depending on 
 #'                     the selected model.
 #' @param phi Numeric value, used in NTE models.
 #' 
 #' @details Corresponding elements of ratios, LET should be associated with the
-#'          same IDER.
+#'          same DER.
 #'          
 #' @return Numeric vector representing the estimated Harderian Gland 
-#'         prevalence from an IEA MIXDER constructed from the given IDER 
+#'         prevalence from an IEA mixture DER constructed from the given one-ion DERs 
 #'         parameters. 
 #'         
 #' @examples
@@ -194,7 +194,7 @@ calculate_id <- function(dose, LET, ratios, model = "NTE",
                          calculate_dI = c(NTE = .calculate_dI_nte, 
                                           TE = .calculate_dI_te),
                          phi = 2000) {
-  dE <- function(yini, state, pars) { #  Constructing an ode from the IDERS
+  dE <- function(yini, state, pars) { #  Constructing an ODE from the DERS
     with(as.list(c(state, pars)), {
 
       # Screen out low LET values
@@ -224,7 +224,7 @@ calculate_id <- function(dose, LET, ratios, model = "NTE",
         }
       }
       if (lowLET_ratio > 0) { 
-        # If low-LET IDER is present then include it at the end of the dI vector
+        # If low-LET DER is present then include it at the end of the dI vector
         u[length(LET) + 1] <- uniroot(function(dose) 
                                       low_der(dose, LET = lowLET_total, 
                                       alph_low = coef[["lowLET"]]) - I, 
