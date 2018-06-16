@@ -172,84 +172,84 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
 #========= FIGURE 10 =========#  
 # Fe56 (600 MeV/u) and Si28 in equal proportions for a total of 40 cGy
 # Declare ratios and LET values for plot
-# ratios <- c(1/2, 1/2)
-# LET_vals <- c(193, 70)
-# d10 = c(0.01*0:9,0.1*1:9,1:40)
-# # We use the plot that takes adjustable parameter correlations into account
-# corr_ci_3.2.3 <- simulate_monte_carlo(n=500, d10, LET_vals, ratios, model = "NTE") 
-# # The first argument, n, is the number of Monte Carlo repeats. Increase for
-# #greater accuracy. Decrease to speed up the program.
-# # Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
-# ci_data <- data.frame(dose = d10,
-#                        #  Monte Carlo values
-#                        corrBottom = corr_ci_3.2.3$monte_carlo[1, ],
-#                        corrTop = corr_ci_3.2.3$monte_carlo[2, ], # 
-#                        
-#                        # one-ion DERs for comparison
-#                        fe_six = calibrated_HZE_nte_der(dose = d10, L = 193),
-#                        si = calibrated_HZE_nte_der(dose = d10, L = 70),
-# #                       
-# #                       #  IEA baseline mixture DER I(d), denoted by id below
-#                        i = calculate_id(d10, LET_vals, ratios,
-#                                         model = "NTE")[, 2]) 
-# # 
+ratios <- c(1/2, 1/2)
+LET_vals <- c(193, 70)
+d10 = c(0.01*0:9,0.1*1:9,1:40)
+# We use the plot that takes adjustable parameter correlations into account
+corr_fig_10 <- simulate_monte_carlo(n=500, d10, LET_vals, ratios, model = "NTE")
+# The first argument, n, is the number of Monte Carlo repeats. Increase for
+#greater accuracy. Decrease to speed up the program.
+# Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
+ci_data <- data.frame(dose = d10,
+                       #  Monte Carlo values
+                       corrBottom = corr_fig_10$monte_carlo[1, ],
+                       corrTop = corr_fig_10$monte_carlo[2, ], #
+
+                       # one-ion DERs for comparison
+                       fe_six = calibrated_HZE_nte_der(dose = d10, L = 193),
+                       si = calibrated_HZE_nte_der(dose = d10, L = 70),
+#
+#                       #  IEA baseline mixture DER I(d), denoted by id below
+                       i = calculate_id(d10, LET_vals, ratios,
+                                        model = "NTE")[, 2])
+
 # # #  We make the ribbon plot for correlated parameters
-# plot(c(0,41), c(0,.30), col="white", bty='L', ann=FALSE) #just sets plot area
-# polygon(x=c(d10,rev(d10)),y=c(ci_data[,"corrTop"], rev(ci_data[,"corrBottom"])),
-#          xpd=-1,col="yellow",lwd=.4,border="orange") ## narrow CI ribbon
-# lines(ci_data[,"dose"],ci_data[,"si"],col='brown', lwd = 2) # Si DER
-# lines(ci_data[,"dose"],ci_data[,"fe_six"],col='blue') #Fe
-# lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd = 3) # I(d) 
+plot(c(0,41), c(0,.30), col="white", bty='L', ann=FALSE) #just sets plot area
+polygon(x=c(d10,rev(d10)),y=c(ci_data[,"corrTop"], rev(ci_data[,"corrBottom"])),
+         xpd=-1,col="yellow",lwd=.4,border="orange") ## narrow CI ribbon
+lines(ci_data[,"dose"],ci_data[,"si"],col='brown', lwd = 2) # Si DER
+lines(ci_data[,"dose"],ci_data[,"fe_six"],col='blue') #Fe
+lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd = 3) # I(d)
 
 # #========= FIGURE 11 =================#
 # #=============== Correlated vs Uncorrelated CI Overlay Plot ==================#
 # 
-#  Consists of all 7 HZE ions in our 5/20/2018 data set.
-# #  Declare ratios and LET values for plot
-# ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
-# LET_vals <- c(25, 70, 100, 193, 250, 464, 953)
-# d11 <- c(0.1 * 0:9, 1:50)
+ # Consists of all 7 HZE ions in our 5/20/2018 data set.
+#  Declare ratios and LET values for plot
+ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
+LET_vals <- c(25, 70, 100, 193, 250, 464, 953)
+d11 <- c(0.1 * 0:9, 1:50)
 # # 
 # # We begin with the correlated plot
-# corr_ci_3.2.4 <- simulate_monte_carlo(n=500, d11, LET_vals, ratios, model = "NTE") 
-# # Comments for Fig. 10 apply with minor changes here and in some other lines 
-# # We now calculate the uncorrelated Monte Carlo
-# uncorr_ci_3.2.4 <- simulate_monte_carlo(n=200, d11, LET_vals, ratios, model = "NTE", vcov = FALSE)
-# # 
-# # Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
-# ci_data <- data.frame(dose = d11,
-#                        # Monte Carlo values
-#                        corrBottom = corr_ci_3.2.4$monte_carlo[1, ],
-#                        corrTop = corr_ci_3.2.4$monte_carlo[2, ],
-#                        uncorrBottom = uncorr_ci_3.2.4$monte_carlo[1, ],
-#                        uncorrTop = uncorr_ci_3.2.4$monte_carlo[2, ],
-# 
-#                        # DER values
-#                        ne = calibrated_HZE_nte_der(dose = d11, L = 25),
-#                        si = calibrated_HZE_nte_der(dose = d11, L = 70),
-#                        ti = calibrated_HZE_nte_der(dose = d11, L = 100),
-#                        fe_six = calibrated_HZE_nte_der(dose = d11, L = 193),
-#                        fe_three = calibrated_HZE_nte_der(dose = d11, L = 250),
-#                        nb = calibrated_HZE_nte_der(dose = d11, L = 464),
-#                        la = calibrated_HZE_nte_der(dose = d11, L = 953),
-#                        i = calculate_id(d11, LET_vals, ratios, model = "NTE")[, 2])  
-# # 
-# #  Plotting call. RKS will use the plot below instead of ggplot2
-# plot(c(0,50),c(0,.40), col="white", bty='u', ann=FALSE) #next is broad CI ribbon
-# polygon(x=c(d11,rev(d11)),y=c(ci_data[,"uncorrTop"],rev(ci_data[,"uncorrBottom"])),xpd=-1,
-#        col="orange",lwd=.5,border="orange") # wide CI
-#  
-# polygon(x=c(d11,rev(d11)),y=c(ci_data[,"corrTop"],rev(ci_data[,"corrBottom"])),xpd=-1,
-#        col="yellow",border="orange", lwd=.2) # narrow CI
-#  
-# lines(ci_data[,"dose"],ci_data[,"fe_three"],col='black', lwd = 2) 
-# lines(ci_data[,"dose"],ci_data[,"ne"],col='black', lwd = 2) 
-# lines(ci_data[,"dose"],ci_data[,"nb"],col='black', lwd = 2)
-# lines(ci_data[,"dose"],ci_data[,"la"],col='black', lwd = 2) 
-# lines(ci_data[,"dose"],ci_data[,"si"],col='black', lwd = 2)
-# lines(ci_data[,"dose"],ci_data[,"ti"],col='black', lwd = 2)
-# lines(ci_data[,"dose"],ci_data[,"fe_six"],col='black', lwd = 2)
-# lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd=3)
+corr_fig_11 <- simulate_monte_carlo(n=500, d11, LET_vals, ratios, model = "NTE")
+# Comments for Fig. 10 apply with minor changes here and in some other lines
+# We now calculate the uncorrelated Monte Carlo
+uncorr_fig_11 <- simulate_monte_carlo(n=200, d11, LET_vals, ratios, model = "NTE", vcov = FALSE)
+#
+# Construct a data.frame for ease of use with ggplot2 if ggplot2 is used
+ci_data <- data.frame(dose = d11,
+                       # Monte Carlo values
+                       corrBottom = corr_fig_11$monte_carlo[1, ],
+                       corrTop = corr_fig_11$monte_carlo[2, ],
+                       uncorrBottom = uncorr_fig_11$monte_carlo[1, ],
+                       uncorrTop = uncorr_fig_11$monte_carlo[2, ],
+
+                       # DER values
+                       ne = calibrated_HZE_nte_der(dose = d11, L = 25),
+                       si = calibrated_HZE_nte_der(dose = d11, L = 70),
+                       ti = calibrated_HZE_nte_der(dose = d11, L = 100),
+                       fe_six = calibrated_HZE_nte_der(dose = d11, L = 193),
+                       fe_three = calibrated_HZE_nte_der(dose = d11, L = 250),
+                       nb = calibrated_HZE_nte_der(dose = d11, L = 464),
+                       la = calibrated_HZE_nte_der(dose = d11, L = 953),
+                       i = calculate_id(d11, LET_vals, ratios, model = "NTE")[, 2])
+#
+#  Plotting call. RKS will use the plot below instead of ggplot2
+plot(c(0,50),c(0,.40), col="white", bty='u', ann=FALSE) #next is broad CI ribbon
+polygon(x=c(d11,rev(d11)),y=c(ci_data[,"uncorrTop"],rev(ci_data[,"uncorrBottom"])),xpd=-1,
+       col="orange",lwd=.5,border="orange") # wide CI
+
+polygon(x=c(d11,rev(d11)),y=c(ci_data[,"corrTop"],rev(ci_data[,"corrBottom"])),xpd=-1,
+       col="yellow",border="orange", lwd=.2) # narrow CI
+
+lines(ci_data[,"dose"],ci_data[,"fe_three"],col='black', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"ne"],col='black', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"nb"],col='black', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"la"],col='black', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"si"],col='black', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"ti"],col='black', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"fe_six"],col='black', lwd = 2)
+lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd=3)
 
 
 #===moved Figure for Chang's new proton data point 5/22/2018 to its own separate file===#
