@@ -8,10 +8,11 @@
 # Contact:      Rainer K. Sachs
 # Website:      https://github.com/sachsURAP/NASAmouseHG
 # Mod history:  18 Jun 2018
-# Attribution:  This R script was developed at UC Berkeley. Written by Dae Woong 
-#               Ham Summer 2017. Additions, corrections, changes, quality 
-#               control, reorganization by Edward G. Huang, Yimin Lin, 
-#               Mark Ebert, Yunzhi Zhang and Ray Sachs UCB 2017-2018.
+# Attribution:  This R script and the scripts that depend on it 
+# (notably synergyTheory.R, monteCarlo.R and plots.R) was developed at UC Berkeley. 
+# 2017-18. An early version was written by Dae Woong Ham Summer 2017. 
+# Additions, corrections, changes, quality control, and major reorganization by Edward G. Huang,
+# Yimin Lin, Mark Ebert, Yunzhi Zhang and Ray Sachs, UCB fall 2017-Summer 2018.
 
 # Relevant references and abbreviations:
 #
