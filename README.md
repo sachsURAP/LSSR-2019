@@ -7,7 +7,7 @@ Data and script for analyzing ionizing radiation tumorigenesis outside low-earth
 
 #### `NASAmouseHG`
 The main directory. Houses our primary R scripts for analysis, licensing information, git integration, and important subfolders.
-The primary scripts, in order of development, are: `dataAndInfo.R`, `synergyTheory.R`, `monteCarlo.R`, and `plots.R`.
+The primary scripts, in order of development, are: `dataAndInfo.R`, `synergyTheory.R`, `monteCarlo.R`, `plots.R`, and `supplementPlots.R`.
 
 #### `data`
 Data files, strictly in CSV format. 
@@ -31,7 +31,7 @@ Meeting minutes, example scripts for various procedures, past agendas, and past 
     #               high-energy, atomic nuclei. 
     # Contact:      Rainer K. Sachs 
     # Website:      https://github.com/sachsURAP/NASAmouseHG
-    # Mod history:  19 Apr 2018
+    # Mod history:  19 Jun 2018
     # Attribution:  This R script was developed at UC Berkeley. Written by Dae Woong 
     #               Ham Summer 2017. Additions, corrections, changes, quality 
     #               control, reorganization by Edward Huang, Yimin Lin, Mark Ebert,
@@ -77,8 +77,7 @@ Meeting minutes, example scripts for various procedures, past agendas, and past 
     #   "LET"    = Linear energy transfer
     #   "NTE"    = Non-targeted effects
     #   "TE"     = Targeted effects
-    #   "IDER"   = Individual dose-effect relationship
-    #   "MIXDER" = Mixed dose-effect relationship
+    #   "DER"    = Dose-effect Relation(ship) 
     #   "SEA"    = Simple Effect Additivity
     #   "IEA"    = Incremental Effect Additivity
     #   "cGy"    = Centigray
