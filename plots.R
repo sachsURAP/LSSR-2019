@@ -7,85 +7,87 @@
 #               part of the source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  07 Jun 2018
-# Details:      See hgData.R for further licensing, attribution, references, 
-#               and abbreviation information.
+# Mod history:  18 Jun 2018
+# Details:      See dataAndInfo.R for further licensing, attribution, 
+#               references, and abbreviation information.
 
-source("monteCarlo.R") #  Load Monte Carlo
+source("monteCarlo.R") # Load Monte Carlo.
 
-library(ggplot2) # Ribbon plot functionality
-library(grid)  # Plot grids
-library(Hmisc) # Error bars
+library(ggplot2) # Ribbon plot functionality.
+library(grid)    # Plot grids.
+library(Hmisc)   # Error bars.
 
-#=====================================================================
-#=== Fig. 1. SEA synergy theory is unreliable for quadratic component DERs
-#=====================================================================
-d1=0.01*0:100
-d=0.5*d1
-E1=d1^2
-E2=2*d1^2
-SEA=d^2+2*d^2
-plot(d1,E2,type='l', lwd=3, bty='l', ann=FALSE)
-lines(d1,E1, lwd=3)
-lines (d1, SEA, lwd=3, lty = 2)
+#==============================================================================#
+#==== Fig. 1. SEA Synergy Theory is Unreliable for Quadratic Component DERs ===#
+#==============================================================================#
+d1 <- 0.01 * 0:100
+d <- 0.5 * d1
+E1 <- d1 ^ 2
+E2 <- 2 * d1 ^ 2
+SEA <- d ^ 2 + 2 * d ^ 2
+plot(d1, E2, type = 'l', lwd = 3, bty = 'l', ann = FALSE)
+lines(d1, E1, lwd = 3)
+lines(d1, SEA, lwd = 3, lty = 2)
 
-#=====================================================================
-#===Fig. 2. convex, concave, standard
-#=====================================================================
-d2=0.01*0:200
-a=2; b=.6; c=4
-E1=a*d2+b*d2^2  #convex
-E2=a*d2  #linear no-thresshold (LNT) same initial slope
-E3= c*(1-(exp(-a*d2/c))) # concave, same initial slope
-plot(d2,E1,type='l', lwd=3, bty='l', ann=FALSE)
-lines(d2,E2, lwd=3)
-lines (d2, E3, lwd=3)
+#==============================================================================#
+#==================== Fig. 2. Convex, Concave, Standard =======================#
+#==============================================================================#
+d2 <- 0.01 * 0:200
+a <- 2; b <- .6; c <- 4
+E1 <- a * d2 + b * d2 ^ 2  # Convex
+E2 <- a * d2  # Linear no-threshold (LNT) same initial slope
+E3 <- c * (1 - (exp(- a * d2 / c))) # Concave, same initial slope
+plot(d2, E1, type = 'l', lwd = 3, bty = 'l', ann = FALSE)
+lines(d2, E2, lwd = 3)
+lines(d2, E3, lwd = 3)
 
-a=0.45; b=1/8; c=0.8
-E1= b*d2+0.35*b*d2^2  #convex
-E2=0.7*a*d2  #linear no-thresshold (LNT) 
-E3= c*(1-(exp(-2*a*d2/c))) # concave
-plot(d2,E3,type='l', lwd=3, bty='l', ann=FALSE)
-lines(d2,E1, lwd=3)
-lines (d2, E2, lwd=3)
+a <- 0.45; b <- 1 / 8; c <- 0.8
+E1 <- b * d2 + 0.35 * b * d2 ^ 2  # Convex
+E2 <- 0.7 * a * d2  # Linear no-threshold (LNT) 
+E3 <- c * (1 - (exp(- 2 * a * d2 / c))) # Concave
+plot(d2, E3, type = 'l', lwd = 3, bty = 'l', ann = FALSE)
+lines(d2, E1, lwd = 3)
+lines(d2, E2, lwd = 3)
 
-#===============================================================================
-#=== Shape of DER for Fe 600 MeV/u. Paper Fig. 3 
-#===============================================================================
-d3A <- c(0.01 * 0:9, 0.1*1:9,1:150) # RKS to EGH. d notation inconsistent with forty_cGy etc. above
+#==============================================================================#
+#==================== Fig. 3. Shape of DER for Fe 600 MeV/u. ==================#
+#==============================================================================#
+d3A <- c(0.01 * 0:9, 0.1 * 1:9, 1:150) 
 prevalence <- calibrated_HZE_nte_der(d3A, 193) 
-plot(d3A, prevalence, type = 'l', bty = 'u',lwd=3, ann=FALSE)
+plot(d3A, prevalence, type = 'l', bty = 'u', lwd = 3, ann = FALSE)
 # legend(x = "bottomright", 
 #        legend = "dose in centiGy; Fe 193 zoom in twice",
 #        cex = 0.4, inset = 0.025)
 
-d3B <- 2 * 10^-5 * 0:1600 # zoom in by a factor of 10^4
+d3B <- 2 * 10 ^ -5 * 0:1600 # Zoom in by a factor of 10^4
 prevalence <- calibrated_HZE_nte_der(d3B, 193)
-plot(d3B, prevalence, type = 'l', bty='u', lwd=3, ann=FALSE)
+plot(d3B, prevalence, type = 'l', bty = 'u', lwd = 3, ann = FALSE)
 
-d3C <- 10^-6 * 0:1600 # zoom in by another factor of 20
+d3C <- 10 ^ -6 * 0:1600 # Zoom in by another factor of 20
 prevalence <- calibrated_HZE_nte_der(d3C, 193)
-plot(d3C, prevalence, type = 'l', bty = 'u', lwd=3)
+plot(d3C, prevalence, type = 'l', bty = 'u', lwd = 3)
 
-#======================================================================#
-#== Low LET data, error bars, and DER. Paper Fig. 5 
-#======================================================================
+#==============================================================================#
+#=============== Fig. 5. Low LET Data, Error Bars, and DER. ===================#
+#==============================================================================#
 ddose <- 0:701 
-plot(c(0,701), c(-.02,1), pch=19, col='white', ann=FALSE, bty='u')
-lines(ddose, 1-exp(-coef(summary(low_LET_model, correlation = TRUE))[1]*ddose),lwd=2)
+plot(c(0, 701), c(-.02, 1), pch = 19, col = 'white', ann = FALSE, bty = 'u')
+lines(ddose, 1 - exp(- coef(summary(low_LET_model, correlation = TRUE))[1] * ddose), lwd = 2)
 
 errbar(ion_data[5:12, "dose"], ion_data[5:12, "Prev"], # RKS June 8 use name He not 5:12
-       yplus=ion_data[5:12, "Prev"]+1.96*ion_data[5:12, "SD"],
-       yminus=ion_data[5:12, "Prev"]-1.96*ion_data[5:12, "SD"], pch = 19,cap=0.02,
-       add=TRUE, col='red',errbar.col = 'red', lwd=2) # alpha particle data
+       yplus  = ion_data[5:12, "Prev"] + 1.96 * ion_data[5:12, "SD"],
+       yminus = ion_data[5:12, "Prev"] - 1.96 * ion_data[5:12, "SD"],
+       pch = 19, cap = 0.02, add = TRUE, col = 'red', errbar.col = 'red', lwd = 2) # alpha particle data
 errbar(ion_data[1:4, "dose"], ion_data[1:4, "Prev"],
-       yplus=ion_data[1:4, "Prev"]+1.96*ion_data[1:4, "SD"], 
-       yminus=ion_data[1:4, "Prev"]-1.96*ion_data[1:4, "SD"], pch = 19,cap=0.02,
-       add=TRUE, col='black',errbar.col = 'black',lwd=2) #  proton data
+       yplus  = ion_data[1:4, "Prev"] + 1.96 * ion_data[1:4, "SD"], 
+       yminus = ion_data[1:4, "Prev"] - 1.96 * ion_data[1:4, "SD"], 
+       pch = 19, cap = 0.02, add = TRUE, col = 'black', errbar.col = 'black', lwd = 2) #  proton data
 #legend(x = "topleft", legend = c("protons","4He"), col = c("red", "black"),
 #pch = c(19,19), cex = 1, inset = 0.025)
 
-#=========== one HZE ion, one low-LET. Paper Fig. 6  ==================#
+#==============================================================================#
+#======================= Fig. 6. One HZE Ion, One Low-LET =====================#
+#==============================================================================#
 # We will always use NTE & TE rather than TE-only for HZE in the minor paper. 
 d <- 1 * 0:302
 r <- c(.2, .8) # dose proportions. RKS to EGH: at most one low LET, always last in r( ).
@@ -104,7 +106,9 @@ lines(x = d, y = calculate_id(d, c(193, 0), r)[, 2], col = "red", lwd = 3) # I(d
 lines(x = d, y = calibrated_HZE_nte_der(dose = .8 * d, L = 193) +
         calibrated_low_LET_der(.2 *d, 0), lty= 2, lwd=2) 
 
-#=========== minor paper Fig. 7, 80% lowLET + 4 HZE ============#
+#==============================================================================#
+#===================== Fig. 7. 80% LowLET and Four HZE Ions ===================#
+#==============================================================================#
 d7 = c(0.01*0:9, 0.1*1:9, 1:41)
 plot(c(0,41),c(0,0.35), col="white", xlab = "Dose (cGy)", ylab = "HG", bty = 'l')
 lines(x = d7, y = calculate_SEA(d7, c(0.4, 40, 110, 180, 250), c(.8, rep(.05,4)),
@@ -127,7 +131,9 @@ legend(x = "topleft", legend = c("Low-LET","L=40", "L=110", "L=180", "L=250",
        lwd = c(2, 2, 2, 2, 2, 3, 2), 
        lty = c(1, 1, 1, 1,  1, 1, 2), cex = 0.3, inset = 0.025)
 
-#=== Fig. 8 DERs: Fe56 (600 MeV/u), Si28, IEA, SEA ======
+#==============================================================================#
+#=============== Fig. 8. DERs: Fe56 (600 MeV/u), Si28, IEA, SEA ================#
+#==============================================================================#
 d8 <- c(0.01*0:9, 0.1*1:9, 1:41)
 plot(c(0,40),c(0, 0.5), col="white", bty='l', xlab = "Dose (cGy)", ylab = "HG")
 lines(x = d8, y = calibrated_HZE_nte_der(dose = d8, L = 70), col = "cyan", lwd = 2)
@@ -142,7 +148,9 @@ legend(x = "topleft", legend = c("Fe56 (600 MeV/u)", "Si28", "IEA", "SEA"),
        col = c("orange", "cyan", "red", "black"), lwd = c(2, 2, 2, 2),
        lty = c(1, 1, 1, 2), cex = 0.6, inset = 0.05)
 
-#===== Minor paper Fig. 9. All 7 HZE ions; each ion contributes 7 cGy =======
+#==============================================================================#
+#============== Fig. 9. All 7 HZE Ions; Each Ion Contributes 7 cGy ============#
+#==============================================================================#
 d9 <- c(0.01*0:9, 0.1*1:9, 0.5*2:100)
 plot(x = d9, y = calculate_SEA(d9, c(25, 70, 100, 193, 250, 464, 953), rep(1/7,7)), 
      type = "l", xlab = "Dose (cGy)", ylab = "HG", bty = 'u', col = "black", lwd = 2, lty = 2)
@@ -165,16 +173,16 @@ legend(x = "topleft", legend = c("Ne20 NTE-TE IDER", "Si28 NTE-TE IDER",
        lty = c(1, 1, 1, 1, 1, 1, 1, 1, 2), cex = 0.3, inset = 0.0125)
 
 
-#==============================================================================#
-#====================== Confidence Interval Ribbon Plots ======================#
-#==============================================================================#
+#+++++++++++++++++++++ Confidence Interval Ribbon Plots +++++++++++++++++++++++#
 
-#========= FIGURE 10 =========#  
+#==============================================================================#
+#====== Fig. 10. Fe56 (600 MeV/u), Si28 Equal Doses, Confidence Interval ======#
+#==============================================================================#
 # Fe56 (600 MeV/u) and Si28 in equal proportions for a total of 40 cGy
 # Declare ratios and LET values for plot
 ratios <- c(1/2, 1/2)
 LET_vals <- c(193, 70)
-d10 = c(0.01*0:9,0.1*1:9,1:40)
+d10 = c(0.01 * 0:9, 0.1 * 1:9, 1:40)
 # We use the plot that takes adjustable parameter correlations into account
 corr_fig_10 <- simulate_monte_carlo(n=500, d10, LET_vals, ratios, model = "NTE")
 # The first argument, n, is the number of Monte Carlo repeats. Increase for
@@ -201,10 +209,10 @@ lines(ci_data[,"dose"],ci_data[,"si"],col='brown', lwd = 2) # Si DER
 lines(ci_data[,"dose"],ci_data[,"fe_six"],col='blue') #Fe
 lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd = 3) # I(d)
 
-# #========= FIGURE 11 =================#
-# #=============== Correlated vs Uncorrelated CI Overlay Plot ==================#
-# 
- # Consists of all 7 HZE ions in our 5/20/2018 data set.
+#==============================================================================#
+#========= Fig. 11. Correlated vs Uncorrelated CI Overlay Plot ================#
+#==============================================================================#
+# Consists of all 7 HZE ions in our 5/20/2018 data set.
 #  Declare ratios and LET values for plot
 ratios <- c(1/7, 1/7, 1/7, 1/7, 1/7, 1/7, 1/7)
 LET_vals <- c(25, 70, 100, 193, 250, 464, 953)
@@ -252,6 +260,6 @@ lines(ci_data[,"dose"],ci_data[,"fe_six"],col='black', lwd = 2)
 lines(ci_data[,"dose"],ci_data[,"i"],col='red', lwd=3)
 
 
-#===moved Figure for Chang's new proton data point 5/22/2018 to its own separate file===#
+#== moved Figure for Chang's new proton data point 5/22/2018 to its own separate file ==#
  
-#===moved 9-panel plot for supplement to its own separate file===#
+#== moved 9-panel plot for supplement to its own separate file ==#
