@@ -8,17 +8,18 @@
 #               part of the source code for the NASAmouseHG project.
 # Contact:      Rainer K. Sachs 
 # Website:      https://github.com/sachsURAP/NASAmouseHG
-# Mod history:  03 Jun 2018
-# Details:      See dataAndInfo.R for further licensing, attribution, references,
-#               and abbreviation information.
+# Mod history:  18 Jun 2018
+# Details:      See dataAndInfo.R for further licensing, attribution, 
+#               references, and abbreviation information.
 
-source("synergyTheory.R") # Load in data and models
+source("synergyTheory.R") # Load in data and models.
 
-library(mvtnorm) # Random sampling
+library(mvtnorm) # Random sampling.
 
 #======================= MONTE CARLO SIMULATION FUNCTION ======================#
 
-#' @description Runs the Monte Carlo method on a baseline no-synergy/antagonism mixture DER.
+#' @description Runs the Monte Carlo method on a baseline no-synergy/antagonism 
+#'              mixture DER.
 #' 
 #' @param n Numeric integer of the number of samples to be drawn.
 #' @param dose Numeric vector of all total dose values to be evaluated. 
@@ -38,7 +39,7 @@ library(mvtnorm) # Random sampling
 #' @examples
 #' ratios <- c(1/2, 1/2)
 #' LET_vals <- c(195, 70)
-#' simulate_monte_carlo(200, 0:100, LET_vals, ratios)
+#' simulate_monte_carlo(0:100, LET_vals, ratios)
 
 simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE", 
                                  vcov = TRUE, interval_length = 0.95,
@@ -56,12 +57,13 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
   return(list(monte_carlo = monte_carlo_ci))
 }
 
+
 #========================= MONTE CARLO HIDDEN FUNCTIONS =======================#
 
 #================== SAMPLING ===================#
 
-#' @description Generates mixture no-synergy/antagonism DER samples with parameters drawn from a Gaussian 
-#'              distribution.
+#' @description Generates mixture no-synergy/antagonism DER samples with
+#'              parameters drawn from a Gaussian distribution.
 #'              
 #' @param n Numeric integer of the number of samples to be drawn.
 #' @param dose Numeric vector of all total dose values to be evaluated. 
@@ -114,7 +116,8 @@ simulate_monte_carlo <- function(n = 200, dose, LET, ratios, model = "NTE",
 
 #============= INTERVAL CONSTRUCTION ===========#
 
-#' @description Generates confidence intervals for mixture baeline DER samples at a dose.
+#' @description Generates confidence intervals for mixture baeline DER samples 
+#'              at a dose.
 #'              
 #' @param n Numeric integer of the number of samples to be drawn.
 #' @param dose_index Numeric integer of doses
