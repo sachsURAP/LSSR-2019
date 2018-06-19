@@ -13,9 +13,7 @@
 
 source("monteCarlo.R") # Load Monte Carlo.
 
-library(ggplot2) # Ribbon plot functionality.
-library(grid)    # Plot grids.
-library(Hmisc)   # Error bars.
+library(Hmisc) # Error bars.
 
 #========= 9-panel plot for supplement: 8 HZE DER panels, 1 low-LET placeholder ============#
 plot(1, 1)
@@ -46,7 +44,7 @@ Ti <- ion_data[22:26, ] # Ti 22:26
 dmTi <- ion_data[26, "dose"]
 dTi <- c(0.01 * 0:9, 0.1 * 1:9, 1:dmTi)
 plot(dTi, calibrated_HZE_nte_der(dose=dTi, Ti[1, "LET"]), type = 'l', ylim = c(0, .82), ann = FALSE, col = 'red', lwd = 2)
-errbar(Ti[, "dose"], Ti[, "Prev"],yplus=Ti[, "Prev"]+1.96*Ti[, "SD"], yminus=Ti[, "Prev"]-1.96*Ti[, "SD"],
+errbar(Ti[, "dose"], Ti[, "Prev"], yplus = Ti[, "Prev"] + 1.96 * Ti[, "SD"], yminus = Ti[, "Prev"] - 1.96 * Ti[, "SD"],
        cap = 0.03, add = TRUE, col = 'black', errbar.col = 'black', lwd = 1)
 
 Fe1 <- ion_data[27:29, ]
@@ -67,20 +65,20 @@ Fe3 <- ion_data[37:40, ] # Fe3 37:40
 dmFe3 <- ion_data[40, "dose"]
 dFe3 <- c(0.01 * 0:9, 0.1 * 1:9, 1:dmFe3)
 plot(dFe3, calibrated_HZE_nte_der(dose = dFe3, Fe3[1, "LET"]), type = 'l', ylim = c(0, .82), ann = FALSE, col = 'red', lwd = 2)
-errbar(Fe3[, "dose"], Fe3[, "Prev"],yplus=Fe3[, "Prev"]+1.96*Fe3[, "SD"], yminus=Fe3[, "Prev"]-1.96*Fe3[, "SD"],
+errbar(Fe3[, "dose"], Fe3[, "Prev"], yplus = Fe3[, "Prev"] + 1.96 * Fe3[, "SD"], yminus = Fe3[, "Prev"] - 1.96 * Fe3[, "SD"],
        cap = 0.03, add = TRUE, col = 'black',  errbar.col = 'black', lwd = 1)
 
 Nb <- ion_data[41:44, ] # Nb 41:44
 dmNb <- ion_data[44, "dose"]
 dNb <- c(0.01 * 0:9, 0.1 * 1:9, 1:dmNb)
-plot(dNb, calibrated_HZE_nte_der(dose = dNb, Nb[1,"LET"]), type = 'l', ylim = c(0, .82), ann = FALSE, col = 'red', lwd = 2)
+plot(dNb, calibrated_HZE_nte_der(dose = dNb, Nb[1, "LET"]), type = 'l', ylim = c(0, .82), ann = FALSE, col = 'red', lwd = 2)
 errbar(Nb[, "dose"], Nb[, "Prev"], yplus = Nb[, "Prev"] + 1.96 * Nb[, "SD"], yminus = Nb[, "Prev"] - 1.96 * Nb[, "SD"],
        cap = 0.03, add = TRUE, col='black',  errbar.col = 'black', lwd = 1)
 
 La <- ion_data[45:47, ] # La 45:47
 dmLa <- ion_data[47, "dose"]
 dLa <- c(0.01 * 0:9, 0.1 * 1:9, 1:dmLa)
-plot(dLa, calibrated_HZE_nte_der(dose = dLa, La[1,"LET"]), type = 'l', ylim = c(0, .82), ann = FALSE, col = 'red', lwd = 2)
+plot(dLa, calibrated_HZE_nte_der(dose = dLa, La[1, "LET"]), type = 'l', ylim = c(0, .82), ann = FALSE, col = 'red', lwd = 2)
 errbar(La[, "dose"], La[, "Prev"], yplus = La[, "Prev"] + 1.96 * La[, "SD"], yminus = La[, "Prev"] - 1.96 * La[, "SD"],
        cap = 0.03, add = TRUE, col = 'black', errbar.col = 'black', lwd = 1)
 
