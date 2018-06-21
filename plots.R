@@ -254,7 +254,3 @@ lines(ci_data[, "dose"], ci_data[, "si"], col = 'black', lwd = 2)
 lines(ci_data[, "dose"], ci_data[, "ti"], col = 'black', lwd = 2)
 lines(ci_data[, "dose"], ci_data[, "fe_six"], col = 'black', lwd = 2)
 lines(ci_data[, "dose"], ci_data[, "i"], col = 'red', lwd = 3)
-
-# Remark: We moved the Figure for Chang's new proton data point 5/22/2018 to 
-# exploration/plot_newDatapoint5.31.2018.R and moved the 9-panel plot for 
-# the paper supplement to supplementPlots.R 
