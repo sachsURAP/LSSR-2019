@@ -31,11 +31,13 @@ Meeting minutes, example scripts for various procedures, past agendas, and past 
     #               high-energy, atomic nuclei. 
     # Contact:      Rainer K. Sachs 
     # Website:      https://github.com/sachsURAP/NASAmouseHG
-    # Mod history:  19 Jun 2018
-    # Attribution:  This R script was developed at UC Berkeley. Written by Dae Woong 
-    #               Ham Summer 2017. Additions, corrections, changes, quality 
-    #               control, reorganization by Edward Huang, Yimin Lin, Mark Ebert,
-    #               Yunzhi Zhang and Ray Sachs UCB 2017-2018 academic year.  
+    # Mod history:  22 Jun 2018
+    # Attribution:  These R scripts and related files were developed at 
+    #               UC Berkeley 2017-18. An early version was written by 
+    #               Dae Woong Ham Summer 2017. Additions, corrections, changes, 
+    #               quality control, and major reorganization by Edward G. Huang, 
+    #               Yimin Lin, Mark Ebert, Yunzhi Zhang and Ray Sachs, 
+    #               UCB Fall 2017 - Summer 2018.
 
 ## License Notice
     #  NASAmouseHG is free software: you can redistribute it and/or modify
