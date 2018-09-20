@@ -72,13 +72,24 @@ ddose <- 0:701
 plot(c(0, 701), c(-.02, 1), pch = 19, col = 'white', ann = FALSE, bty = 'u')
 lines(ddose, 1 - exp(- coef(summary(low_LET_model, correlation = TRUE))[1] * ddose), lwd = 2)# next is alpha particle data
 
-errbar(ion_data[6:13, "dose"], ion_data[6:13, "Prev"], 
-       yplus  = ion_data[6:13, "Prev"] + 1.96 * ion_data[6:13, "SD"],
-       yminus = ion_data[6:13, "Prev"] - 1.96 * ion_data[6:13, "SD"],
+Z1_index_list = c()
+Z2_index_list = c()
+for (i in 1 : nrow(ion_data)) {
+  if (ion_data[i, 'Z'] == 1) {
+    Z1_index_list = c(Z1_index_list, i)
+  } 
+  if (ion_data[i, 'Z'] == 2) {
+    Z2_index_list = c(Z2_index_list, i)
+  }
+}
+
+errbar(ion_data[Z2_index_list, "dose"], ion_data[Z2_index_list, "Prev"], 
+       yplus  = ion_data[Z2_index_list, "Prev"] + 1.96 * ion_data[Z2_index_list, "SD"],
+       yminus = ion_data[Z2_index_list, "Prev"] - 1.96 * ion_data[Z2_index_list, "SD"],
        pch = 19, cap = 0.02, add = TRUE, col = 'red', errbar.col = 'red', lwd = 2) # Alpha particle data
-errbar(ion_data[1:5, "dose"], ion_data[1:5, "Prev"],
-       yplus  = ion_data[1:5, "Prev"] + 1.96 * ion_data[1:5, "SD"], 
-       yminus = ion_data[1:5, "Prev"] - 1.96 * ion_data[1:5, "SD"], 
+errbar(ion_data[Z1_index_list, "dose"], ion_data[Z1_index_list, "Prev"],
+       yplus  = ion_data[Z1_index_list, "Prev"] + 1.96 * ion_data[Z1_index_list, "SD"], 
+       yminus = ion_data[Z1_index_list, "Prev"] - 1.96 * ion_data[Z1_index_list, "SD"], 
        pch = 19, cap = 0.02, add = TRUE, col = 'black', errbar.col = 'black', lwd = 2) # Proton data
 legend(x = "bottomright", legend = "95%CI not SD", cex=0.6)
 # pch = c(19,19), cex = 1, inset = 0.025)
