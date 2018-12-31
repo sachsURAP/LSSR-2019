@@ -40,16 +40,7 @@ phi <- 2000 # even larger phi should give the same final results,
 #=============== HZE/NTE MODEL =================#
 # (HZE = high charge and energy; 
 #  NTE = non-targeted effects are included in addition to TE)
-HZE_index_list = c()
-low_LET_index_list = c()
-for (i in 1 : nrow(ion_data)) {
-  if (ion_data[i, 'Z'] >= 3) {
-    HZE_index_list = c(HZE_index_list, i)
-  } else {
-    low_LET_index_list = c(low_LET_index_list, i)
-  }
-}
-HZE_data <- ion_data[HZE_index_list, ] # Includes 1-ion data iff Z > 3
+HZE_data <- ion_data[13:47, ] # Includes 1-ion data iff Z > 3
 # Uses 3 adjustable parameters. 
 HZE_nte_model <- nls( # Calibrating parameters in a model that modifies the hazard function NTE models in 17Cuc. 
   Prev ~ .0275 + (1 - exp ( - (aa1 * LET * dose * exp( - aa2 * LET) 
@@ -97,7 +88,7 @@ calibrated_HZE_te_der <- function(dose, LET, coef = HZE_te_model_coef) {
 }
 
 #==== LIGHT ION, LOW Z (<= 3), LOW LET MODEL ===#
-low_LET_data = ion_data[low_LET_index_list, ] # Swift protons and alpha particles.
+low_LET_data = ion_data[1:12, ] # Swift protons and alpha particles.
 low_LET_model <- nls(
   Prev ~ .0275 + 1 - exp( - alpha_low * dose), # alpha is used throughout radioiology for dose coefficients.
   data = low_LET_data,
