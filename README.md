@@ -7,14 +7,7 @@ Data and script for analyzing ionizing radiation tumorigenesis outside low-earth
 
 #### `NASAmouseHG`
 The main directory. Houses our primary R scripts for analysis, licensing information, git integration, and important subfolders.
-The primary scripts, in order of development, are: `dataAndInfo.R`, `synergyTheory.R`, `monteCarlo.R`, `plots.R`, and `supplementPlots.R`. RAYREADME. 7/20/2018
-Sandbox murine_HG is the master for the REBP paper.
-It runs well.
-It corresponds very closely to rainersachs/mouse_tumors2018 in GitHub sachs.URAP which contains the 5 essential files (.csv, data&info,synergytheory, monte, plots)
-It will be used as the starting point for the long range master that will get its own sandbox murine_HG_p2.1 and correspnding GitHub repository. These will incorporate .csv files that can handle mixture inputs, not just 1-ion data
-
-Sandbox murine_HG_p2 is kind of a mess. It corresponds roughly to GitHub sachsURAP/NASAmouseHG.
-Both should be used only for temporary graphing for Ellie until murine_HG_v2.1 and its GitHub repository are functional. It has not been as well tested, so any copying of any part of its files should be avoided or done cautiously.
+The primary scripts, in order of development, are: `dataAndInfo.R`, `synergyTheory.R`, `monteCarlo.R`, `plots.R`, and `supplementPlots.R`.
 
 #### `data`
 Data files, strictly in CSV format. 
