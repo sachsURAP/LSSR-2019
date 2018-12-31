@@ -57,10 +57,5 @@ ion_data <- data.frame(read.csv("rks_raw_data_ordered.csv"))
 rks_mix_data =  data.frame(read.csv("rks_mix_data.csv"))
 # These two lines of script plus the .csv file (which will need work as 
 # additions and perhaps corrections come up) should be all we need.
-
-# The following, which shows how to compute ion speed and the Katz 
-# amorphous track structure parameter, will be used for adding Cucinotta's models in 16 Chang to our script and comparing them to our more parsimonious models. GeVu is kinetic energy per unit atomic mass unit
-# an example for 670Ne20 is GeVu =10^-3*670; Z =10.  We are approximating Z_eff by Z
-#round(dfr[, "Z"] ^2 * (2.57 * GeVu ^2 + 4.781 * GeVu + 2.233) / (2.57 * GeVu ^2 + 4.781 * GeVu), 3) 
-#special relativistic calculation of Z^2/beta^2. The numerics include conversion from GeV to joules and from u to kg.
-#dfr[, "beta"] &lt;- round(dfr[, "Z"] * sqrt(1 / dfr[, "Katz"]), 3) #  i.e. beta = Z*sqrt(beta^2/Z^2) 
+# However older versions, which show how to compute ion speed and the Katz 
+# amorphous track structure parameter, may be useful later.
