@@ -1,7 +1,7 @@
 # NASAmouseHG  
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)  
 
-Data and script for analyzing ionizing radiation tumorigenesis outside low-earth orbit.
+Data and script for analyzing ionizing radiation tumorigenesis outside low-earth orbit. The results are presented in [Huang et al., (2019)](https://link.springer.com/article/10.1007%2Fs00411-018-00774-x).
 
 ## Repository Contents
 
